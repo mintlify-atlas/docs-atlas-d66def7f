@@ -1,0 +1,186 @@
+{
+  "projectType": "sdk-library",
+  "projectName": "Anime.js",
+  "projectDescription": "A lightweight JavaScript animation engine for animating CSS properties, SVG, DOM attributes and JavaScript Objects",
+  "theme": "palm",
+  "primaryColor": "#FF4B4B",
+  "lightColor": "#FFE5E5",
+  "darkColor": "#CC0000",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/animations",
+              "concepts/timelines",
+              "concepts/targets",
+              "concepts/properties",
+              "concepts/keyframes"
+            ]
+          },
+          {
+            "group": "Modules",
+            "pages": [
+              "modules/animation",
+              "modules/timeline",
+              "modules/timer",
+              "modules/animatable",
+              "modules/draggable",
+              "modules/scope",
+              "modules/engine"
+            ]
+          },
+          {
+            "group": "Easings",
+            "pages": [
+              "easings/overview",
+              "easings/built-in",
+              "easings/cubic-bezier",
+              "easings/spring",
+              "easings/steps",
+              "easings/irregular",
+              "easings/custom"
+            ]
+          },
+          {
+            "group": "Utilities",
+            "pages": [
+              "utilities/stagger",
+              "utilities/random",
+              "utilities/time"
+            ]
+          },
+          {
+            "group": "Advanced",
+            "pages": [
+              "advanced/svg",
+              "advanced/text",
+              "advanced/waapi",
+              "advanced/events",
+              "advanced/layout",
+              "advanced/composition",
+              "advanced/performance"
+            ]
+          },
+          {
+            "group": "Examples",
+            "pages": [
+              "examples/basic-animations",
+              "examples/timelines",
+              "examples/svg-animations",
+              "examples/text-animations",
+              "examples/scroll-animations",
+              "examples/draggable",
+              "examples/canvas"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Animation",
+            "pages": [
+              "api/animate",
+              "api/animation-class",
+              "api/animation-parameters"
+            ]
+          },
+          {
+            "group": "Timeline",
+            "pages": [
+              "api/timeline-class",
+              "api/timeline-methods",
+              "api/timeline-parameters"
+            ]
+          },
+          {
+            "group": "Timer",
+            "pages": [
+              "api/timer-class",
+              "api/timer-methods"
+            ]
+          },
+          {
+            "group": "Animatable",
+            "pages": [
+              "api/animatable-class",
+              "api/animatable-methods"
+            ]
+          },
+          {
+            "group": "Draggable",
+            "pages": [
+              "api/draggable-class",
+              "api/draggable-methods"
+            ]
+          },
+          {
+            "group": "Utilities",
+            "pages": [
+              "api/stagger",
+              "api/utils",
+              "api/svg-utils",
+              "api/text-utils"
+            ]
+          },
+          {
+            "group": "Easings",
+            "pages": [
+              "api/easing-functions",
+              "api/spring-easing",
+              "api/cubic-bezier"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Animate CSS properties, SVG, DOM attributes and JavaScript objects",
+    "Timeline-based animation sequencing with position control",
+    "Comprehensive easing functions including spring physics and cubic-bezier",
+    "Stagger effects for animating multiple elements with offsets",
+    "Draggable interactions with snap and custom bounds",
+    "Text splitting and character-level animations",
+    "SVG path and morphing animations",
+    "Scroll-triggered and event-driven animations",
+    "Additive animation composition",
+    "WAAPI integration support"
+  ],
+  "publicApiSurface": [
+    "animate(targets, parameters)",
+    "Timeline class",
+    "Timer class",
+    "Animatable class",
+    "Draggable class",
+    "stagger(value, options)",
+    "spring(tension, friction)",
+    "cubicBezier(x1, y1, x2, y2)",
+    "steps(steps, jump)",
+    "irregular(easing)",
+    "linear(easing)",
+    "utils.random(min, max)",
+    "utils.shuffle(array)",
+    "utils.chain(...functions)",
+    "svg.createPath(path)",
+    "text.splitText(target, options)",
+    "createScope()",
+    "createEngine()",
+    "createTimer(parameters)",
+    "easings object (all easing functions)",
+    "utils object (utility functions)"
+  ]
+}
