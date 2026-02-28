@@ -1,0 +1,510 @@
+---
+title: Timeline Parameters
+description: Comprehensive reference for all Timeline configuration parameters, inherited properties, and animation defaults.
+---
+
+Timeline parameters configure the behavior, timing, and defaults for a Timeline instance. Parameters can be passed to the Timeline constructor or the `createTimeline()` factory function.
+
+## Timeline-Specific Parameters
+
+### defaults
+
+<ParamField path="defaults" type="DefaultsParams">
+  Default animation parameters that will be inherited by all animations added to the timeline. These defaults are merged with global defaults.
+</ParamField>
+
+```javascript
+const tl = createTimeline({
+  defaults: {
+    duration: 1000,
+    ease: 'outQuad',
+    composition: 'blend'
+  }
+});
+
+// All animations inherit these defaults unless overridden
+tl.add('.element', { translateX: 100 }); // Uses 1000ms duration and outQuad easing
+tl.add('.element2', { scale: 2, duration: 500 }); // Overrides duration to 500ms
+```
+
+<Expandable title="Available default parameters">
+  - `id` - Default ID pattern for child animations
+  - `duration` - Default animation duration
+  - `delay` - Default animation delay
+  - `ease` - Default easing function
+  - `composition` - Default composition mode ('none', 'replace', 'blend')
+  - `loop` - Default loop behavior
+  - `alternate` - Default alternate behavior
+  - `reversed` - Default reversed state
+  - `autoplay` - Default autoplay behavior
+  - `frameRate` - Default frame rate
+  - `playbackRate` - Default playback speed
+  - `modifier` - Default value modifier function
+  - All callback functions (`onBegin`, `onUpdate`, `onComplete`, etc.)
+</Expandable>
+
+---
+
+### playbackEase
+
+<ParamField path="playbackEase" type="EasingParam">
+  Easing function applied to the timeline's playback rate. This creates a non-linear progression through the entire timeline, affecting all child animations.
+</ParamField>
+
+```javascript
+const tl = createTimeline({
+  duration: 5000,
+  playbackEase: 'inOutQuad' // Timeline progresses with easing
+});
+
+// The timeline's playback will ease in and out,
+// making animations at the start and end slower
+```
+
+<Note>
+  `playbackEase` is different from animation easing. It affects the timeline's overall progression, while animation easing affects individual property changes.
+</Note>
+
+---
+
+### composition
+
+<ParamField path="composition" type="Boolean" default="true">
+  Controls whether animations are automatically composed and rendered as they're added to the timeline.
+  
+  - `true` - Animations are composed immediately (default, recommended)
+  - `false` - Composition is deferred until manually triggered
+</ParamField>
+
+```javascript
+// Immediate composition (default)
+const tl1 = createTimeline({ composition: true });
+tl1.add('.element', { x: 100 }); // Composed immediately
+
+// Deferred composition
+const tl2 = createTimeline({ composition: false });
+tl2.add('.element', { x: 100 }); // Not composed yet
+tl2.init(true); // Manually trigger composition
+```
+
+---
+
+### onRender
+
+<ParamField path="onRender" type="Callback<Timeline>">
+  Callback function invoked whenever the timeline renders. Receives the timeline instance as an argument.
+</ParamField>
+
+```javascript
+const tl = createTimeline({
+  onRender: (timeline) => {
+    console.log('Timeline rendered at:', timeline.currentTime);
+  }
+});
+```
+
+<Warning>
+  The `onRender` callback is called on every render tick, which can be very frequent. Use it carefully to avoid performance issues.
+</Warning>
+
+---
+
+## Timing Parameters
+
+These parameters control the timeline's timing behavior.
+
+### id
+
+<ParamField path="id" type="String | Number">
+  Unique identifier for the timeline. If not provided, an auto-incrementing numeric ID is assigned.
+</ParamField>
+
+```javascript
+const tl = createTimeline({ id: 'mainTimeline' });
+console.log(tl.id); // 'mainTimeline'
+```
+
+---
+
+### duration
+
+<ParamField path="duration" type="Number | Function">
+  Initial duration in milliseconds. **Note:** Timeline duration automatically grows as children are added, so this is rarely needed.
+</ParamField>
+
+```javascript
+// Duration grows automatically
+const tl = createTimeline();
+console.log(tl.duration); // 0
+
+tl.add('.el', { x: 100, duration: 1000 });
+console.log(tl.duration); // 1000
+
+tl.add('.el2', { x: 100, duration: 1000 }, '+=500');
+console.log(tl.duration); // 2500
+```
+
+---
+
+### delay
+
+<ParamField path="delay" type="Number | Function" default="0">
+  Delay in milliseconds before the timeline starts playing.
+</ParamField>
+
+```javascript
+const tl = createTimeline({
+  delay: 1000 // Wait 1 second before starting
+});
+```
+
+---
+
+### loopDelay
+
+<ParamField path="loopDelay" type="Number" default="0">
+  Delay in milliseconds between loop iterations.
+</ParamField>
+
+```javascript
+const tl = createTimeline({
+  loop: 3,
+  loopDelay: 500 // 500ms pause between each loop
+});
+```
+
+---
+
+## Playback Parameters
+
+### loop
+
+<ParamField path="loop" type="Boolean | Number" default="false">
+  Controls timeline looping behavior.
+  
+  - `false` - Play once (default)
+  - `true` or `Infinity` - Loop infinitely
+  - `Number` - Loop N times (e.g., `3` plays 4 times total: initial + 3 loops)
+</ParamField>
+
+```javascript
+// Play once
+const tl1 = createTimeline({ loop: false });
+
+// Loop infinitely
+const tl2 = createTimeline({ loop: true });
+
+// Loop 3 times (plays 4 times total)
+const tl3 = createTimeline({ loop: 3 });
+```
+
+---
+
+### reversed
+
+<ParamField path="reversed" type="Boolean" default="false">
+  Whether the timeline should play in reverse direction from the start.
+</ParamField>
+
+```javascript
+const tl = createTimeline({
+  reversed: true // Plays backwards from end to start
+});
+```
+
+---
+
+### alternate
+
+<ParamField path="alternate" type="Boolean" default="false">
+  Whether the timeline should alternate playback direction on each loop iteration.
+</ParamField>
+
+```javascript
+const tl = createTimeline({
+  loop: true,
+  alternate: true // Plays forward, then backward, then forward...
+});
+```
+
+---
+
+### autoplay
+
+<ParamField path="autoplay" type="Boolean | ScrollObserver" default="false">
+  Controls automatic playback behavior.
+  
+  - `false` - Manual playback (default)
+  - `true` - Automatically start playing when initialized
+  - `ScrollObserver` - Drive playback based on scroll position
+</ParamField>
+
+```javascript
+// Manual playback
+const tl1 = createTimeline();
+tl1.play(); // Must call play() manually
+
+// Automatic playback
+const tl2 = createTimeline({ autoplay: true }); // Starts automatically
+
+// Scroll-driven
+const tl3 = createTimeline({
+  autoplay: createScrollObserver({
+    target: '.section',
+    enter: '0% 100%',
+    leave: '100% 0%'
+  })
+});
+```
+
+---
+
+### frameRate
+
+<ParamField path="frameRate" type="Number">
+  Target frame rate to limit update frequency. Useful for performance optimization or creating stylized animations.
+</ParamField>
+
+```javascript
+const tl = createTimeline({
+  frameRate: 24 // Limit to 24fps for film-like effect
+});
+```
+
+---
+
+### playbackRate
+
+<ParamField path="playbackRate" type="Number" default="1">
+  Playback speed multiplier.
+  
+  - `1` - Normal speed (default)
+  - `> 1` - Faster (e.g., `2` = 2x speed)
+  - `< 1` - Slower (e.g., `0.5` = half speed)
+</ParamField>
+
+```javascript
+const tl = createTimeline({
+  playbackRate: 0.5 // Play at half speed
+});
+
+// Can also be changed dynamically
+tl.speed = 2; // Change to 2x speed
+```
+
+---
+
+## Callback Parameters
+
+Callback functions receive the timeline instance as their first argument.
+
+### onBegin
+
+<ParamField path="onBegin" type="Callback<Timeline>">
+  Called when the timeline begins playing for the first time (not on subsequent loops or seeks).
+</ParamField>
+
+```javascript
+const tl = createTimeline({
+  onBegin: (timeline) => {
+    console.log('Timeline started');
+  }
+});
+```
+
+---
+
+### onBeforeUpdate
+
+<ParamField path="onBeforeUpdate" type="Callback<Timeline>">
+  Called before each timeline update tick, before any animations are rendered.
+</ParamField>
+
+```javascript
+const tl = createTimeline({
+  onBeforeUpdate: (timeline) => {
+    console.log('About to update:', timeline.currentTime);
+  }
+});
+```
+
+---
+
+### onUpdate
+
+<ParamField path="onUpdate" type="Callback<Timeline>">
+  Called on each timeline update tick, after animations are rendered.
+</ParamField>
+
+```javascript
+const tl = createTimeline({
+  onUpdate: (timeline) => {
+    console.log('Progress:', timeline.progress);
+  }
+});
+```
+
+---
+
+### onLoop
+
+<ParamField path="onLoop" type="Callback<Timeline>">
+  Called when the timeline completes a loop iteration and is about to start the next one.
+</ParamField>
+
+```javascript
+const tl = createTimeline({
+  loop: true,
+  onLoop: (timeline) => {
+    console.log('Loop completed, iteration:', timeline.currentIteration);
+  }
+});
+```
+
+---
+
+### onPause
+
+<ParamField path="onPause" type="Callback<Timeline>">
+  Called when the timeline is paused.
+</ParamField>
+
+```javascript
+const tl = createTimeline({
+  onPause: (timeline) => {
+    console.log('Timeline paused at:', timeline.currentTime);
+  }
+});
+```
+
+---
+
+### onComplete
+
+<ParamField path="onComplete" type="Callback<Timeline>">
+  Called when the timeline completes all iterations.
+</ParamField>
+
+```javascript
+const tl = createTimeline({
+  loop: 2,
+  onComplete: (timeline) => {
+    console.log('Timeline finished all loops');
+  }
+});
+```
+
+---
+
+## Type Definitions
+
+For TypeScript users, here are the relevant type definitions from the source:
+
+```typescript
+// Timeline parameters type
+type TimelineParams = TimerOptions & 
+  TimelineOptions & 
+  TickableCallbacks<Timeline> & 
+  RenderableCallbacks<Timeline>;
+
+// Timeline-specific options
+type TimelineOptions = {
+  defaults?: DefaultsParams;
+  playbackEase?: EasingParam;
+  composition?: Boolean;
+};
+
+// Timer options (inherited)
+type TimerOptions = {
+  id?: Number | String;
+  duration?: TweenParamValue;
+  delay?: TweenParamValue;
+  loopDelay?: Number;
+  reversed?: Boolean;
+  alternate?: Boolean;
+  loop?: Boolean | Number;
+  autoplay?: Boolean | ScrollObserver;
+  frameRate?: Number;
+  playbackRate?: Number;
+};
+
+// Callback types
+type TickableCallbacks<T> = {
+  onBegin?: Callback<T>;
+  onBeforeUpdate?: Callback<T>;
+  onUpdate?: Callback<T>;
+  onLoop?: Callback<T>;
+  onPause?: Callback<T>;
+  onComplete?: Callback<T>;
+};
+
+type RenderableCallbacks<T> = {
+  onRender?: Callback<T>;
+};
+
+type Callback<T> = (self: T, e?: PointerEvent) => any;
+```
+
+## Complete Example
+
+Here's a comprehensive example demonstrating various timeline parameters:
+
+```javascript
+import { createTimeline, stagger } from 'animejs';
+
+const tl = createTimeline({
+  // Identification
+  id: 'mainSequence',
+  
+  // Timing
+  delay: 500,
+  loopDelay: 1000,
+  
+  // Playback
+  loop: 2,
+  alternate: true,
+  autoplay: true,
+  playbackRate: 1,
+  playbackEase: 'inOutQuad',
+  
+  // Defaults for child animations
+  defaults: {
+    duration: 1000,
+    ease: 'outExpo',
+    composition: 'blend'
+  },
+  
+  // Callbacks
+  onBegin: (tl) => {
+    console.log('Animation sequence started');
+  },
+  onUpdate: (tl) => {
+    document.querySelector('#progress').textContent = 
+      Math.round(tl.progress * 100) + '%';
+  },
+  onLoop: (tl) => {
+    console.log('Loop', tl.currentIteration, 'complete');
+  },
+  onComplete: (tl) => {
+    console.log('All animations complete');
+  }
+});
+
+// Add animations (inherit defaults)
+tl.label('intro')
+  .add('.title', { opacity: [0, 1], translateY: [-50, 0] }, 'intro')
+  .add('.subtitle', { opacity: [0, 1] }, '+=200')
+  .label('main')
+  .add('.item', {
+    scale: [0, 1],
+    duration: 800 // Override default duration
+  }, stagger(100, { start: 'main' }))
+  .label('outro')
+  .add('.footer', { opacity: [0, 1] }, 'outro');
+```
+
+## See Also
+
+- [Timeline Class](/api/timeline-class) - Timeline constructor and properties
+- [Timeline Methods](/api/timeline-methods) - Methods for controlling the timeline
+- [Animation Parameters](/api/animation-parameters) - Parameters for animations added to the timeline

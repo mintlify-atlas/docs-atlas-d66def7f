@@ -1,0 +1,364 @@
+---
+title: Scroll Animations
+description: Create scroll-linked animations that respond to user scrolling using Anime.js onScroll feature
+---
+
+## Basic Scroll Animation
+
+Sync a timeline with scroll position:
+
+```javascript
+import { createTimeline, onScroll } from 'animejs';
+
+const tl = createTimeline({
+  defaults: {
+    duration: 1000,
+    ease: 'linear'
+  },
+  autoplay: onScroll({
+    target: '.scroll-container',
+    enter: 'top top',        // When element top hits viewport top
+    leave: 'bottom bottom',  // When element bottom hits viewport bottom
+  })
+});
+
+tl.add('.element', {
+  y: [100, 0],
+  opacity: [0, 1]
+});
+```
+
+## Scroll Configuration
+
+Control scroll behavior with various options:
+
+```javascript
+import { createTimeline, onScroll } from 'animejs';
+
+createTi meline({ autoplay: onScroll({
+  // Target element to track
+  target: '.sticky-container',
+  
+  // Start trigger: when element enters viewport
+  enter: 'top top',     // element_position viewport_position
+  
+  // End trigger: when element leaves viewport
+  leave: 'bottom bottom',
+  
+  // Sync point (0 to 1) - when timeline is at 50%
+  sync: 0.5,
+  
+  // Smooth scrolling
+  smooth: 0.1,          // 0 (instant) to 1 (very smooth)
+  
+  // Debug mode - shows scroll markers
+  debug: true
+}) })
+.add('.element', { rotate: 360 });
+```
+
+## Sticky Scroll Effect
+
+Create a sticky element with scroll-driven animations:
+
+```javascript
+import { createTimeline, onScroll, stagger, utils } from 'animejs';
+
+// Set initial positions
+utils.set('.card', {
+  rotate: () => utils.random(-1, 1, 2),
+  rotateZ: () => utils.random(-1, 1, 2),
+  y: stagger(-0.5, { from: 'last' }),
+  z: stagger(1)
+});
+
+const tl = createTimeline({
+  defaults: {
+    ease: 'linear',
+    duration: 500,
+    composition: 'blend'
+  },
+  autoplay: onScroll({
+    target: '.sticky-container',
+    enter: 'top top',
+    leave: 'bottom bottom',
+    sync: 0.5
+  })
+});
+
+// Stack rotation
+tl.add('.stack', {
+  rotateY: [-180, 0],
+  ease: 'in(2)'
+}, 0);
+
+// Card animations
+tl.add('.card', {
+  rotate: 0,
+  rotateZ: { 
+    to: stagger([0, -360], { from: 'last' }),
+    ease: 'inOut(2)' 
+  },
+  y: { to: '-60%', duration: 400 },
+  transformOrigin: ['50% 100%', '50% 50%'],
+  delay: stagger(1, { from: 'first' })
+}, 0);
+```
+
+## Enter/Leave Positions
+
+Understanding scroll triggers:
+
+```javascript
+// Format: 'element_position viewport_position'
+
+// Element position:
+// - 'top': top edge of element
+// - 'center': center of element
+// - 'bottom': bottom edge of element
+// - '75%': 75% down the element
+
+// Viewport position:
+// - 'top': top edge of viewport
+// - 'center': center of viewport
+// - 'bottom': bottom edge of viewport
+// - '25%': 25% down the viewport
+
+onScroll({
+  enter: 'top bottom',    // Start when top of element hits bottom of viewport
+  leave: 'bottom top',    // End when bottom of element hits top of viewport
+})
+
+onScroll({
+  enter: 'center center', // Start when element center hits viewport center
+  leave: 'center center', // End at same point (short animation range)
+})
+
+onScroll({
+  enter: '25% 75%',      // Custom percentages
+  leave: '75% 25%',
+})
+```
+
+## Scroll with Sync Point
+
+Control when the timeline reaches a specific progress:
+
+```javascript
+import { createTimeline, onScroll } from 'animejs';
+
+const tl = createTimeline({
+  autoplay: onScroll({
+    target: '.section',
+    enter: 'top bottom',
+    leave: 'bottom top',
+    sync: 0.5  // Timeline will be at 50% when element is centered
+  })
+});
+
+tl.add('.title', {
+  scale: [0.5, 1],
+  opacity: [0, 1],
+  duration: 1000
+});
+```
+
+## Multiple Scroll Sections
+
+Create multiple independent scroll-linked timelines:
+
+```javascript
+import { createTimeline, onScroll } from 'animejs';
+
+// Section 1
+createTi meline({
+  autoplay: onScroll({
+    target: '.section-1',
+    enter: 'top bottom',
+    leave: 'center top'
+  })
+})
+.add('.section-1 .content', {
+  x: [-100, 0],
+  opacity: [0, 1]
+});
+
+// Section 2
+createTi meline({
+  autoplay: onScroll({
+    target: '.section-2',
+    enter: 'top bottom',
+    leave: 'center top'
+  })
+})
+.add('.section-2 .content', {
+  y: [100, 0],
+  opacity: [0, 1]
+});
+
+// Section 3
+createTi meline({
+  autoplay: onScroll({
+    target: '.section-3',
+    enter: 'top bottom',
+    leave: 'center top'
+  })
+})
+.add('.section-3 .content', {
+  scale: [0, 1],
+  rotate: [90, 0]
+});
+```
+
+## Scroll Scope
+
+Control scroll animations within a specific container:
+
+```javascript
+import { onScroll, createTimeline } from 'animejs';
+
+// Scroll within a container element
+const tl = createTimeline({
+  autoplay: onScroll({
+    target: '.card',
+    container: '.scroll-container',  // Custom scroll container
+    enter: 'top top',
+    leave: 'bottom bottom'
+  })
+});
+
+tl.add('.card-content', {
+  y: [50, -50],
+  opacity: [0, 1, 0]
+});
+```
+
+## Smooth Scrolling
+
+Add smoothness to scroll-driven animations:
+
+```javascript
+import { createTimeline, onScroll } from 'animejs';
+
+const tl = createTimeline({
+  autoplay: onScroll({
+    target: '.section',
+    enter: 'top bottom',
+    leave: 'bottom top',
+    smooth: 0.15  // Adds lag for smoother feel (0-1)
+  })
+});
+
+tl.add('.element', {
+  rotate: [0, 360],
+  scale: [1, 2, 1]
+});
+```
+
+## Parallax Effect
+
+Create parallax scrolling:
+
+```javascript
+import { createTimeline, onScroll } from 'animejs';
+
+const tl = createTimeline({
+  autoplay: onScroll({
+    target: '.parallax-section',
+    enter: 'top bottom',
+    leave: 'bottom top'
+  })
+});
+
+// Background moves slower
+tl.add('.background', {
+  y: [0, -100],
+  duration: 1000
+}, 0);
+
+// Foreground moves faster
+tl.add('.foreground', {
+  y: [0, -300],
+  duration: 1000
+}, 0);
+
+// Content at normal speed
+tl.add('.content', {
+  y: [0, -200],
+  duration: 1000
+}, 0);
+```
+
+## Debug Mode
+
+Visualize scroll triggers:
+
+```javascript
+import { createTimeline, onScroll } from 'animejs';
+
+createTi meline({
+  autoplay: onScroll({
+    target: '.section',
+    enter: 'top bottom',
+    leave: 'bottom top',
+    debug: true  // Shows visual markers for enter/leave points
+  })
+})
+.add('.element', { x: [0, 100] });
+```
+
+<Tip>
+  Enable debug mode during development to see exactly when your scroll triggers activate!
+</Tip>
+
+## Responsive Scroll Scope
+
+Adjust scroll behavior based on viewport:
+
+```javascript
+import { createTimeline, onScroll } from 'animejs';
+
+function createScrollAnimation() {
+  const isMobile = window.innerWidth < 768;
+  
+  return createTimeline({
+    autoplay: onScroll({
+      target: '.section',
+      enter: isMobile ? 'top bottom' : 'top center',
+      leave: isMobile ? 'bottom top' : 'bottom center',
+      sync: isMobile ? 0.3 : 0.5
+    })
+  })
+  .add('.content', {
+    scale: [0.8, 1],
+    opacity: [0, 1]
+  });
+}
+
+let scrollAnim = createScrollAnimation();
+
+window.addEventListener('resize', () => {
+  scrollAnim = createScrollAnimation();
+});
+```
+
+## Performance Tips
+
+<Warning>
+  - Use `composition: 'replace'` for better scroll performance
+  - Limit the number of animated elements
+  - Use `will-change: transform` on animated elements
+  - Avoid animating properties that trigger layout (width, height, etc.)
+  - Keep `smooth` value low (0.05-0.15) for responsive feel
+</Warning>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Timelines" icon="clock" href="/examples/timelines">
+    Master timeline sequencing
+  </Card>
+  <Card title="Text Animations" icon="text" href="/examples/text-animations">
+    Add scroll-triggered text effects
+  </Card>
+</CardGroup>

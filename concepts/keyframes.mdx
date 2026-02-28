@@ -1,0 +1,502 @@
+---
+title: Keyframes
+description: Create complex multi-step animations using keyframe syntax
+---
+
+Keyframes allow you to define animations with multiple intermediate steps, giving you fine-grained control over complex animation sequences.
+
+## Keyframe Formats
+
+Anime.js supports two keyframe formats: duration-based and percentage-based.
+
+### Duration-Based Keyframes
+
+Define keyframes as an array of objects, each with its own properties:
+
+```javascript
+import { animate } from 'animejs';
+
+animate('.box', {
+  keyframes: [
+    { x: 0, y: 0 },
+    { x: 100, y: 50, duration: 500 },
+    { x: 100, y: 100, duration: 800 },
+    { x: 0, y: 100, duration: 500 }
+  ]
+});
+```
+
+Each keyframe can have its own timing parameters:
+
+```javascript
+animate('.box', {
+  keyframes: [
+    { 
+      scale: 1.5, 
+      duration: 500, 
+      ease: 'easeInQuad' 
+    },
+    { 
+      scale: 0.5, 
+      duration: 300, 
+      ease: 'easeOutQuad' 
+    },
+    { 
+      scale: 1, 
+      duration: 400,
+      ease: 'linear'
+    }
+  ]
+});
+```
+
+### Percentage-Based Keyframes
+
+Define keyframes at specific percentage points of the animation:
+
+```javascript
+animate('.box', {
+  duration: 2000,
+  keyframes: {
+    '0%': { x: 0, y: 0 },
+    '25%': { x: 100, y: 0 },
+    '50%': { x: 100, y: 100 },
+    '75%': { x: 0, y: 100 },
+    '100%': { x: 0, y: 0 }
+  }
+});
+```
+
+Add easing to percentage keyframes:
+
+```javascript
+animate('.box', {
+  duration: 3000,
+  keyframes: {
+    '0%': { scale: 1 },
+    '30%': { scale: 1.5, ease: 'easeInQuad' },
+    '70%': { scale: 0.8, ease: 'easeOutQuad' },
+    '100%': { scale: 1 }
+  }
+});
+```
+
+## Property Keyframes
+
+Apply keyframes to individual properties:
+
+```javascript
+animate('.box', {
+  x: [
+    { value: 100, duration: 500, ease: 'easeInQuad' },
+    { value: 50, duration: 300, ease: 'easeOutQuad' },
+    { value: 150, duration: 400, ease: 'linear' }
+  ],
+  opacity: [
+    { value: 0.5, duration: 600 },
+    { value: 1, duration: 600 }
+  ]
+});
+```
+
+### Simplified Property Keyframes
+
+For values only (equal duration split):
+
+```javascript
+animate('.box', {
+  x: [0, 100, 50, 150],  // Each step gets 1/4 of total duration
+  opacity: [1, 0.5, 0.8, 0],
+  duration: 2000
+});
+```
+
+## From-To Keyframes
+
+Specify start values for keyframe sequences:
+
+```javascript
+animate('.box', {
+  keyframes: [
+    { 
+      from: 0,
+      to: 100,
+      duration: 500 
+    },
+    { 
+      to: 50, 
+      duration: 300 
+    },
+    { 
+      to: 150, 
+      duration: 400 
+    }
+  ]
+});
+```
+
+## Timeline Keyframes Example
+
+Complex choreography with inline keyframes:
+
+```javascript
+import { createTimeline, stagger } from 'animejs';
+
+const tl = createTimeline({
+  defaults: {
+    ease: 'inOutQuad',
+    duration: 600
+  }
+});
+
+tl.add('.cursor', {
+  keyframes: [
+    { scale: 0.625 },
+    { scale: 1.125 },
+    { scale: 1 }
+  ],
+  duration: 600
+})
+.add('.dot', {
+  keyframes: [
+    {
+      x: stagger('-.175rem', { grid: [10, 10], from: 0, axis: 'x' }),
+      y: stagger('-.175rem', { grid: [10, 10], from: 0, axis: 'y' }),
+      duration: 200
+    },
+    {
+      x: stagger('.125rem', { grid: [10, 10], from: 0, axis: 'x' }),
+      y: stagger('.125rem', { grid: [10, 10], from: 0, axis: 'y' }),
+      scale: 2,
+      duration: 500
+    },
+    {
+      x: 0,
+      y: 0,
+      scale: 1,
+      duration: 600
+    }
+  ],
+  delay: stagger(50, { grid: [10, 10], from: 0 })
+}, 0);
+```
+
+## Seamless Loop Keyframes
+
+Create perfect loops with keyframes:
+
+```javascript
+import { createTimeline } from 'animejs';
+
+const loopDuration = 6000;
+const animDuration = loopDuration * 0.2;
+
+const tl = createTimeline({
+  defaults: {
+    ease: 'inOutSine',
+    loopDelay: (loopDuration * 0.2) - animDuration,
+    duration: animDuration
+  }
+});
+
+// Add seamlessly looping keyframes
+tl.add('.element', {
+  keyframes: [
+    { 
+      backgroundColor: 'hsl(180, 60%, 80%)',
+      scale: 1.25 
+    },
+    { 
+      backgroundColor: 'hsl(0, 40%, 60%)',
+      scale: 1 
+    }
+  ],
+  loop: -1  // Infinite loop
+});
+```
+
+## Mixed Property Keyframes
+
+Combine regular properties with keyframed properties:
+
+```javascript
+animate('.box', {
+  // Regular property
+  rotate: 360,
+  
+  // Keyframed properties
+  x: [0, 100, 50],
+  y: [
+    { value: 0, duration: 500 },
+    { value: 100, duration: 800 },
+    { value: 0, duration: 500 }
+  ],
+  
+  // Overall duration
+  duration: 2000
+});
+```
+
+## Keyframe Generation
+
+From the source code, here's how keyframes are internally processed:
+
+```javascript
+// Simplified from src/animation/animation.js
+const generateKeyframes = (keyframes, parameters) => {
+  const properties = {};
+  
+  if (isArr(keyframes)) {
+    // Duration-based keyframes
+    const propertyNames = keyframes
+      .flatMap(key => Object.keys(key))
+      .filter(isKey);
+      
+    for (let propName of propertyNames) {
+      const propArray = keyframes.map(key => {
+        const newKey = {};
+        for (let p in key) {
+          if (p === propName) {
+            newKey.to = key[p];
+          } else if (isKey(p)) {
+            // Skip other properties
+          } else {
+            // Copy timing parameters
+            newKey[p] = key[p];
+          }
+        }
+        return newKey;
+      });
+      properties[propName] = propArray;
+    }
+  } else {
+    // Percentage-based keyframes
+    const totalDuration = parameters.duration;
+    const keys = Object.keys(keyframes)
+      .map(key => ({ 
+        offset: parseFloat(key) / 100, 
+        props: keyframes[key] 
+      }))
+      .sort((a, b) => a.offset - b.offset);
+      
+    // Convert to duration-based format
+    // ... conversion logic
+  }
+  
+  return properties;
+}
+```
+
+## Advanced Keyframe Patterns
+
+### Bounce Effect
+
+```javascript
+animate('.ball', {
+  keyframes: [
+    { y: 0, ease: 'easeInQuad' },
+    { y: 200, ease: 'easeOutQuad' },
+    { y: 0, ease: 'easeInQuad' },
+    { y: 150, ease: 'easeOutQuad' },
+    { y: 0, ease: 'easeInQuad' },
+    { y: 100, ease: 'easeOutQuad' },
+    { y: 0 }
+  ],
+  duration: 2000
+});
+```
+
+### Wave Motion
+
+```javascript
+animate('.wave', {
+  keyframes: [
+    { y: 0, rotate: 0 },
+    { y: -20, rotate: 5 },
+    { y: 0, rotate: 0 },
+    { y: 20, rotate: -5 },
+    { y: 0, rotate: 0 }
+  ],
+  duration: 1000,
+  loop: true
+});
+```
+
+### Path Following
+
+```javascript
+animate('.follower', {
+  keyframes: [
+    { x: 0, y: 0 },
+    { x: 100, y: 20 },
+    { x: 200, y: 0 },
+    { x: 300, y: -20 },
+    { x: 400, y: 0 }
+  ],
+  duration: 3000,
+  ease: 'linear'
+});
+```
+
+## Color Keyframes
+
+Animate through multiple colors:
+
+```javascript
+animate('.box', {
+  backgroundColor: [
+    { value: '#FF4B4B', duration: 500 },
+    { value: '#FFC730', duration: 500 },
+    { value: '#4BFF4B', duration: 500 },
+    { value: '#4B4BFF', duration: 500 }
+  ]
+});
+
+// Or with percentage syntax
+animate('.box', {
+  duration: 2000,
+  keyframes: {
+    '0%': { backgroundColor: '#FF4B4B' },
+    '25%': { backgroundColor: '#FFC730' },
+    '50%': { backgroundColor: '#4BFF4B' },
+    '75%': { backgroundColor: '#4B4BFF' },
+    '100%': { backgroundColor: '#FF4B4B' }
+  }
+});
+```
+
+## Keyframe Timing
+
+Control individual keyframe durations and delays:
+
+```javascript
+animate('.box', {
+  keyframes: [
+    { 
+      x: 100, 
+      duration: 1000,
+      delay: 0,
+      ease: 'easeInQuad' 
+    },
+    { 
+      x: 200, 
+      duration: 500,
+      // No delay - starts after previous
+      ease: 'linear' 
+    },
+    { 
+      x: 0, 
+      duration: 800,
+      ease: 'easeOutQuad' 
+    }
+  ]
+});
+```
+
+## Function-Based Keyframes
+
+Use functions within keyframes:
+
+```javascript
+animate('.box', {
+  x: [
+    { value: (el, i) => i * 50, duration: 500 },
+    { value: (el, i) => i * 100, duration: 500 },
+    { value: 0, duration: 500 }
+  ]
+});
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use percentage keyframes for complex timing">
+    Percentage-based keyframes make it easier to visualize animation timing.
+    
+    ```javascript
+    animate('.element', {
+      duration: 3000,
+      keyframes: {
+        '0%': { scale: 1, opacity: 1 },
+        '30%': { scale: 1.5, opacity: 0.8 },
+        '70%': { scale: 0.8, opacity: 0.6 },
+        '100%': { scale: 1, opacity: 1 }
+      }
+    });
+    ```
+  </Accordion>
+
+  <Accordion title="Keep keyframes focused">
+    Don't mix too many properties in keyframe objects.
+    
+    ```javascript
+    // Good - focused on position
+    animate('.box', {
+      keyframes: [
+        { x: 0, y: 0 },
+        { x: 100, y: 50 },
+        { x: 0, y: 100 }
+      ]
+    });
+    
+    // Consider separate animations for clarity
+    animate('.box', {
+      x: [0, 100, 0],
+      y: [0, 50, 100]
+    });
+    ```
+  </Accordion>
+
+  <Accordion title="Specify easing per keyframe for polish">
+    Different easing on each step creates more natural motion.
+    
+    ```javascript
+    animate('.ball', {
+      keyframes: [
+        { y: 0, ease: 'easeInQuad' },   // Accelerate down
+        { y: 200, ease: 'easeOutQuad' }, // Decelerate up
+        { y: 0 }
+      ]
+    });
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## API Reference
+
+### Duration-Based Keyframes
+
+```typescript
+keyframes: Array<{
+  [property: string]: any;
+  duration?: number;
+  delay?: number;
+  ease?: string | function;
+}>
+```
+
+### Percentage-Based Keyframes
+
+```typescript
+keyframes: {
+  [percentage: string]: {
+    [property: string]: any;
+    ease?: string | function;
+  }
+}
+```
+
+### Property Keyframes
+
+```typescript
+propertyName: Array<value | {
+  value: any;
+  duration?: number;
+  delay?: number;
+  ease?: string | function;
+}>
+```
+
+<Tip>
+Keyframes are automatically normalized internally, so you can mix and match formats based on what's most convenient for your use case.
+</Tip>

@@ -1,0 +1,389 @@
+---
+title: Text Utilities
+description: Split text into animatable lines, words, and characters
+---
+
+Anime.js provides powerful text splitting utilities that break text content into individual lines, words, and characters while preserving the original HTML structure. Perfect for creating staggered text animations.
+
+## splitText()
+
+Creates a text splitter that wraps text content in animatable elements.
+
+### Syntax
+
+```js
+splitText(target, parameters)
+```
+
+### Parameters
+
+<ParamField path="target" type="String | HTMLElement | NodeList | Array" required>
+  CSS selector, DOM element(s), or NodeList of elements to split
+</ParamField>
+
+<ParamField path="parameters" type="Object">
+  Configuration options for text splitting.
+  
+  <ParamField path="lines" type="Boolean | Object">
+    Enable line splitting. Pass `true` or an object with template options.
+    
+    Template options:
+    - `class`: CSS class name for line elements
+    - `wrap`: Wrapper style (`true`, `'clip'`, or CSS overflow value)
+    - `clone`: Clone effect direction (`'left'`, `'right'`, `'top'`, `'bottom'`)
+  </ParamField>
+  
+  <ParamField path="words" type="Boolean | Object">
+    Enable word splitting. Pass `true` or an object with template options.
+  </ParamField>
+  
+  <ParamField path="chars" type="Boolean | Object">
+    Enable character splitting. Pass `true` or an object with template options.
+  </ParamField>
+  
+  <ParamField path="includeSpaces" type="Boolean" default="false">
+    Include spaces as separate animatable elements.
+  </ParamField>
+  
+  <ParamField path="accessible" type="Boolean" default="true">
+    Add visually-hidden accessible text for screen readers.
+  </ParamField>
+  
+  <ParamField path="debug" type="Boolean" default="false">
+    Enable visual debugging with colored outlines.
+  </ParamField>
+</ParamField>
+
+### Returns
+
+<ResponseField type="TextSplitter">
+  A TextSplitter instance with the following properties:
+  
+  - `lines`: Array of line elements
+  - `words`: Array of word elements
+  - `chars`: Array of character elements
+  - `split(clearCache)`: Re-split the text
+  - `refresh()`: Refresh the split (clears cache)
+  - `revert()`: Restore original HTML
+  - `addEffect(fn)`: Add animation effects
+</ResponseField>
+
+## Examples
+
+### Basic Character Split
+
+```js
+import anime, { splitText } from 'animejs';
+
+const text = splitText('.title', { chars: true });
+
+anime({
+  targets: text.chars,
+  translateY: [100, 0],
+  opacity: [0, 1],
+  delay: anime.stagger(50),
+  duration: 800
+});
+```
+
+### Word Animation
+
+```js
+const text = splitText('.paragraph', { words: true });
+
+anime({
+  targets: text.words,
+  scale: [0, 1],
+  opacity: [0, 1],
+  delay: anime.stagger(100, { from: 'center' }),
+  duration: 600,
+  easing: 'easeOutElastic(1, .8)'
+});
+```
+
+### Line-by-Line Reveal
+
+```js
+const text = splitText('.content', { 
+  lines: true,
+  words: true 
+});
+
+anime.timeline()
+  .add({
+    targets: text.lines,
+    translateY: [100, 0],
+    opacity: [0, 1],
+    delay: anime.stagger(200),
+    duration: 800
+  })
+  .add({
+    targets: text.words,
+    color: ['#000', '#f00'],
+    delay: anime.stagger(50),
+    duration: 600
+  }, '-=400');
+```
+
+### Custom Character Classes
+
+```js
+const text = splitText('.title', {
+  chars: {
+    class: 'char-element',
+    wrap: 'clip'
+  }
+});
+
+anime({
+  targets: '.char-element',
+  rotateY: [90, 0],
+  opacity: [0, 1],
+  delay: anime.stagger(30),
+  duration: 600
+});
+```
+
+### Split with Spaces
+
+```js
+const text = splitText('.text', {
+  chars: true,
+  includeSpaces: true
+});
+
+// Spaces are now included in text.chars array
+anime({
+  targets: text.chars,
+  opacity: [0, 1],
+  delay: anime.stagger(20),
+  duration: 300
+});
+```
+
+### Clone Effect
+
+```js
+const text = splitText('.heading', {
+  chars: {
+    clone: 'right' // Creates clone offset to the right
+  }
+});
+
+anime({
+  targets: text.chars,
+  translateX: [-20, 0],
+  opacity: [0, 1],
+  delay: anime.stagger(40),
+  duration: 500
+});
+```
+
+### Responsive Splitting
+
+```js
+const text = splitText('.responsive-text', {
+  lines: true,
+  words: true,
+  chars: true
+});
+
+// Automatically re-splits on window resize
+// No additional code needed!
+
+// Manually refresh if needed:
+// text.refresh();
+```
+
+### Revert Split
+
+```js
+const text = splitText('.title', { chars: true });
+
+anime({
+  targets: text.chars,
+  translateY: [0, -100],
+  opacity: [1, 0],
+  delay: anime.stagger(30),
+  duration: 500,
+  complete: () => {
+    text.revert(); // Restore original HTML
+  }
+});
+```
+
+## TextSplitter Class
+
+The `TextSplitter` class provides advanced control over text splitting.
+
+### Properties
+
+<ParamField path="lines" type="Array<HTMLElement>">
+  Array of split line elements (when `lines: true`)
+</ParamField>
+
+<ParamField path="words" type="Array<HTMLElement>">
+  Array of split word elements (when `words: true`)
+</ParamField>
+
+<ParamField path="chars" type="Array<HTMLElement>">
+  Array of split character elements (when `chars: true`)
+</ParamField>
+
+<ParamField path="$target" type="HTMLElement">
+  The original target element
+</ParamField>
+
+<ParamField path="html" type="String">
+  Original HTML content before splitting
+</ParamField>
+
+<ParamField path="ready" type="Boolean">
+  Whether the splitter is ready (fonts loaded, splitting complete)
+</ParamField>
+
+### Methods
+
+#### split(clearCache)
+
+Re-splits the text content.
+
+```js
+text.split(); // Use cached split
+text.split(true); // Clear cache and re-split from original HTML
+```
+
+<ParamField path="clearCache" type="Boolean" default="false">
+  Whether to clear the cached split and re-split from original HTML
+</ParamField>
+
+#### refresh()
+
+Refreshes the split by clearing cache (alias for `split(true)`).
+
+```js
+text.refresh();
+```
+
+#### revert()
+
+Reverts to the original HTML and cleans up.
+
+```js
+text.revert();
+```
+
+#### addEffect(effect)
+
+Adds an animation effect that runs on split/refresh.
+
+```js
+text.addEffect((splitter) => {
+  return anime({
+    targets: splitter.chars,
+    opacity: [0, 1],
+    delay: anime.stagger(50)
+  });
+});
+```
+
+<ParamField path="effect" type="Function" required>
+  Function that receives the TextSplitter instance and returns an animation or cleanup function
+</ParamField>
+
+### Constructor
+
+```js
+new TextSplitter(target, parameters)
+```
+
+### Example: Class Usage
+
+```js
+import { TextSplitter } from 'animejs';
+
+class AnimatedText {
+  constructor(selector) {
+    this.splitter = new TextSplitter(selector, {
+      chars: true,
+      words: true
+    });
+    
+    this.splitter.addEffect((split) => {
+      return anime({
+        targets: split.chars,
+        translateY: [50, 0],
+        opacity: [0, 1],
+        delay: anime.stagger(30),
+        duration: 600
+      });
+    });
+  }
+  
+  destroy() {
+    this.splitter.revert();
+  }
+}
+
+const text = new AnimatedText('.title');
+```
+
+## Template Customization
+
+Customize the HTML structure of split elements:
+
+### Custom Template Function
+
+```js
+const text = splitText('.title', {
+  chars: (node) => {
+    return `<span class="char" data-char="{i}">{value}</span>`;
+  }
+});
+```
+
+Template placeholders:
+- `{value}`: The text content (character, word, or line)
+- `{i}`: The index of the element
+
+### Predefined Templates
+
+```js
+// With wrapper and clipping
+const text = splitText('.title', {
+  chars: {
+    class: 'char',
+    wrap: 'clip',  // Adds wrapper with overflow: clip
+    clone: false
+  }
+});
+
+// With clone effect
+const text = splitText('.title', {
+  words: {
+    class: 'word',
+    clone: 'bottom' // Creates clone offset below
+  }
+});
+```
+
+## Notes
+
+- Automatically handles font loading using the Font Loading API
+- Preserves nested HTML structure (bold, italic, links, etc.)
+- Automatically re-splits on window resize for responsive layouts
+- Uses `ResizeObserver` for efficient resize detection
+- Supports international text with `Intl.Segmenter` for proper word/grapheme boundaries
+- Accessible by default (adds visually-hidden text for screen readers)
+- Compatible with all modern browsers
+
+## Performance Tips
+
+- Use `lines: true` only when needed (more computationally expensive)
+- For simple animations, split only `chars` or `words`, not both
+- Call `revert()` when done to free up memory
+- Use `includeSpaces: false` unless you need to animate spaces
+
+## Source
+
+Defined in: `/home/daytona/workspace/source/src/text/split.js:212-500`

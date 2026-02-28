@@ -1,0 +1,472 @@
+---
+title: 'Animation Composition'
+description: 'Layer and combine animations with different composition modes'
+---
+
+Anime.js provides powerful composition controls for combining multiple animations on the same properties.
+
+## Composition Modes
+
+Control how new animations interact with existing ones.
+
+### Replace (Default)
+
+New animations override previous ones:
+
+```javascript
+import { animate } from 'animejs';
+
+// First animation
+animate('.box', {
+  translateX: 100,
+  duration: 1000
+});
+
+// This replaces the previous animation
+animate('.box', {
+  translateX: 200,
+  composition: 'replace', // default
+  duration: 1000
+});
+```
+
+<Note>
+  The first animation is automatically cancelled when the second starts.
+</Note>
+
+### Blend (Additive)
+
+Animations accumulate on top of each other:
+
+```javascript
+// Base animation
+animate('.box', {
+  translateX: 100,
+  composition: 'replace',
+  duration: 2000
+});
+
+// This adds to the base
+animate('.box', {
+  translateX: 50,
+  composition: 'blend',
+  duration: 1000,
+  loop: true,
+  alternate: true
+});
+
+// Result: oscillates between 100px and 150px
+```
+
+### None
+
+No composition - animations run independently:
+
+```javascript
+animate('.box', {
+  translateX: 100,
+  composition: 'none',
+  duration: 1000
+});
+
+animate('.box', {
+  translateY: 100,
+  composition: 'none',
+  duration: 1000
+});
+```
+
+## Replace Composition
+
+Replace mode intelligently handles overlapping animations.
+
+### Basic Override
+
+```javascript
+const anim1 = animate('.box', {
+  translateX: 100,
+  duration: 2000
+});
+
+// After 500ms, this replaces anim1
+setTimeout(() => {
+  animate('.box', {
+    translateX: 200,
+    composition: 'replace',
+    duration: 1000
+  });
+}, 500);
+```
+
+### Partial Overlap
+
+Only overlapping portions are replaced:
+
+```javascript
+// Animates 0-100 over 2s
+animate('.box', {
+  translateX: 100,
+  duration: 2000
+});
+
+// After 1s, takes over
+setTimeout(() => {
+  animate('.box', {
+    translateX: 200,
+    duration: 1000
+  });
+}, 1000);
+
+// First animation plays for 1s, then second takes over
+```
+
+### Multiple Properties
+
+```javascript
+animate('.box', {
+  translateX: 100,
+  translateY: 100,
+  duration: 2000,
+  composition: 'replace'
+});
+
+// Only replaces translateX
+animate('.box', {
+  translateX: 200,
+  duration: 1000,
+  composition: 'replace'
+});
+
+// translateY continues unaffected
+```
+
+## Blend Composition
+
+Create complex effects by layering animations.
+
+### Oscillating Effect
+
+```javascript
+// Base movement
+animate('.box', {
+  translateX: 300,
+  duration: 3000,
+  ease: 'out(2)'
+});
+
+// Add wobble
+animate('.box', {
+  translateX: 20,
+  composition: 'blend',
+  duration: 300,
+  loop: true,
+  alternate: true,
+  ease: 'inOut(2)'
+});
+```
+
+### Breathing Effect
+
+```javascript
+// Main scale animation
+animate('.element', {
+  scale: 1.5,
+  duration: 2000
+});
+
+// Add subtle pulse
+animate('.element', {
+  scale: 0.05,
+  composition: 'blend',
+  duration: 800,
+  loop: true,
+  alternate: true
+});
+```
+
+### Multi-layer Animation
+
+```javascript
+const box = '.box';
+
+// Layer 1: Main movement
+animate(box, {
+  translateX: 400,
+  composition: 'replace',
+  duration: 4000
+});
+
+// Layer 2: Vertical bounce
+animate(box, {
+  translateY: -50,
+  composition: 'blend',
+  duration: 500,
+  loop: true,
+  alternate: true
+});
+
+// Layer 3: Rotation
+animate(box, {
+  rotate: 10,
+  composition: 'blend',
+  duration: 800,
+  loop: true,
+  alternate: true
+});
+```
+
+## Timeline Composition
+
+Composition works within timelines:
+
+```javascript
+import { timeline } from 'animejs';
+
+const tl = timeline({
+  composition: 'blend' // Default for all children
+});
+
+tl.add('.box', {
+  translateX: 100,
+  duration: 1000
+});
+
+tl.add('.box', {
+  translateY: 100,
+  composition: 'replace', // Override default
+  duration: 1000
+});
+```
+
+## Per-Property Composition
+
+```javascript
+animate('.box', {
+  translateX: {
+    to: 100,
+    composition: 'replace'
+  },
+  translateY: {
+    to: 50,
+    composition: 'blend'
+  },
+  duration: 1000
+});
+```
+
+## Composition with WAAPI
+
+WAAPI supports composition modes:
+
+```javascript
+import { waapi } from 'animejs';
+
+waapi.animate('.box', {
+  translateX: 100,
+  composition: 'replace', // 'replace' | 'add' | 'accumulate'
+  duration: 1000
+});
+```
+
+<Note>
+  WAAPI composition maps to native Web Animations API composite modes.
+</Note>
+
+## Advanced Patterns
+
+### Controlled Layering
+
+```javascript
+import { animate } from 'animejs';
+
+class AnimationController {
+  constructor(target) {
+    this.target = target;
+    this.layers = [];
+  }
+  
+  addLayer(props) {
+    const anim = animate(this.target, {
+      ...props,
+      composition: 'blend'
+    });
+    this.layers.push(anim);
+    return anim;
+  }
+  
+  clearLayers() {
+    this.layers.forEach(anim => anim.cancel());
+    this.layers = [];
+  }
+}
+
+const controller = new AnimationController('.box');
+controller.addLayer({ translateX: 100, duration: 1000 });
+controller.addLayer({ translateY: 50, duration: 500, loop: true });
+```
+
+### Dynamic Effects
+
+```javascript
+function addWiggle(element, intensity = 10) {
+  return animate(element, {
+    translateX: [-intensity, intensity],
+    composition: 'blend',
+    duration: 100,
+    loop: true,
+    alternate: true
+  });
+}
+
+// Use alongside other animations
+animate('.box', { translateY: 200, duration: 2000 });
+const wiggle = addWiggle('.box', 15);
+
+// Remove wiggle later
+setTimeout(() => wiggle.cancel(), 1000);
+```
+
+### Stacked Transforms
+
+```javascript
+// Base rotation
+const baseRotation = animate('.card', {
+  rotate: 360,
+  duration: 4000,
+  loop: true,
+  ease: 'linear'
+});
+
+// Add tilt on hover
+card.addEventListener('mouseenter', () => {
+  animate('.card', {
+    rotateX: 10,
+    composition: 'blend',
+    duration: 300
+  });
+});
+
+card.addEventListener('mouseleave', () => {
+  animate('.card', {
+    rotateX: 0,
+    composition: 'blend',
+    duration: 300
+  });
+});
+```
+
+## Composition Priority
+
+Animations follow these composition rules:
+
+1. **Replace** cancels overlapping animations on same properties
+2. **Blend** creates additive layers that stack
+3. **None** runs independently without interaction
+4. Later animations take precedence when replacing
+
+```javascript
+// Timeline
+animate('.box', { translateX: 100, duration: 2000 });
+// t=0s: starts
+
+setTimeout(() => {
+  animate('.box', { translateX: 200, duration: 1000 });
+  // t=0.5s: replaces first animation
+}, 500);
+
+setTimeout(() => {
+  animate('.box', { 
+    translateX: 50,
+    composition: 'blend',
+    duration: 500,
+    loop: true 
+  });
+  // t=1s: adds oscillation on top
+}, 1000);
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use Replace for User Actions">
+    Replace is best for responding to user input:
+    ```javascript
+    button.addEventListener('click', () => {
+      animate('.panel', {
+        translateX: 300,
+        composition: 'replace',
+        duration: 400
+      });
+    });
+    ```
+  </Accordion>
+
+  <Accordion title="Use Blend for Effects">
+    Blend is ideal for adding effects to existing animations:
+    ```javascript
+    // Main animation
+    animate('.box', { translateX: 500, duration: 3000 });
+    
+    // Add shake effect
+    animate('.box', {
+      translateY: 5,
+      composition: 'blend',
+      duration: 100,
+      loop: 5,
+      alternate: true
+    });
+    ```
+  </Accordion>
+
+  <Accordion title="Clean Up Blend Animations">
+    Remember to cancel blend animations when no longer needed:
+    ```javascript
+    const effect = animate('.box', {
+      rotate: 5,
+      composition: 'blend',
+      duration: 200,
+      loop: true
+    });
+    
+    // Clean up
+    setTimeout(() => effect.cancel(), 2000);
+    ```
+  </Accordion>
+
+  <Accordion title="Avoid Excessive Layering">
+    Too many blend animations can impact performance:
+    ```javascript
+    // Good: 2-3 layers
+    animate(el, { translateX: 100 });
+    animate(el, { translateY: 10, composition: 'blend' });
+    
+    // Avoid: 10+ layers
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Performance Considerations
+
+- **Replace**: Most efficient, cancels previous animations
+- **Blend**: Adds overhead, each layer is calculated
+- **None**: Minimal overhead but may cause conflicts
+
+<Check>
+  For best performance, use replace mode for primary animations and blend sparingly for effects.
+</Check>
+
+## Debugging
+
+View active animations:
+
+```javascript
+import { getActiveAnimations } from 'animejs';
+
+// Log all active animations
+const active = getActiveAnimations();
+console.log('Active animations:', active.length);
+
+active.forEach(anim => {
+  console.log(anim.targets, anim.composition);
+});
+```

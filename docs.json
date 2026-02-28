@@ -1,122 +1,163 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "Anime.js",
+  "theme": "palm",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#FF4B4B",
+    "light": "#FFE5E5",
+    "dark": "#CC0000"
   },
-  "favicon": "/favicon.svg",
+  "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/juliangarnier/anime"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/juliangarnier/anime"
+    }
+  },
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Documentation",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Get Started",
             "pages": [
-              "index",
-              "quickstart",
-              "development"
+              "introduction",
+              "installation",
+              "quickstart"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Core Concepts",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "concepts/animations",
+              "concepts/timelines",
+              "concepts/targets",
+              "concepts/properties",
+              "concepts/keyframes"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Modules",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+              "modules/animation",
+              "modules/timeline",
+              "modules/timer",
+              "modules/animatable",
+              "modules/draggable",
+              "modules/scope",
+              "modules/engine"
             ]
           },
           {
-            "group": "AI tools",
+            "group": "Easings",
             "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "easings/overview",
+              "easings/built-in",
+              "easings/cubic-bezier",
+              "easings/spring",
+              "easings/steps",
+              "easings/irregular",
+              "easings/custom"
+            ]
+          },
+          {
+            "group": "Utilities",
+            "pages": [
+              "utilities/stagger",
+              "utilities/random",
+              "utilities/time"
+            ]
+          },
+          {
+            "group": "Advanced",
+            "pages": [
+              "advanced/svg",
+              "advanced/text",
+              "advanced/waapi",
+              "advanced/events",
+              "advanced/layout",
+              "advanced/composition",
+              "advanced/performance"
+            ]
+          },
+          {
+            "group": "Examples",
+            "pages": [
+              "examples/basic-animations",
+              "examples/timelines",
+              "examples/svg-animations",
+              "examples/text-animations",
+              "examples/scroll-animations",
+              "examples/draggable",
+              "examples/canvas"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "API Reference",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "Animation",
             "pages": [
-              "api-reference/introduction"
+              "api/animate",
+              "api/animation-class",
+              "api/animation-parameters"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Timeline",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "api/timeline-class",
+              "api/timeline-methods",
+              "api/timeline-parameters"
+            ]
+          },
+          {
+            "group": "Timer",
+            "pages": [
+              "api/timer-class",
+              "api/timer-methods"
+            ]
+          },
+          {
+            "group": "Animatable",
+            "pages": [
+              "api/animatable-class",
+              "api/animatable-methods"
+            ]
+          },
+          {
+            "group": "Draggable",
+            "pages": [
+              "api/draggable-class",
+              "api/draggable-methods"
+            ]
+          },
+          {
+            "group": "Utilities",
+            "pages": [
+              "api/stagger",
+              "api/utils",
+              "api/svg-utils",
+              "api/text-utils"
+            ]
+          },
+          {
+            "group": "Easings",
+            "pages": [
+              "api/easing-functions",
+              "api/spring-easing",
+              "api/cubic-bezier"
             ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
-    }
+    ]
   }
 }

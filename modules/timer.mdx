@@ -1,0 +1,471 @@
+---
+title: Timer
+description: Base timing class that powers animations and timelines with precise playback control
+---
+
+## Overview
+
+The Timer class is the foundation for all time-based functionality in Anime.js. It provides precise timing, playback control, looping, and callbacks. Both Animation and Timeline extend Timer.
+
+## Importing
+
+```javascript
+import { createTimer, Timer } from 'animejs';
+```
+
+## Creating Timers
+
+### createTimer()
+
+Create a standalone timer:
+
+```javascript
+const timer = createTimer(parameters);
+```
+
+**Parameters:**
+- `parameters` - Timer configuration object (optional)
+
+### Basic Example
+
+```javascript
+import { createTimer } from 'animejs';
+
+const timer = createTimer({
+  duration: 2000,
+  onUpdate: (t) => {
+    console.log('Progress:', t.progress);
+  },
+  onComplete: () => {
+    console.log('Timer complete!');
+  }
+});
+```
+
+## Timer Parameters
+
+### Duration & Delay
+
+<ParamField path="duration" type="number" default="1000">
+  Timer duration in milliseconds
+</ParamField>
+
+<ParamField path="delay" type="number" default="0">
+  Delay before timer starts
+</ParamField>
+
+```javascript
+const timer = createTimer({
+  duration: 3000,
+  delay: 500 // Start after 500ms
+});
+```
+
+### Looping
+
+<ParamField path="loop" type="boolean | number" default="false">
+  Number of times to loop, `true` for infinite
+</ParamField>
+
+<ParamField path="alternate" type="boolean" default="false">
+  Whether to alternate direction on each loop
+</ParamField>
+
+<ParamField path="loopDelay" type="number" default="0">
+  Delay between loops in milliseconds
+</ParamField>
+
+```javascript
+const timer = createTimer({
+  duration: 1000,
+  loop: 5,          // Loop 5 times
+  alternate: true,  // Reverse direction each time
+  loopDelay: 300    // 300ms pause between loops
+});
+```
+
+### Playback Control
+
+<ParamField path="autoplay" type="boolean" default="true">
+  Whether to start automatically
+</ParamField>
+
+<ParamField path="reversed" type="boolean" default="false">
+  Start in reversed direction
+</ParamField>
+
+<ParamField path="playbackRate" type="number" default="1">
+  Playback speed multiplier
+</ParamField>
+
+<ParamField path="frameRate" type="number" default="60">
+  Maximum frame rate for updates
+</ParamField>
+
+```javascript
+const timer = createTimer({
+  duration: 2000,
+  autoplay: false,    // Don't start immediately
+  playbackRate: 2,    // 2x speed
+  frameRate: 30       // Limit to 30fps
+});
+```
+
+## Playback Methods
+
+### Starting and Stopping
+
+```javascript
+const timer = createTimer({
+  duration: 2000,
+  autoplay: false
+});
+
+// Start playback
+timer.resume();
+timer.play();      // Play forward
+timer.reverse();   // Play in reverse
+
+// Stop playback
+timer.pause();
+
+// Restart from beginning
+timer.restart();
+```
+
+### Seeking
+
+```javascript
+// Seek to specific time (ms)
+timer.seek(1000);
+
+// Seek with optional callback muting
+timer.seek(1000, true); // Mute callbacks
+
+// Alternative seeking via properties
+timer.currentTime = 1500;
+timer.progress = 0.5; // 50%
+```
+
+### State Control
+
+```javascript
+// Complete immediately
+timer.complete();
+
+// Cancel timer
+timer.cancel();
+
+// Revert and reset
+timer.revert();
+
+// Reset to initial state
+timer.reset();
+```
+
+## Timer Properties
+
+### Time Properties
+
+<ResponseField name="currentTime" type="number">
+  Current playback time in milliseconds
+</ResponseField>
+
+<ResponseField name="progress" type="number">
+  Current progress from 0 to 1
+</ResponseField>
+
+<ResponseField name="duration" type="number">
+  Total duration including all loops
+</ResponseField>
+
+<ResponseField name="iterationDuration" type="number">
+  Duration of a single iteration
+</ResponseField>
+
+<ResponseField name="iterationCurrentTime" type="number">
+  Current time within current iteration
+</ResponseField>
+
+<ResponseField name="iterationProgress" type="number">
+  Progress within current iteration (0-1)
+</ResponseField>
+
+```javascript
+const timer = createTimer({ duration: 1000, loop: 3 });
+
+console.log(timer.duration);          // 3000 (1000 * 3)
+console.log(timer.iterationDuration); // 1000
+console.log(timer.progress);          // Overall progress
+console.log(timer.iterationProgress); // Current loop progress
+```
+
+### State Properties
+
+<ResponseField name="paused" type="boolean">
+  Whether timer is currently paused
+</ResponseField>
+
+<ResponseField name="began" type="boolean">
+  Whether timer has begun playing
+</ResponseField>
+
+<ResponseField name="completed" type="boolean">
+  Whether timer has completed
+</ResponseField>
+
+<ResponseField name="reversed" type="boolean">
+  Whether playing in reverse
+</ResponseField>
+
+<ResponseField name="cancelled" type="boolean">
+  Whether timer has been cancelled
+</ResponseField>
+
+<ResponseField name="currentIteration" type="number">
+  Current loop iteration index (0-based)
+</ResponseField>
+
+<ResponseField name="iterationCount" type="number">
+  Total number of iterations
+</ResponseField>
+
+```javascript
+const timer = createTimer({ duration: 1000 });
+
+if (timer.paused) {
+  timer.resume();
+}
+
+if (timer.completed) {
+  timer.restart();
+}
+```
+
+### Writable Properties
+
+```javascript
+const timer = createTimer({ duration: 2000 });
+
+// Change playback speed
+timer.speed = 2;           // 2x speed
+
+// Control playback direction
+timer.reversed = true;     // Reverse direction
+
+// Jump to specific points
+timer.currentTime = 1000;
+timer.progress = 0.75;
+timer.currentIteration = 2;
+
+// Cancel state
+timer.cancelled = false;   // Revive cancelled timer
+```
+
+## Callbacks
+
+<ParamField path="onBegin" type="function">
+  Called when timer begins (first frame after delay)
+</ParamField>
+
+<ParamField path="onUpdate" type="function">
+  Called on every frame update
+</ParamField>
+
+<ParamField path="onLoop" type="function">
+  Called when timer loops (start of new iteration)
+</ParamField>
+
+<ParamField path="onComplete" type="function">
+  Called when timer completes all iterations
+</ParamField>
+
+<ParamField path="onPause" type="function">
+  Called when timer is paused
+</ParamField>
+
+<ParamField path="onBeforeUpdate" type="function">
+  Called before each update
+</ParamField>
+
+```javascript
+const timer = createTimer({
+  duration: 2000,
+  loop: 3,
+  onBegin: (t) => {
+    console.log('Timer started');
+  },
+  onUpdate: (t) => {
+    console.log('Progress:', t.progress);
+    console.log('Iteration:', t.currentIteration);
+  },
+  onLoop: (t) => {
+    console.log('Loop', t.currentIteration, 'started');
+  },
+  onComplete: (t) => {
+    console.log('All loops complete!');
+  },
+  onPause: (t) => {
+    console.log('Timer paused');
+  }
+});
+```
+
+## Advanced Features
+
+### Playback Rate Control
+
+```javascript
+const timer = createTimer({
+  duration: 2000,
+  playbackRate: 1
+});
+
+// Change speed during playback
+timer.speed = 0.5;  // Half speed
+timer.speed = 2;    // Double speed
+timer.speed = -1;   // Reverse at normal speed
+```
+
+### Frame Rate Limiting
+
+```javascript
+const timer = createTimer({
+  duration: 2000,
+  frameRate: 30 // Limit to 30fps
+});
+
+// Useful for performance or specific update rates
+const pixelArtTimer = createTimer({
+  frameRate: 12, // Old-school 12fps
+  onUpdate: (t) => {
+    // Updates only 12 times per second
+  }
+});
+```
+
+### Alternate Looping
+
+```javascript
+const timer = createTimer({
+  duration: 1000,
+  loop: true,
+  alternate: true,
+  onUpdate: (t) => {
+    console.log('Direction:', t.reversed ? 'backward' : 'forward');
+    console.log('Progress:', t.iterationProgress);
+  }
+});
+```
+
+### Manual Alternation
+
+```javascript
+const timer = createTimer({ duration: 2000 });
+
+// Manually trigger alternate
+timer.alternate();
+```
+
+## Promise Support
+
+Timers can be awaited:
+
+```javascript
+const timer = createTimer({ duration: 2000 });
+
+await timer.then();
+console.log('Timer complete!');
+
+// Use in async functions
+async function sequence() {
+  const t1 = createTimer({ duration: 1000 });
+  await t1.then();
+  
+  const t2 = createTimer({ duration: 1000 });
+  await t2.then();
+  
+  console.log('All timers complete!');
+}
+```
+
+## Timer Instance Methods
+
+### resetTime()
+
+Reset internal timing state:
+
+```javascript
+timer.resetTime();
+```
+
+Useful when changing playback rate or speed.
+
+### stretch()
+
+Change duration while preserving current position:
+
+```javascript
+timer.stretch(newDuration)
+```
+
+```javascript
+const timer = createTimer({ duration: 2000 });
+timer.seek(1000); // At 50%
+
+timer.stretch(4000); // Now at 50% of 4000ms = 2000ms
+```
+
+### init()
+
+Manually initialize timer:
+
+```javascript
+const timer = new Timer({ duration: 2000, autoplay: false });
+timer.init(); // Initialize without autoplay
+```
+
+## Complete Example
+
+```javascript
+import { createTimer } from 'animejs';
+
+const timer = createTimer({
+  duration: 3000,
+  delay: 500,
+  loop: 3,
+  alternate: true,
+  loopDelay: 200,
+  playbackRate: 1.5,
+  autoplay: true,
+  
+  onBegin: (t) => {
+    console.log('Starting timer');
+  },
+  
+  onUpdate: (t) => {
+    const percent = Math.round(t.iterationProgress * 100);
+    const iteration = t.currentIteration + 1;
+    const total = t.iterationCount;
+    console.log(`Loop ${iteration}/${total}: ${percent}%`);
+  },
+  
+  onLoop: (t) => {
+    console.log(`Loop ${t.currentIteration} complete`);
+  },
+  
+  onComplete: (t) => {
+    console.log('All loops finished!');
+  }
+});
+
+// Control playback
+setTimeout(() => timer.pause(), 2000);
+setTimeout(() => timer.resume(), 3000);
+```
+
+## Related
+
+- [Animation](/modules/animation) - Extends Timer for property animation
+- [Timeline](/modules/timeline) - Extends Timer for sequencing
+- [Engine](/modules/engine) - Global timing engine

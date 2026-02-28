@@ -1,0 +1,279 @@
+---
+title: time
+description: Time synchronization utilities for advanced animation control
+---
+
+Anime.js provides time utility functions for synchronizing animations and preserving animation state across re-renders.
+
+## sync
+
+Creates a timer that completes on the next animation frame, useful for synchronizing operations with the animation engine's tick cycle.
+
+### Syntax
+
+```javascript
+sync(callback)
+```
+
+### Parameters
+
+<ParamField path="callback" type="function">
+  Optional callback function that executes when the sync timer completes. Receives the Timer instance as an argument.
+</ParamField>
+
+### Returns
+
+<ResponseField type="Timer">
+  A Timer instance that completes after one frame, respecting the global time scale.
+</ResponseField>
+
+### Examples
+
+```javascript
+// Execute on next animation frame
+anime.sync(() => {
+  console.log('Synced with animation engine');
+});
+
+// Chain operations after sync
+anime.sync(() => {
+  anime({
+    targets: '.box',
+    translateX: 250
+  });
+});
+```
+
+### Use Cases
+
+<CardGroup cols={2}>
+  <Card title="Frame Sync" icon="clock">
+    Synchronize operations with the animation engine's frame updates
+  </Card>
+  <Card title="Timing Coordination" icon="arrows-spin">
+    Coordinate multiple animations or operations on the same frame
+  </Card>
+</CardGroup>
+
+## keepTime
+
+A higher-order function that wraps an animation constructor to preserve its time state (iteration, progress, direction) across function calls. This is particularly useful in reactive frameworks where components re-render frequently.
+
+### Syntax
+
+```javascript
+keeepTime(constructor)
+```
+
+### Parameters
+
+<ParamField path="constructor" type="function" required>
+  A function that creates and returns an animation or tickable object. The function should return either:
+  - A tickable object (with `.revert()` method) like an animation instance
+  - A cleanup function
+  - Nothing (void)
+</ParamField>
+
+### Returns
+
+<ResponseField type="function">
+  A wrapped version of the constructor that preserves animation time state between calls.
+</ResponseField>
+
+### How It Works
+
+1. When the wrapped function is called, it captures the current state of any previous animation:
+   - Current iteration number
+   - Progress within the current iteration
+   - Play direction (forward/reversed)
+   - Alternate state
+
+2. It reverts the previous animation (if any)
+
+3. It creates a new animation by calling the original constructor
+
+4. It restores the captured state to the new animation
+
+5. Returns the cleanup function or animation instance
+
+### Examples
+
+#### Basic Usage
+
+```javascript
+const animateBox = anime.keepTime(() => {
+  return anime({
+    targets: '.box',
+    translateX: 250,
+    duration: 2000,
+    loop: true
+  });
+});
+
+// First call - animation starts
+animateBox();
+
+// Later call - animation continues from previous position
+// Even if parameters changed, time state is preserved
+animateBox();
+```
+
+#### With React (Preserving State on Re-render)
+
+```javascript
+import { useEffect } from 'react';
+import anime from 'animejs';
+
+function AnimatedComponent({ color }) {
+  useEffect(() => {
+    // keepTime preserves animation progress when color changes
+    const animate = anime.keepTime(() => {
+      return anime({
+        targets: '.element',
+        backgroundColor: color,
+        translateX: 250,
+        duration: 3000,
+        loop: true,
+        easing: 'linear'
+      });
+    });
+    
+    const animation = animate();
+    
+    // Cleanup
+    return () => {
+      if (typeof animation === 'function') animation();
+      else if (animation.pause) animation.pause();
+    };
+  }, [color]);
+  
+  return <div className="element">Animated</div>;
+}
+```
+
+#### With Vue (Preserving State on Updates)
+
+```javascript
+import { watchEffect } from 'vue';
+import anime from 'animejs';
+
+export default {
+  setup() {
+    const color = ref('#FF6B6B');
+    
+    const animate = anime.keepTime(() => {
+      return anime({
+        targets: '.box',
+        backgroundColor: color.value,
+        rotate: 360,
+        duration: 2000,
+        loop: true
+      });
+    });
+    
+    watchEffect((onCleanup) => {
+      const cleanup = animate();
+      onCleanup(() => {
+        if (typeof cleanup === 'function') cleanup();
+      });
+    });
+    
+    return { color };
+  }
+};
+```
+
+#### Without keepTime (State Lost)
+
+```javascript
+// ❌ Animation restarts from beginning on every call
+function createAnimation() {
+  return anime({
+    targets: '.box',
+    translateX: 250,
+    duration: 2000,
+    loop: true
+  });
+}
+
+// Each call creates a new animation starting at 0
+let anim = createAnimation();
+// User changes something...
+anim.pause();
+anim = createAnimation(); // ⚠️ Lost previous progress!
+```
+
+#### With keepTime (State Preserved)
+
+```javascript
+// ✅ Animation continues from previous position
+const createAnimation = anime.keepTime(() => {
+  return anime({
+    targets: '.box',
+    translateX: 250,
+    duration: 2000,
+    loop: true
+  });
+});
+
+// Animation state is preserved across calls
+let anim = createAnimation();
+// User changes something...
+anim = createAnimation(); // ✅ Continues from previous position!
+```
+
+## When to Use These Utilities
+
+<AccordionGroup>
+  <Accordion title="sync()" icon="clock">
+    Use `sync()` when you need to:
+    - Execute code on the next animation frame
+    - Synchronize operations with the animation engine
+    - Ensure timing consistency with other animations
+    - Respect the global time scale setting
+  </Accordion>
+  
+  <Accordion title="keepTime()" icon="floppy-disk">
+    Use `keepTime()` when you:
+    - Work with reactive frameworks (React, Vue, Svelte, etc.)
+    - Need to update animation parameters without restarting
+    - Want to preserve loop iterations and progress
+    - Have dynamic animations that respond to state changes
+    - Need smooth transitions when props/state update
+  </Accordion>
+</AccordionGroup>
+
+## Benefits of keepTime
+
+<CardGroup cols={2}>
+  <Card title="Seamless Updates" icon="arrows-rotate">
+    Update animation parameters without jarring restarts or position jumps
+  </Card>
+  <Card title="State Preservation" icon="clock-rotate-left">
+    Maintain loop count, progress, and direction across re-renders
+  </Card>
+  <Card title="Framework Friendly" icon="code">
+    Works naturally with React, Vue, Svelte, and other reactive frameworks
+  </Card>
+  <Card title="Smooth UX" icon="wand-magic-sparkles">
+    Create fluid, uninterrupted animations even with dynamic content
+  </Card>
+</CardGroup>
+
+## Technical Details
+
+<Note>
+  `sync()` creates a Timer with duration of `1 * globals.timeScale`, ensuring it completes on the next frame while respecting any global time scaling.
+</Note>
+
+<Note>
+  `keepTime()` captures four key state properties: `currentIteration`, `iterationProgress`, `reversed`, and `_alternate`. These are restored to the new animation instance to maintain continuity.
+</Note>
+
+<Warning>
+  `keepTime()` only works with constructors that return tickable objects (with a `.revert()` method). Standard anime() animations qualify, but basic functions may not.
+</Warning>
+
+<Tip>
+  In React, always return a cleanup function from useEffect when using animations. This prevents memory leaks and ensures proper cleanup on unmount.
+</Tip>

@@ -1,0 +1,493 @@
+---
+title: Utility Functions
+description: Mathematical and string manipulation utilities for animations
+---
+
+Anime.js provides a comprehensive set of utility functions for mathematical operations, value manipulation, and functional composition. These utilities support chainable operations for elegant function composition.
+
+## Random Utilities
+
+### random()
+
+Generates a random number between min and max (inclusive) with optional decimal precision.
+
+```js
+random(min, max, decimalLength)
+```
+
+<ParamField path="min" type="Number" default="0">
+  The minimum value (inclusive)
+</ParamField>
+
+<ParamField path="max" type="Number" default="1">
+  The maximum value (inclusive)
+</ParamField>
+
+<ParamField path="decimalLength" type="Number" default="0">
+  Number of decimal places to round to
+</ParamField>
+
+**Example:**
+
+```js
+import { random } from 'animejs';
+
+random(); // Random float between 0-1
+random(1, 10); // Random integer between 1-10
+random(0, 100, 2); // Random number with 2 decimals: e.g., 42.37
+```
+
+### createSeededRandom()
+
+Creates a seeded pseudorandom number generator function for reproducible randomness.
+
+```js
+createSeededRandom(seed, seededMin, seededMax, seededDecimalLength)
+```
+
+<ParamField path="seed" type="Number">
+  The seed value for the random number generator
+</ParamField>
+
+<ParamField path="seededMin" type="Number" default="0">
+  Default minimum value for the returned function
+</ParamField>
+
+<ParamField path="seededMax" type="Number" default="1">
+  Default maximum value for the returned function
+</ParamField>
+
+<ParamField path="seededDecimalLength" type="Number" default="0">
+  Default number of decimal places for the returned function
+</ParamField>
+
+**Example:**
+
+```js
+import { createSeededRandom } from 'animejs';
+
+const rng = createSeededRandom(12345);
+rng(); // Same sequence every time with seed 12345
+rng(1, 10); // Random between 1-10 using the seeded generator
+```
+
+### randomPick()
+
+Picks a random element from an array or a random character from a string.
+
+```js
+randomPick(items)
+```
+
+<ParamField path="items" type="String | Array" required>
+  The array or string to pick from
+</ParamField>
+
+**Example:**
+
+```js
+import { randomPick } from 'animejs';
+
+randomPick(['red', 'blue', 'green']); // Returns random color
+randomPick('ABCDE'); // Returns random character
+```
+
+### shuffle()
+
+Shuffles an array in-place using the Fisher-Yates algorithm.
+
+```js
+shuffle(items)
+```
+
+<ParamField path="items" type="Array" required>
+  The array to shuffle (modified in-place)
+</ParamField>
+
+**Example:**
+
+```js
+import { shuffle } from 'animejs';
+
+const arr = [1, 2, 3, 4, 5];
+shuffle(arr); // arr is now shuffled
+```
+
+## Mathematical Utilities
+
+### clamp()
+
+Clamps a value between minimum and maximum bounds.
+
+```js
+clamp(value, min, max)
+```
+
+<ParamField path="value" type="Number" required>
+  Value to clamp
+</ParamField>
+
+<ParamField path="min" type="Number" required>
+  Minimum boundary
+</ParamField>
+
+<ParamField path="max" type="Number" required>
+  Maximum boundary
+</ParamField>
+
+**Example:**
+
+```js
+import { clamp } from 'animejs';
+
+clamp(150, 0, 100); // 100
+clamp(-10, 0, 100); // 0
+clamp(50, 0, 100);  // 50
+```
+
+### round()
+
+Rounds a number to specified decimal places.
+
+```js
+round(value, decimalLength)
+```
+
+<ParamField path="value" type="Number" required>
+  Value to round
+</ParamField>
+
+<ParamField path="decimalLength" type="Number" required>
+  Number of decimal places
+</ParamField>
+
+**Example:**
+
+```js
+import { round } from 'animejs';
+
+round(3.14159, 2); // 3.14
+round(123.456, 0); // 123
+```
+
+### snap()
+
+Snaps a value to the nearest increment or closest array value.
+
+```js
+snap(value, increment)
+```
+
+<ParamField path="value" type="Number" required>
+  Value to snap
+</ParamField>
+
+<ParamField path="increment" type="Number | Array<Number>" required>
+  Step size or array of snap points
+</ParamField>
+
+**Example:**
+
+```js
+import { snap } from 'animejs';
+
+snap(23, 10);           // 20
+snap(42, [0, 25, 50]);  // 50 (closest value)
+```
+
+### wrap()
+
+Wraps a value within a range (circular wrapping).
+
+```js
+wrap(value, min, max)
+```
+
+<ParamField path="value" type="Number" required>
+  Value to wrap
+</ParamField>
+
+<ParamField path="min" type="Number" required>
+  Minimum boundary
+</ParamField>
+
+<ParamField path="max" type="Number" required>
+  Maximum boundary
+</ParamField>
+
+**Example:**
+
+```js
+import { wrap } from 'animejs';
+
+wrap(370, 0, 360); // 10
+wrap(-10, 0, 360); // 350
+```
+
+### lerp()
+
+Linear interpolation between two values.
+
+```js
+lerp(start, end, factor)
+```
+
+<ParamField path="start" type="Number" required>
+  Starting value
+</ParamField>
+
+<ParamField path="end" type="Number" required>
+  Ending value
+</ParamField>
+
+<ParamField path="factor" type="Number" required>
+  Interpolation factor in the range [0, 1]
+</ParamField>
+
+**Example:**
+
+```js
+import { lerp } from 'animejs';
+
+lerp(0, 100, 0.5);  // 50
+lerp(0, 100, 0.25); // 25
+```
+
+### damp()
+
+Frame rate independent damped linear interpolation.
+
+```js
+damp(start, end, deltaTime, factor)
+```
+
+<ParamField path="start" type="Number" required>
+  Starting value
+</ParamField>
+
+<ParamField path="end" type="Number" required>
+  Target value
+</ParamField>
+
+<ParamField path="deltaTime" type="Number" required>
+  Delta time in milliseconds
+</ParamField>
+
+<ParamField path="factor" type="Number" required>
+  Interpolation factor in the range [0, 1]
+</ParamField>
+
+**Example:**
+
+```js
+import { damp } from 'animejs';
+
+let position = 0;
+const target = 100;
+const deltaTime = 16.67; // ~60fps
+
+position = damp(position, target, deltaTime, 0.1);
+```
+
+### mapRange()
+
+Maps a value from one range to another.
+
+```js
+mapRange(value, inLow, inHigh, outLow, outHigh)
+```
+
+<ParamField path="value" type="Number" required>
+  Input value
+</ParamField>
+
+<ParamField path="inLow" type="Number" required>
+  Input range minimum
+</ParamField>
+
+<ParamField path="inHigh" type="Number" required>
+  Input range maximum
+</ParamField>
+
+<ParamField path="outLow" type="Number" required>
+  Output range minimum
+</ParamField>
+
+<ParamField path="outHigh" type="Number" required>
+  Output range maximum
+</ParamField>
+
+**Example:**
+
+```js
+import { mapRange } from 'animejs';
+
+mapRange(5, 0, 10, 0, 100); // 50
+mapRange(75, 0, 100, 0, 1); // 0.75
+```
+
+### degToRad()
+
+Converts degrees to radians.
+
+```js
+degToRad(degrees)
+```
+
+<ParamField path="degrees" type="Number" required>
+  Angle in degrees
+</ParamField>
+
+**Example:**
+
+```js
+import { degToRad } from 'animejs';
+
+degToRad(180); // 3.14159...
+degToRad(90);  // 1.5708...
+```
+
+### radToDeg()
+
+Converts radians to degrees.
+
+```js
+radToDeg(radians)
+```
+
+<ParamField path="radians" type="Number" required>
+  Angle in radians
+</ParamField>
+
+**Example:**
+
+```js
+import { radToDeg } from 'animejs';
+
+radToDeg(Math.PI);     // 180
+radToDeg(Math.PI / 2); // 90
+```
+
+## String Utilities
+
+### roundPad()
+
+Rounds a number to fixed decimal places and returns as string.
+
+```js
+roundPad(value, decimalLength)
+```
+
+<ParamField path="value" type="Number | String" required>
+  Value to round
+</ParamField>
+
+<ParamField path="decimalLength" type="Number" required>
+  Number of decimal places
+</ParamField>
+
+**Example:**
+
+```js
+import { roundPad } from 'animejs';
+
+roundPad(3.1, 2);    // "3.10"
+roundPad(5.6789, 2); // "5.68"
+```
+
+### padStart()
+
+Pads the start of a value with a string.
+
+```js
+padStart(value, totalLength, padString)
+```
+
+<ParamField path="value" type="Number" required>
+  Value to pad
+</ParamField>
+
+<ParamField path="totalLength" type="Number" required>
+  Target length
+</ParamField>
+
+<ParamField path="padString" type="String" required>
+  String to pad with
+</ParamField>
+
+**Example:**
+
+```js
+import { padStart } from 'animejs';
+
+padStart(5, 3, '0');    // "005"
+padStart(42, 5, '0');   // "00042"
+```
+
+### padEnd()
+
+Pads the end of a value with a string.
+
+```js
+padEnd(value, totalLength, padString)
+```
+
+<ParamField path="value" type="Number" required>
+  Value to pad
+</ParamField>
+
+<ParamField path="totalLength" type="Number" required>
+  Target length
+</ParamField>
+
+<ParamField path="padString" type="String" required>
+  String to pad with
+</ParamField>
+
+**Example:**
+
+```js
+import { padEnd } from 'animejs';
+
+padEnd(5, 3, '0');    // "500"
+padEnd(42, 5, '0');   // "42000"
+```
+
+## Chainable Utilities
+
+All mathematical utilities support chainable operations for elegant function composition:
+
+```js
+import { clamp, round, mapRange } from 'animejs';
+
+// Chain operations
+const process = clamp(0, 100).round(2).mapRange(0, 100, 0, 1);
+
+const result = process(75.6789); // Clamp → Round → Map
+```
+
+**Chainable utilities:**
+- `clamp(min, max)`
+- `round(decimalLength)`
+- `snap(increment)`
+- `wrap(min, max)`
+- `lerp(start, end)`
+- `damp(start, end, deltaTime)`
+- `mapRange(inLow, inHigh, outLow, outHigh)`
+- `roundPad(decimalLength)`
+- `padStart(totalLength, padString)`
+- `padEnd(totalLength, padString)`
+- `degToRad()`
+- `radToDeg()`
+
+**Example:**
+
+```js
+import anime from 'animejs';
+
+anime({
+  targets: '.box',
+  translateX: anime.clamp(0, 500).snap(50),
+  rotate: anime.mapRange(0, 1, 0, 360).round(0)
+});
+```

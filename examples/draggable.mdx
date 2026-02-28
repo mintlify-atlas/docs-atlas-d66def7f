@@ -1,0 +1,423 @@
+---
+title: Draggable Elements
+description: Create interactive drag-and-drop interfaces with physics-based motion using Anime.js draggable features
+---
+
+## Basic Draggable
+
+Make any element draggable:
+
+```javascript
+import { createDraggable } from 'animejs';
+
+const draggable = createDraggable('.box', {
+  container: document.body,
+  releaseStiffness: 200,
+  releaseDamping: 8,
+  velocityMultiplier: 4
+});
+```
+
+## Container Bounds
+
+Constrain dragging within a container:
+
+```javascript
+import { createDraggable } from 'animejs';
+
+// Constrain to parent element
+createDraggable('.draggable', {
+  container: '.parent-container',
+  containerPadding: 10  // 10px padding from edges
+});
+
+// Custom bounds [top, right, bottom, left]
+createDraggable('.draggable', {
+  container: [0, 500, 400, 0],
+  containerPadding: 20
+});
+
+// Dynamic container
+createDraggable('.draggable', {
+  container: () => [
+    0,
+    window.innerWidth,
+    window.innerHeight,
+    0
+  ]
+});
+```
+
+## Snap to Grid
+
+Snap draggable elements to specific values:
+
+```javascript
+import { createDraggable } from 'animejs';
+
+// Snap to increment
+createDraggable('.draggable', {
+  container: document.body,
+  x: { snap: 100 },  // Snap every 100px
+  y: { snap: 100 }
+});
+
+// Snap to specific points
+const snapPoints = [-200, 0, 200, 400];
+createDraggable('.draggable', {
+  container: document.body,
+  snap: snapPoints
+});
+
+// Different snap values per axis
+createDraggable('.draggable', {
+  x: { snap: 50 },
+  y: { snap: 100 }
+});
+```
+
+## Lock Axis
+
+Restrict dragging to a single axis:
+
+```javascript
+import { createDraggable } from 'animejs';
+
+// Horizontal only
+createDraggable('.h-slider', {
+  container: '.track',
+  y: false,  // Disable vertical dragging
+  x: { snap: 10 }
+});
+
+// Vertical only
+createDraggable('.v-slider', {
+  container: '.track',
+  x: false,  // Disable horizontal dragging
+  y: { snap: 10 }
+});
+```
+
+## Draggable Callbacks
+
+Respond to drag events:
+
+```javascript
+import { createDraggable, animate } from 'animejs';
+
+const draggable = createDraggable('.box', {
+  container: document.body,
+  
+  onGrab: (self) => {
+    console.log('Grabbed');
+    animate(self.$target, {
+      scale: 1.1,
+      duration: 200
+    });
+  },
+  
+  onDrag: (self) => {
+    console.log('Dragging', self.x, self.y);
+    console.log('Velocity:', self.velocity);
+  },
+  
+  onRelease: (self) => {
+    console.log('Released');
+    animate(self.$target, {
+      scale: 1.0,
+      duration: 300
+    });
+  },
+  
+  onSettle: (self) => {
+    console.log('Settled at', self.x, self.y);
+  },
+  
+  onSnap: (self) => {
+    console.log('Snapped to', self.destX, self.destY);
+  },
+  
+  onUpdate: (self) => {
+    console.log('Position:', self.x, self.y);
+  }
+});
+```
+
+## Flick Carousel
+
+Create a draggable carousel with momentum:
+
+```javascript
+import { createDraggable } from 'animejs';
+
+const itemWidth = 290;
+const numItems = 10;
+
+const carousel = createDraggable('.carousel', {
+  container: [0, 0, 0, -itemWidth * (numItems - 1)],
+  y: false,
+  snap: itemWidth,
+  velocityMultiplier: 4,
+  releaseStiffness: 100
+});
+```
+
+## Infinite Scrolling
+
+Create a looping carousel:
+
+```javascript
+import { createDraggable, createAnimatable, createTimer, utils } from 'animejs';
+
+const itemWidth = 290;
+const numItems = 20;
+const flickData = { width: itemWidth, speedX: 2, wheelY: 0 };
+
+const flickAnimatable = createAnimatable('.carousel', {
+  x: 0,
+  modifier: utils.wrap(-itemWidth * (numItems / 2), 0)
+});
+
+const flickDraggable = createDraggable(flickData, {
+  trigger: '.carousel-container',
+  y: false,
+  onGrab: () => animate(flickData, { speedX: 0, duration: 500 }),
+  onRelease: () => animate(flickData, { speedX: 2, duration: 500 }),
+  releaseStiffness: 10
+});
+
+createTi mer({
+  onUpdate: () => {
+    const { x } = flickAnimatable;
+    x(x() - flickData.speedX + flickDraggable.deltaX);
+  }
+});
+```
+
+## Draggable with Progress
+
+Map drag position to progress value:
+
+```javascript
+import { createDraggable } from 'animejs';
+
+const slider = createDraggable('.slider', {
+  container: '.track',
+  y: false,
+  containerPadding: 10,
+  onUpdate: (self) => {
+    console.log('Progress:', self.progressX);  // 0 to 1
+    document.querySelector('.value').textContent = 
+      Math.round(self.progressX * 100) + '%';
+  }
+});
+```
+
+## Sortable List
+
+Create a reorderable draggable list:
+
+```javascript
+import { createDraggable, animate, eases, utils } from 'animejs';
+
+const list = [];
+const itemHeight = 60;
+
+utils.$('.list-item').forEach(($item, index) => {
+  const draggable = createDraggable($item, {
+    container: '.list',
+    x: false,
+    containerPadding: 10,
+    snap: itemHeight,
+    
+    onGrab: (self) => {
+      animate(self.$target, { 
+        scale: 1.05,
+        duration: 350 
+      });
+    },
+    
+    onRelease: (self) => {
+      animate(self.$target, { 
+        scale: 1.0,
+        duration: 450 
+      });
+    },
+    
+    onSnap: (self) => {
+      const fromIndex = list.indexOf(self);
+      const toIndex = Math.round(self.destY / itemHeight);
+      
+      if (toIndex !== fromIndex) {
+        list.splice(fromIndex, 1);
+        list.splice(toIndex, 0, self);
+        
+        list.forEach((item, i) => {
+          if (i !== toIndex) {
+            animate(item, {
+              y: i * itemHeight,
+              duration: 750,
+              ease: eases.outElastic(0.8, 1)
+            });
+          }
+        });
+      }
+    }
+  });
+  
+  draggable.y = index * itemHeight;
+  list.push(draggable);
+});
+```
+
+## 3D Carousel
+
+Map drag position to rotation:
+
+```javascript
+import { createDraggable, utils, stagger, animate } from 'animejs';
+
+const items = utils.$('.carousel-item');
+const itemAngle = 360 / items.length;
+
+// Position items in 3D circle
+utils.set('.carousel-item', {
+  rotateY: stagger(itemAngle),
+  z: 'min(40vw, 200px)'
+});
+
+const carousel = createDraggable('.carousel', {
+  trigger: '.carousel-container',
+  x: { mapTo: 'rotateY' },  // Map X drag to rotateY
+  y: false,
+  snap: itemAngle,
+  dragSpeed: 0.4,
+  releaseStiffness: 10
+});
+
+// Button controls
+const rotateCarousel = (direction) => {
+  animate(carousel, {
+    x: utils.snap(carousel.x + (direction * 40), itemAngle),
+    duration: 500,
+    ease: 'out(4)'
+  });
+};
+
+document.querySelector('.prev').onclick = () => rotateCarousel(1);
+document.querySelector('.next').onclick = () => rotateCarousel(-1);
+```
+
+## Drawer Component
+
+Create a mobile-style drawer:
+
+```javascript
+import { createDraggable, createTimeline, animate } from 'animejs';
+
+const drawerTimeline = createTimeline({ autoplay: false })
+  .add('.drawer-content', {
+    y: [10, 0],
+    opacity: [0.5, 1],
+    duration: 1000
+  });
+
+const drawer = createDraggable('.drawer', {
+  container: () => [0, 0, drawerHeight, 0],
+  y: { snap: drawerHeight },
+  x: false,
+  velocityMultiplier: 4,
+  
+  onUpdate: (self) => {
+    drawerTimeline.progress = self.progressY;
+  },
+  
+  onResize: (self) => {
+    self.progressY = self.progressY > 0.5 ? 1 : 0;
+  }
+});
+
+// Toggle button
+document.querySelector('.toggle').onclick = () => {
+  animate(drawer, {
+    progressY: drawer.y < 100 ? 1 : 0,
+    duration: 375,
+    ease: 'out(4)'
+  });
+};
+```
+
+## Custom Cursor
+
+Change cursor during drag:
+
+```javascript
+import { createDraggable } from 'animejs';
+
+createDraggable('.draggable', {
+  container: document.body,
+  cursor: {
+    onHover: 'grab',
+    onGrab: 'grabbing'
+  }
+});
+
+// Disable cursor changes
+createDraggable('.draggable', {
+  cursor: false
+});
+```
+
+## Dynamic Container Padding
+
+Adjust boundaries based on other draggables:
+
+```javascript
+import { createDraggable } from 'animejs';
+
+const left = createDraggable('.left', {
+  container: '.parent',
+  containerPadding: [10, 100, 10, 10]
+});
+
+const right = createDraggable('.right', {
+  container: '.parent',
+  containerPadding: [10, 10, 10, 100]
+});
+
+const center = createDraggable('.center', {
+  container: '.parent',
+  parameters: {
+    containerPadding: () => [
+      10,
+      Math.abs(right.x - 10),
+      10,
+      left.x + 10
+    ]
+  }
+});
+
+// Update center padding when others move
+left.onUpdate = () => center.refresh();
+right.onUpdate = () => center.refresh();
+```
+
+## Performance Tips
+
+<Tip>
+  - Use `will-change: transform` on draggable elements
+  - Avoid animating properties that cause layout recalculation
+  - Use `containerFriction` to control resistance at boundaries
+  - Set `minVelocity` to control when physics simulation stops
+</Tip>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Basic Animations" icon="play" href="/examples/basic-animations">
+    Learn animation fundamentals
+  </Card>
+  <Card title="Timelines" icon="clock" href="/examples/timelines">
+    Combine draggables with timelines
+  </Card>
+</CardGroup>

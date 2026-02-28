@@ -1,0 +1,309 @@
+---
+title: Built-in Easings
+description: Pre-configured easing functions based on Robert Penner's easing equations
+---
+
+Anime.js includes a comprehensive set of built-in easing functions adapted from [Robert Penner's easing equations](https://robertpenner.com/easing/). Each easing family supports four timing variations: `in`, `out`, `inOut`, and `outIn`.
+
+## Using Built-in Easings
+
+You can reference built-in easings using string names:
+
+```javascript
+import anime from 'animejs';
+
+anime({
+  targets: '.element',
+  translateX: 250,
+  easing: 'easeOutExpo' // String reference
+});
+```
+
+Or import the eases object for programmatic access:
+
+```javascript
+import { eases } from 'animejs';
+
+anime({
+  targets: '.element',
+  translateX: 250,
+  easing: eases.outExpo // Direct function reference
+});
+```
+
+## Easing Families
+
+### Power Easings
+
+Polynomial easings with increasing degrees of curvature.
+
+<Tabs>
+  <Tab title="Quad">
+    Quadratic easing (power of 2) - gentle acceleration/deceleration
+    
+    ```javascript
+    easing: 'easeInQuad'     // t^2
+    easing: 'easeOutQuad'    // 1 - (1-t)^2
+    easing: 'easeInOutQuad'  // Accelerate then decelerate
+    easing: 'easeOutInQuad'  // Decelerate then accelerate
+    ```
+  </Tab>
+  <Tab title="Cubic">
+    Cubic easing (power of 3) - moderate acceleration/deceleration
+    
+    ```javascript
+    easing: 'easeInCubic'
+    easing: 'easeOutCubic'
+    easing: 'easeInOutCubic'
+    easing: 'easeOutInCubic'
+    ```
+  </Tab>
+  <Tab title="Quart">
+    Quartic easing (power of 4) - strong acceleration/deceleration
+    
+    ```javascript
+    easing: 'easeInQuart'
+    easing: 'easeOutQuart'
+    easing: 'easeInOutQuart'
+    easing: 'easeOutInQuart'
+    ```
+  </Tab>
+  <Tab title="Quint">
+    Quintic easing (power of 5) - very strong acceleration/deceleration
+    
+    ```javascript
+    easing: 'easeInQuint'
+    easing: 'easeOutQuint'
+    easing: 'easeInOutQuint'
+    easing: 'easeOutInQuint'
+    ```
+  </Tab>
+</Tabs>
+
+### Custom Power
+
+Create power easings with any exponent:
+
+```javascript
+import { eases } from 'animejs';
+
+anime({
+  targets: '.box',
+  translateX: 250,
+  easing: eases.in(1.68) // Default power value
+});
+
+anime({
+  targets: '.box',
+  translateY: 250,
+  easing: eases.out(4) // Same as easeOutQuart
+});
+```
+
+<Info>
+The default power value is 1.68, which provides a smooth acceleration curve between linear and quadratic.
+</Info>
+
+### Sine
+
+Smooth, gentle easing based on sine wave curves.
+
+```javascript
+easing: 'easeInSine'     // Smooth acceleration
+easing: 'easeOutSine'    // Smooth deceleration
+easing: 'easeInOutSine'  // Smooth start and end
+easing: 'easeOutInSine'  // Sharp middle transition
+```
+
+Implementation: `1 - cos(t * π/2)`
+
+### Circ (Circular)
+
+Circular easing creates a strong, curved acceleration/deceleration.
+
+```javascript
+easing: 'easeInCirc'     // Strong acceleration
+easing: 'easeOutCirc'    // Strong deceleration  
+easing: 'easeInOutCirc'  // Strong curve at both ends
+easing: 'easeOutInCirc'  // Sharp middle
+```
+
+Implementation: `1 - sqrt(1 - t²)`
+
+### Expo (Exponential)
+
+Dramatic exponential acceleration/deceleration.
+
+```javascript
+easing: 'easeInExpo'     // Slow start, explosive end
+easing: 'easeOutExpo'    // Explosive start, slow end
+easing: 'easeInOutExpo'  // Explosive middle section
+easing: 'easeOutInExpo'  // Gentle middle section
+```
+
+Implementation: `2^(10t - 10)` (when t > 0)
+
+<Warning>
+Exponential easings create very dramatic effects. Use sparingly for best results.
+</Warning>
+
+### Bounce
+
+Creates a bouncing ball effect at the end of the animation.
+
+```javascript
+easing: 'easeInBounce'     // Bounce at start
+easing: 'easeOutBounce'    // Bounce at end (most common)
+easing: 'easeInOutBounce'  // Bounce at both ends
+easing: 'easeOutInBounce'  // Bounce in middle
+```
+
+```javascript
+// Typical bounce usage
+anime({
+  targets: '.ball',
+  translateY: [0, 300],
+  easing: 'easeOutBounce',
+  duration: 1500
+});
+```
+
+### Back
+
+Overshoots the target value before settling, creating an anticipation effect.
+
+```javascript
+easing: 'easeInBack'     // Pull back before moving forward
+easing: 'easeOutBack'    // Overshoot then settle back
+easing: 'easeInOutBack'  // Pull back and overshoot
+easing: 'easeOutInBack'  // Overshoot in middle
+```
+
+#### Custom Overshoot
+
+Control the intensity of the overshoot:
+
+```javascript
+import { eases } from 'animejs';
+
+anime({
+  targets: '.element',
+  scale: 1.5,
+  easing: eases.outBack(1.7), // Default overshoot
+  duration: 800
+});
+
+anime({
+  targets: '.element',
+  scale: 1.5,
+  easing: eases.outBack(3), // Stronger overshoot
+  duration: 800
+});
+```
+
+<Info>
+The overshoot parameter defaults to 1.7. Higher values create more pronounced overshooting.
+</Info>
+
+### Elastic
+
+Creates a spring-like oscillation effect.
+
+```javascript
+easing: 'easeInElastic'     // Elastic wind-up
+easing: 'easeOutElastic'    // Elastic settle (most common)
+easing: 'easeInOutElastic'  // Elastic at both ends
+easing: 'easeOutInElastic'  // Elastic in middle
+```
+
+#### Custom Amplitude and Period
+
+Fine-tune the elastic oscillation:
+
+```javascript
+import { eases } from 'animejs';
+
+// Default parameters
+anime({
+  targets: '.element',
+  translateX: 250,
+  easing: eases.outElastic(1, 0.3)
+});
+
+// More pronounced oscillation
+anime({
+  targets: '.element',
+  translateX: 250,
+  easing: eases.outElastic(2, 0.5), // amplitude: 2, period: 0.5
+  duration: 1000
+});
+```
+
+**Parameters:**
+- `amplitude` (default: 1) - Oscillation intensity (clamped: 1-10)
+- `period` (default: 0.3) - Oscillation frequency (clamped: 0.0001-2)
+
+## Complete Example
+
+```javascript
+import anime from 'animejs';
+import { eases } from 'animejs';
+
+// String syntax for simple easings
+anime({
+  targets: '.box1',
+  translateX: 250,
+  easing: 'easeOutQuad',
+  duration: 800
+});
+
+// Function syntax for parameterized easings
+anime({
+  targets: '.box2',
+  translateX: 250,
+  easing: eases.outBack(2.5),
+  duration: 800
+});
+
+// Custom power curve
+anime({
+  targets: '.box3',
+  translateX: 250,
+  easing: eases.inOut(6),
+  duration: 800
+});
+
+// Elastic with custom parameters
+anime({
+  targets: '.box4',
+  translateX: 250,
+  easing: eases.outElastic(1.5, 0.4),
+  duration: 1200
+});
+```
+
+## Easing Type Transformations
+
+The `easeTypes` object defines how each timing variation transforms the base easing function:
+
+```javascript
+// Source: src/easings/eases/parser.js
+
+const easeTypes = {
+  in: easeIn => t => easeIn(t),
+  out: easeIn => t => 1 - easeIn(1 - t),
+  inOut: easeIn => t => t < 0.5 ? easeIn(t * 2) / 2 : 1 - easeIn(t * -2 + 2) / 2,
+  outIn: easeIn => t => t < 0.5 ? (1 - easeIn(1 - t * 2)) / 2 : (easeIn(t * 2 - 1) + 1) / 2
+}
+```
+
+## See Also
+
+<CardGroup cols={2}>
+  <Card title="Spring Easings" href="/easings/spring">
+    Physics-based spring animations
+  </Card>
+  <Card title="Cubic Bezier" href="/easings/cubic-bezier">
+    Create custom curves with control points
+  </Card>
+</CardGroup>

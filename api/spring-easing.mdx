@@ -1,0 +1,196 @@
+---
+title: Spring Easing
+description: Physics-based spring easing for natural motion in Anime.js
+---
+
+The `spring()` function creates physics-based spring animations that simulate real-world spring motion. It uses a spring solver adapted from [Webkit's implementation](https://webkit.org/demos/spring/spring.js).
+
+## Basic Usage
+
+```javascript
+import { spring } from 'animejs';
+
+animate({
+  targets: '.element',
+  translateX: 250,
+  ease: spring()
+});
+```
+
+## Parameters
+
+The `spring()` function accepts a parameters object with the following properties:
+
+### Physical Properties
+
+<ParamField path="mass" type="number" default="1">
+  The mass of the spring. Higher values make the spring move more slowly. Clamped between 1 and 1000.
+</ParamField>
+
+<ParamField path="stiffness" type="number" default="100">
+  The stiffness of the spring. Higher values make the spring snap back more quickly. Clamped between a minimum value and 1000.
+</ParamField>
+
+<ParamField path="damping" type="number" default="10">
+  The damping force applied to the spring. Higher values reduce oscillation. Clamped between a minimum value and 1000.
+</ParamField>
+
+<ParamField path="velocity" type="number" default="0">
+  The initial velocity of the spring. Clamped between -1000 and 1000.
+</ParamField>
+
+### Perceived Properties
+
+<ParamField path="bounce" type="number" default="0.5">
+  The bounce percentage of the spring. Controls the amount of oscillation:
+  - Values ≥ 0: Critically damped to underdamped (creates bouncing)
+  - Values < 0: Overdamped (no bouncing)
+  
+  Clamped between -1 and 1.
+</ParamField>
+
+<ParamField path="duration" type="number" default="628">
+  The perceived duration of the spring animation in milliseconds. This represents how long the animation feels, not the actual settling time. Clamped between 10 (scaled by timeScale) and 10000.
+</ParamField>
+
+<ParamField path="onComplete" type="function">
+  Callback function called when the spring's current time reaches the perceived duration. Receives the parent animation as an argument.
+</ParamField>
+
+## Usage Examples
+
+### Using Physical Properties
+
+```javascript
+import { spring } from 'animejs';
+
+// Custom spring with high stiffness and low damping
+animate({
+  targets: '.element',
+  translateX: 250,
+  ease: spring({
+    mass: 1,
+    stiffness: 200,
+    damping: 5,
+    velocity: 0
+  })
+});
+```
+
+### Using Perceived Properties
+
+```javascript
+import { spring } from 'animejs';
+
+// Bouncy spring with specific duration
+animate({
+  targets: '.element',
+  translateX: 250,
+  ease: spring({
+    bounce: 0.7,
+    duration: 1000
+  })
+});
+
+// Overdamped spring (no bounce)
+animate({
+  targets: '.element',
+  translateX: 250,
+  ease: spring({
+    bounce: -0.3,
+    duration: 800
+  })
+});
+```
+
+### With Callback
+
+```javascript
+import { spring } from 'animejs';
+
+animate({
+  targets: '.element',
+  translateX: 250,
+  ease: spring({
+    bounce: 0.5,
+    duration: 1000,
+    onComplete: (animation) => {
+      console.log('Spring reached perceived duration');
+    }
+  })
+});
+```
+
+## How It Works
+
+The spring solver calculates motion based on physics equations:
+
+- **Underdamped** (bounce ≥ 0): Creates oscillating motion with bouncing
+- **Critically damped** (zeta = 1): Returns to rest position as quickly as possible without oscillating
+- **Overdamped** (bounce < 0): Returns to rest slowly without oscillating
+
+### Perceived vs Physical Properties
+
+You can control the spring using either:
+
+1. **Physical properties** (`mass`, `stiffness`, `damping`, `velocity`): Direct control over spring physics
+2. **Perceived properties** (`bounce`, `duration`): Higher-level controls that feel more intuitive
+
+When you set `bounce` or `duration`, the spring automatically calculates the appropriate physical properties using Apple's SwiftUI spring duration implementation.
+
+## Spring Class
+
+The `spring()` function returns a `Spring` class instance with the following properties and methods:
+
+### Properties
+
+- `mass`: Get/set the mass
+- `stiffness`: Get/set the stiffness
+- `damping`: Get/set the damping
+- `velocity`: Get/set the velocity
+- `bounce`: Get/set the bounce
+- `duration`: Get/set the perceived duration
+- `ease`: The easing function used by the animation
+
+### Internal Properties
+
+- `solverDuration`: The actual duration calculated by the solver
+- `settlingDuration`: The duration it takes for the spring to settle
+- `completed`: Whether the spring has completed its perceived duration
+
+## Advanced Configuration
+
+```javascript
+import { spring } from 'animejs';
+
+// Create a spring instance
+const mySpring = spring({
+  mass: 2,
+  stiffness: 150,
+  damping: 12
+});
+
+// Use it in multiple animations
+animate({
+  targets: '.element1',
+  translateX: 250,
+  ease: mySpring
+});
+
+animate({
+  targets: '.element2',
+  scale: 2,
+  ease: mySpring
+});
+
+// Update spring properties dynamically
+mySpring.stiffness = 200;
+mySpring.damping = 8;
+```
+
+## Notes
+
+- The spring solver uses a time step of 0.02 for calculations
+- Springs are considered at rest when the value is within 0.0005 of the target
+- The maximum allowed spring duration is 60 seconds (60000ms)
+- Setting physical properties will recalculate the perceived properties and vice versa

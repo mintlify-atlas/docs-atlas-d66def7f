@@ -1,0 +1,215 @@
+---
+title: Animatable Methods
+description: Methods available on Animatable instances for controlling and managing reactive animations.
+---
+
+## Instance Methods
+
+### revert()
+
+Reverts all animations and removes all animatable properties from the instance. This method:
+- Stops all active animations
+- Removes all property methods
+- Clears the animations object
+- Reverts the internal callbacks animation
+- Returns the instance to its initial state
+
+```javascript
+const animatable = new Animatable('.box', { x: 500, y: 500 });
+
+// Animate properties
+animatable.x(100);
+animatable.y(200);
+
+// Revert everything
+animatable.revert();
+```
+
+**Returns:** `this` - The Animatable instance for method chaining.
+
+## Factory Function
+
+### createAnimatable()
+
+Factory function to create an Animatable instance. This is a convenience wrapper around the Animatable constructor.
+
+```javascript
+createAnimatable(targets, parameters)
+```
+
+<ParamField path="targets" type="TargetsParam">
+  Target element(s) to make animatable. Can be:
+  - CSS selector string (e.g., `'.element'`)
+  - DOM element
+  - Array of elements
+  - JavaScript object
+</ParamField>
+
+<ParamField path="parameters" type="AnimatableParams">
+  Configuration object defining animatable properties.
+</ParamField>
+
+**Returns:** `AnimatableObject` - An Animatable instance with dynamic property methods.
+
+#### Example
+
+```javascript
+import { createAnimatable } from 'anime';
+
+const box = createAnimatable('.box', {
+  x: 500,
+  y: 500,
+  rotate: 1000,
+  onUpdate: (self) => {
+    console.log('Position:', self.x(), self.y());
+  }
+});
+
+// Animate to new values
+box.x(100);
+box.y(200);
+box.rotate(360, 800, 'inOutElastic');
+```
+
+## Dynamic Property Methods
+
+Each property defined in the parameters becomes a method on the Animatable instance with dual functionality:
+
+### Property Getter
+
+Call the property method without arguments to get the current value:
+
+```javascript
+const animatable = createAnimatable('.box', { x: 500 });
+
+// Get current value
+const currentX = animatable.x(); // Returns current x value
+```
+
+**Returns:** `number | Array<number>` - Current animated value(s).
+
+### Property Setter
+
+Call the property method with arguments to animate to a new value:
+
+```javascript
+animatable.propertyName(to, duration?, ease?)
+```
+
+<ParamField path="to" type="number | Array<number>">
+  Target value to animate to. Can be:
+  - Single number for simple properties
+  - Array of numbers for complex properties (e.g., transforms with multiple values)
+</ParamField>
+
+<ParamField path="duration" type="number" optional>
+  Animation duration in milliseconds. If omitted, uses the default duration from property configuration.
+</ParamField>
+
+<ParamField path="ease" type="EasingParam" optional>
+  Easing function for the animation. Can be:
+  - String name (e.g., `'inOutQuad'`, `'outElastic'`)
+  - Custom easing function
+  - Spring configuration
+</ParamField>
+
+**Returns:** `AnimatableObject` - The Animatable instance for method chaining.
+
+#### Examples
+
+```javascript
+import { createAnimatable } from 'anime';
+
+const box = createAnimatable('.box', {
+  x: { duration: 500, unit: 'px' },
+  y: { duration: 500, unit: 'px' },
+  rotate: { duration: 1000, unit: 'deg' },
+  scale: 500
+});
+
+// Simple animation with default duration
+box.x(100);
+
+// Animation with custom duration
+box.y(200, 1000);
+
+// Animation with custom duration and easing
+box.rotate(360, 800, 'inOutElastic');
+
+// Chain multiple animations
+box.x(100).y(200).rotate(180);
+
+// Animate complex values (arrays)
+box.scale([1.5, 1.5], 600, 'outQuad');
+
+// Get current values
+console.log('Current X:', box.x());
+console.log('Current Y:', box.y());
+console.log('Current Rotation:', box.rotate());
+```
+
+## Advanced Examples
+
+### Custom Property with Modifier
+
+```javascript
+const slider = createAnimatable('#slider', {
+  progress: {
+    duration: 800,
+    modifier: (value) => {
+      // Clamp value between 0 and 100
+      return Math.max(0, Math.min(100, value));
+    }
+  },
+  onUpdate: (self) => {
+    const percent = self.progress();
+    console.log(`${percent}%`);
+  }
+});
+
+// Animate progress
+slider.progress(75, 1000, 'inOutQuad');
+```
+
+### Multiple Targets
+
+```javascript
+const boxes = createAnimatable('.box', {
+  x: 500,
+  y: 500,
+  opacity: 800
+});
+
+// All .box elements will animate together
+boxes.x(100);
+boxes.y(200);
+boxes.opacity(0.5);
+```
+
+### Interactive Control
+
+```javascript
+const dial = createAnimatable('#dial', {
+  angle: {
+    duration: 400,
+    unit: 'deg',
+    modifier: (value) => value % 360
+  }
+});
+
+// Increment on click
+document.querySelector('#increment').addEventListener('click', () => {
+  const current = dial.angle();
+  dial.angle(current + 45, 300);
+});
+
+// Set to specific value
+document.querySelector('#reset').addEventListener('click', () => {
+  dial.angle(0, 500, 'outBack');
+});
+```
+
+## See Also
+
+- [Animatable Class](/api/animatable-class)
+- [Animation](/api/animation)

@@ -1,0 +1,218 @@
+---
+title: 'SVG Animations'
+description: 'Animate SVG paths, morphing, motion paths, and drawing effects'
+---
+
+Anime.js provides powerful tools for animating SVG elements, including path morphing, motion path animations, and line drawing effects.
+
+## Motion Path
+
+Animate elements along SVG paths using `createMotionPath()`.
+
+### Basic Usage
+
+```javascript
+import { animate, svg } from 'animejs';
+
+const motionPath = svg.createMotionPath('#path');
+
+animate('.box', {
+  ...motionPath,
+  duration: 2000,
+  ease: 'inOut(2)'
+});
+```
+
+### With Offset
+
+Start the animation at a different point along the path:
+
+```javascript
+const motionPath = svg.createMotionPath('#path', 0.25);
+
+animate('.box', {
+  ...motionPath,
+  duration: 3000
+});
+```
+
+The `createMotionPath()` function returns an object with `translateX`, `translateY`, and `rotate` properties that automatically calculate positions along the path.
+
+<Note>
+  The offset parameter ranges from 0 to 1, where 0 is the start of the path and 1 is the end. An offset of 0.25 starts the animation 25% along the path.
+</Note>
+
+## Path Morphing
+
+Morph between two SVG paths with `morphTo()`.
+
+### Basic Morphing
+
+```javascript
+import { animate, svg } from 'animejs';
+
+animate('#path1', {
+  d: svg.morphTo('#path2'),
+  duration: 1500,
+  ease: 'out(3)'
+});
+```
+
+### Custom Precision
+
+Control the number of points used in the morphing animation:
+
+```javascript
+animate('#myPath', {
+  d: svg.morphTo('#targetPath', 0.5),
+  duration: 2000
+});
+```
+
+<Note>
+  The precision parameter controls how many points are sampled along the paths. Higher values create smoother morphing but may impact performance. Default is 0.33.
+</Note>
+
+### Supported Elements
+
+`morphTo()` works with:
+- `<path>` elements
+- `<polygon>` elements  
+- `<polyline>` elements
+
+```javascript
+// Morph a polygon to a path
+animate('#myPolygon', {
+  points: svg.morphTo('#targetPath'),
+  duration: 1000
+});
+```
+
+## Line Drawing
+
+Create drawing and reveal effects with `createDrawable()`.
+
+### Basic Drawing Effect
+
+```javascript
+import { animate, svg } from 'animejs';
+
+const drawables = svg.createDrawable('.svg-path');
+
+animate(drawables, {
+  draw: [0, 1],
+  duration: 2000,
+  ease: 'linear'
+});
+```
+
+### Starting State
+
+Set initial draw positions:
+
+```javascript
+// Start with path fully hidden
+const drawables = svg.createDrawable('.path', 0, 0);
+
+// Start with path fully visible
+const drawables = svg.createDrawable('.path', 0, 1);
+```
+
+### Advanced Drawing
+
+```javascript
+// Draw from center outward
+animate(drawables, {
+  draw: [
+    [0.5, 0.5],
+    [0, 1]
+  ],
+  duration: 1500
+});
+
+// Reverse drawing effect
+animate(drawables, {
+  draw: [[1, 0]],
+  duration: 1000,
+  ease: 'in(2)'
+});
+```
+
+<Warning>
+  The `createDrawable()` function modifies the element's `stroke-dasharray` and `stroke-dashoffset` properties. Make sure your SVG elements have a stroke defined.
+</Warning>
+
+## Combining Techniques
+
+```javascript
+import { animate, svg, timeline } from 'animejs';
+
+const tl = timeline();
+
+// Draw the path
+const drawables = svg.createDrawable('#myPath', 0, 0);
+tl.add(drawables, {
+  draw: [0, 1],
+  duration: 1500
+});
+
+// Then morph it
+tl.add('#myPath', {
+  d: svg.morphTo('#targetPath'),
+  duration: 1000
+}, '-=500');
+
+// Move element along another path
+const motionPath = svg.createMotionPath('#curvePath');
+tl.add('.circle', {
+  ...motionPath,
+  duration: 2000
+}, '-=500');
+```
+
+## SVG Transform Origin
+
+SVG transforms use a different coordinate system:
+
+```javascript
+// Center transform origin for SVG
+animate('#svgElement', {
+  rotate: 360,
+  transformOrigin: '50% 50%',
+  duration: 2000
+});
+```
+
+## Performance Tips
+
+<AccordionGroup>
+  <Accordion title="Optimize Path Complexity">
+    Simplify SVG paths before animating. Complex paths with many points can impact performance.
+  </Accordion>
+
+  <Accordion title="Use Lower Precision for Morphing">
+    If morphing animations feel slow, try lowering the precision parameter:
+    ```javascript
+    svg.morphTo('#target', 0.2)
+    ```
+  </Accordion>
+
+  <Accordion title="Reuse Drawable Objects">
+    Create drawable proxies once and reuse them across multiple animations:
+    ```javascript
+    const drawables = svg.createDrawable('.paths');
+    // Use drawables in multiple animations
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Browser Support
+
+All SVG animation features require:
+- Modern browsers with SVG support
+- `getBoundingClientRect()` support for motion paths
+- `getTotalLength()` and `getPointAtLength()` for path operations
+
+<Check>
+  These features are supported in all modern browsers including Chrome, Firefox, Safari, and Edge.
+</Check>

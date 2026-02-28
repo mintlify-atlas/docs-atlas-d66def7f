@@ -1,0 +1,210 @@
+---
+title: stagger
+description: Create staggered animation delays with advanced distribution options
+---
+
+The `stagger()` function generates staggered delays for multiple animated elements, allowing you to create wave-like or cascading animation effects.
+
+## Syntax
+
+```javascript
+stagger(value, params)
+```
+
+### Parameters
+
+<ParamField path="value" type="number | string | [number, number] | [string, string]" required>
+  The delay value or range to distribute across elements:
+  - Single value: Same delay increment for each element
+  - Array range: Interpolates between start and end values
+  - Supports units like 'ms', 's', etc.
+</ParamField>
+
+<ParamField path="params" type="object">
+  Configuration options for stagger behavior:
+  
+  <Expandable title="params properties">
+    <ParamField path="from" type="number | 'first' | 'center' | 'last' | 'random'">
+      Starting position for stagger calculation. Defaults to `'first'` (index 0).
+    </ParamField>
+    
+    <ParamField path="reversed" type="boolean">
+      Reverses the stagger direction.
+    </ParamField>
+    
+    <ParamField path="ease" type="string | function">
+      Easing function to apply to the stagger distribution.
+    </ParamField>
+    
+    <ParamField path="grid" type="[number, number]">
+      Grid dimensions `[columns, rows]` for 2D stagger calculations.
+    </ParamField>
+    
+    <ParamField path="axis" type="'x' | 'y'">
+      Axis direction for grid-based stagger (use with `grid`).
+    </ParamField>
+    
+    <ParamField path="start" type="number | string">
+      Initial delay offset before stagger begins.
+    </ParamField>
+    
+    <ParamField path="total" type="number">
+      Override the total number of elements for calculation.
+    </ParamField>
+    
+    <ParamField path="use" type="string | function">
+      Property or function to determine custom stagger index.
+    </ParamField>
+    
+    <ParamField path="modifier" type="function">
+      Function to modify the final stagger value for each element.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### Returns
+
+<ResponseField type="function">
+  A stagger function that calculates delays for each target element.
+</ResponseField>
+
+## Examples
+
+### Basic Stagger
+
+Apply a 100ms delay increment between elements:
+
+```javascript
+anime({
+  targets: '.box',
+  translateX: 250,
+  delay: anime.stagger(100) // 0ms, 100ms, 200ms, 300ms...
+});
+```
+
+### Stagger with Range
+
+Interpolate delays from 0ms to 1000ms:
+
+```javascript
+anime({
+  targets: '.box',
+  translateX: 250,
+  delay: anime.stagger([0, 1000]) // First: 0ms, Last: 1000ms
+});
+```
+
+### Stagger from Center
+
+Start the stagger effect from the center element:
+
+```javascript
+anime({
+  targets: '.box',
+  scale: [0, 1],
+  delay: anime.stagger(50, { from: 'center' })
+});
+```
+
+### Grid-based Stagger
+
+Create 2D stagger effects for grid layouts:
+
+```javascript
+anime({
+  targets: '.grid-item',
+  scale: [0, 1],
+  delay: anime.stagger(100, {
+    grid: [10, 5], // 10 columns, 5 rows
+    from: 'center'
+  })
+});
+```
+
+### Grid with Axis Direction
+
+Stagger along a specific axis in a grid:
+
+```javascript
+anime({
+  targets: '.grid-item',
+  translateY: -30,
+  delay: anime.stagger(50, {
+    grid: [8, 8],
+    axis: 'y' // Stagger vertically
+  })
+});
+```
+
+### Stagger with Easing
+
+Apply easing to the stagger distribution:
+
+```javascript
+anime({
+  targets: '.box',
+  translateX: 250,
+  delay: anime.stagger(100, {
+    ease: 'easeOutQuad',
+    from: 'center'
+  })
+});
+```
+
+### Random Stagger Order
+
+Randomize the stagger sequence:
+
+```javascript
+anime({
+  targets: '.box',
+  rotate: 360,
+  delay: anime.stagger(80, { from: 'random' })
+});
+```
+
+### Reversed Stagger
+
+Reverse the stagger direction:
+
+```javascript
+anime({
+  targets: '.box',
+  translateY: -50,
+  delay: anime.stagger(100, {
+    from: 'last',
+    reversed: true
+  })
+});
+```
+
+## Use Cases
+
+<CardGroup cols={2}>
+  <Card title="List Animations" icon="list">
+    Animate menu items or list entries with cascading effects
+  </Card>
+  <Card title="Grid Layouts" icon="grid">
+    Create wave patterns across image galleries or product grids
+  </Card>
+  <Card title="Text Effects" icon="text">
+    Animate letters or words with sequential timing
+  </Card>
+  <Card title="Loading States" icon="loader">
+    Build skeleton loaders with staggered placeholder animations
+  </Card>
+</CardGroup>
+
+## Notes
+
+<Note>
+  The stagger function is calculated once and cached for performance. The calculation considers the total number of targets and their positions.
+</Note>
+
+<Tip>
+  Combine `grid` and `from: 'center'` to create ripple effects that emanate from the center of a 2D layout.
+</Tip>
+
+<Warning>
+  When using `grid`, ensure your targets are arranged in the same grid structure (row-by-row) for the stagger to work correctly.
+</Warning>

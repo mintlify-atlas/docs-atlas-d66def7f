@@ -1,0 +1,385 @@
+---
+title: Targets
+description: Understanding how Anime.js targets and animates different types of elements and objects
+---
+
+Targets define what elements or objects Anime.js will animate. The library supports a wide variety of target types, from DOM elements to plain JavaScript objects.
+
+## Target Types
+
+Anime.js accepts multiple types of targets:
+
+### CSS Selectors
+
+The most common way to target elements:
+
+```javascript
+import { animate } from 'animejs';
+
+// Single class
+animate('.box', { x: 100 });
+
+// ID selector
+animate('#hero', { opacity: 1 });
+
+// Complex selector
+animate('.container > .item:nth-child(odd)', { scale: 1.2 });
+```
+
+### DOM Elements
+
+Direct element references:
+
+```javascript
+const element = document.querySelector('.box');
+animate(element, { rotate: 180 });
+```
+
+### NodeList and HTMLCollection
+
+Collections of elements:
+
+```javascript
+const elements = document.querySelectorAll('.box');
+animate(elements, { x: 100 });
+```
+
+### Arrays
+
+Arrays of mixed targets:
+
+```javascript
+animate([
+  '.box',
+  document.querySelector('#circle'),
+  document.querySelectorAll('.square')
+], {
+  scale: 1.5
+});
+```
+
+<Note>
+Anime.js automatically flattens nested arrays and removes duplicates.
+</Note>
+
+### JavaScript Objects
+
+Animate properties of plain objects:
+
+```javascript
+const obj = { value: 0, progress: 0 };
+
+animate(obj, {
+  value: 100,
+  progress: 1,
+  duration: 2000,
+  onUpdate: () => {
+    console.log(obj.value, obj.progress);
+  }
+});
+```
+
+### SVG Elements
+
+SVG elements are fully supported:
+
+```javascript
+animate('circle', {
+  r: 50,
+  cx: 100,
+  cy: 100
+});
+
+animate('path', {
+  d: 'M0,0 L100,100'
+});
+```
+
+## Target Registration
+
+Internally, Anime.js registers targets to optimize performance:
+
+```javascript
+// From source: src/core/targets.js
+export function registerTargets(targets) {
+  const parsedTargetsArray = parseTargets(targets);
+  const parsedTargetsLength = parsedTargetsArray.length;
+  
+  for (let i = 0; i < parsedTargetsLength; i++) {
+    const target = parsedTargetsArray[i];
+    if (!target[isRegisteredTargetSymbol]) {
+      target[isRegisteredTargetSymbol] = true;
+      const isSvgType = isSvg(target);
+      const isDom = target.nodeType || isSvgType;
+      if (isDom) {
+        target[isDomSymbol] = true;
+        target[isSvgSymbol] = isSvgType;
+        target[transformsSymbol] = {};
+      }
+    }
+  }
+  return parsedTargetsArray;
+}
+```
+
+## Multiple Targets
+
+Animate multiple targets with a single call:
+
+```javascript
+animate('.box, .circle, .square', {
+  x: 100,
+  duration: 1000,
+  delay: (el, i) => i * 100 // Stagger delay
+});
+```
+
+## Function-Based Values
+
+Use functions to create unique values for each target:
+
+```javascript
+animate('.box', {
+  x: (el, i, total) => {
+    // el: current element
+    // i: element index
+    // total: total number of elements
+    return (i + 1) * 50;
+  },
+  rotate: (el, i) => i * 45
+});
+```
+
+## Staggered Targets
+
+Create sophisticated stagger effects with the `stagger` utility:
+
+```javascript
+import { animate, stagger } from 'animejs';
+
+animate('.box', {
+  x: 100,
+  delay: stagger(100) // 100ms between each element
+});
+
+// Stagger from center
+animate('.box', {
+  scale: 1.5,
+  delay: stagger(50, { from: 'center' })
+});
+
+// Stagger in a grid
+animate('.grid-item', {
+  opacity: 1,
+  delay: stagger(50, { 
+    grid: [10, 10], 
+    from: 'center' 
+  })
+});
+```
+
+### Grid Staggering Example
+
+```javascript
+import { createTimeline, stagger } from 'animejs';
+
+const grid = [20, 20];
+let index = 0;
+
+function animateGrid() {
+  createTimeline({
+    defaults: { ease: 'inOutQuad' },
+    onComplete: animateGrid
+  })
+  .add('.dot', {
+    x: stagger('-.175rem', { grid, from: index, axis: 'x' }),
+    y: stagger('-.175rem', { grid, from: index, axis: 'y' }),
+    scale: 2,
+    duration: 500
+  })
+  .add('.dot', {
+    x: 0,
+    y: 0,
+    scale: 1,
+    duration: 600
+  });
+  
+  index = (index + 1) % (grid[0] * grid[1]);
+}
+
+animateGrid();
+```
+
+## Canvas Objects
+
+Perfect for animating canvas-based graphics:
+
+```javascript
+import { animate } from 'animejs';
+
+const canvas = document.querySelector('canvas');
+const ctx = canvas.getContext('2d');
+
+const particle = {
+  x: 0,
+  y: 0,
+  radius: 1,
+  color: '#FF4B4B'
+};
+
+function drawParticle(p) {
+  ctx.beginPath();
+  ctx.fillStyle = p.color;
+  ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+animate(particle, {
+  x: 500,
+  y: 300,
+  radius: 6,
+  duration: 2000,
+  ease: 'out(1)',
+  onUpdate: () => drawParticle(particle)
+});
+```
+
+## Target Parsing
+
+Understand how Anime.js parses different target inputs:
+
+```javascript
+// All of these are valid:
+animate('.box', { x: 100 });
+animate(['.box'], { x: 100 });
+animate(document.querySelector('.box'), { x: 100 });
+animate([document.querySelector('.box')], { x: 100 });
+animate(document.querySelectorAll('.box'), { x: 100 });
+
+// Nested arrays are flattened:
+animate([
+  ['.box', '.circle'],
+  '.square'
+], { x: 100 });
+// Equivalent to: animate('.box, .circle, .square', { x: 100 });
+```
+
+## Duplicate Removal
+
+Anime.js automatically removes duplicate targets:
+
+```javascript
+// Only animates each element once
+animate([
+  '.box',
+  '.box',
+  document.querySelector('.box')
+], { x: 100 });
+```
+
+## Per-Target Parameters
+
+Use functions to customize parameters for each target:
+
+```javascript
+animate('.box', {
+  x: 100,
+  duration: (el, i) => 1000 + (i * 100),
+  delay: (el, i) => i * 50,
+  ease: (el, i) => i % 2 === 0 ? 'easeInQuad' : 'easeOutQuad'
+});
+```
+
+## Target Null/Undefined Handling
+
+Anime.js gracefully handles missing targets:
+
+```javascript
+// No error if selector matches nothing
+animate('.nonexistent', { x: 100 });
+
+// Warning in console:
+// "No target found. Make sure the element you're trying to animate is accessible."
+```
+
+## Timeline with Per-Target Addition
+
+Add animations per-target using timeline stagger functions:
+
+```javascript
+import { createTimeline } from 'animejs';
+
+const tl = createTimeline();
+
+tl.add('.box', {
+  x: 100,
+  duration: 1000
+}, (el, i, total, timeline) => {
+  // Return position for this specific target
+  return i * 200;
+});
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use CSS selectors for simplicity">
+    CSS selectors are the most readable and maintainable way to target elements.
+    
+    ```javascript
+    // Good
+    animate('.box', { x: 100 });
+    
+    // Also good for dynamic targets
+    const element = getUserSelectedElement();
+    animate(element, { x: 100 });
+    ```
+  </Accordion>
+
+  <Accordion title="Leverage function-based values">
+    Functions provide powerful per-target customization.
+    
+    ```javascript
+    animate('.item', {
+      x: (el, i, total) => {
+        return (100 / total) * (i + 1);
+      }
+    });
+    ```
+  </Accordion>
+
+  <Accordion title="Optimize large target sets">
+    For 1000+ targets, consider using `composition: 'none'` for better performance.
+    
+    ```javascript
+    animate('.particle', {
+      x: 100,
+      composition: 'none' // Faster for many targets
+    });
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## API Reference
+
+### parseTargets(targets)
+
+Parses and normalizes target inputs into an array.
+
+**Parameters:**
+- `targets` (string | Element | NodeList | Array | Object) - The targets to parse
+
+**Returns:** `Array` - Normalized array of targets
+
+### registerTargets(targets)
+
+Parses and registers targets for animation, adding internal symbols for optimization.
+
+**Parameters:**
+- `targets` (string | Element | NodeList | Array | Object) - The targets to register
+
+**Returns:** `Array` - Registered array of targets
+
+<Tip>
+When animating the same elements multiple times, the registration overhead only happens once.
+</Tip>

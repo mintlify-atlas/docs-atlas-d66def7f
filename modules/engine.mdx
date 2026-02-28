@@ -1,0 +1,416 @@
+---
+title: Engine
+description: Global animation engine that manages the render loop and coordinates all animations
+---
+
+## Overview
+
+The Engine is the central animation coordinator in Anime.js. It manages the global render loop, timing precision, playback speed, and orchestrates all running animations and timelines.
+
+## Importing
+
+```javascript
+import { engine } from 'animejs';
+```
+
+<Note>
+  The engine is a singleton instance automatically created when Anime.js loads. You don't need to instantiate it.
+</Note>
+
+## Engine Control
+
+### Playback Methods
+
+```javascript
+// Pause all animations
+engine.pause();
+
+// Resume all animations
+engine.resume();
+
+// Wake the engine (start render loop)
+engine.wake();
+```
+
+### Basic Example
+
+```javascript
+import { engine, animate } from 'animejs';
+
+// Create some animations
+animate('.box1', { translateX: 250 });
+animate('.box2', { rotate: 360 });
+
+// Pause all animations globally
+engine.pause();
+
+// Resume all animations
+setTimeout(() => engine.resume(), 1000);
+```
+
+## Time Configuration
+
+### Time Unit
+
+<ParamField path="timeUnit" type="'ms' | 's'" default="'ms'">
+  Global time unit for all animations
+</ParamField>
+
+```javascript
+// Use milliseconds (default)
+engine.timeUnit = 'ms';
+animate('.box', {
+  translateX: 250,
+  duration: 1000 // 1000 milliseconds
+});
+
+// Switch to seconds
+engine.timeUnit = 's';
+animate('.box', {
+  translateX: 250,
+  duration: 1 // 1 second
+});
+```
+
+<Note>
+  Changing `timeUnit` affects all subsequent animations and adjusts existing animation speeds accordingly.
+</Note>
+
+### Global Speed
+
+<ParamField path="speed" type="number" default="1">
+  Global playback speed multiplier
+</ParamField>
+
+```javascript
+// Normal speed
+engine.speed = 1;
+
+// Half speed (slow motion)
+engine.speed = 0.5;
+
+// Double speed
+engine.speed = 2;
+
+// Reverse
+engine.speed = -1;
+
+// Pause (zero speed)
+engine.speed = 0;
+```
+
+### Example: Speed Control
+
+```javascript
+import { engine, animate } from 'animejs';
+
+const animation = animate('.box', {
+  translateX: 250,
+  duration: 2000,
+  loop: true
+});
+
+// Speed controls
+document.querySelector('.slow').addEventListener('click', () => {
+  engine.speed = 0.5;
+});
+
+document.querySelector('.fast').addEventListener('click', () => {
+  engine.speed = 2;
+});
+
+document.querySelector('.pause').addEventListener('click', () => {
+  engine.pause();
+});
+```
+
+## Precision
+
+<ParamField path="precision" type="number" default="5">
+  Decimal precision for animated values
+</ParamField>
+
+```javascript
+// Default precision (5 decimals)
+engine.precision = 5; // 3.14159
+
+// Lower precision (better performance)
+engine.precision = 2; // 3.14
+
+// Higher precision (more accuracy)
+engine.precision = 10; // 3.1415926536
+
+// Integer only
+engine.precision = 0; // 3
+```
+
+## Engine Properties
+
+### Read-Only Properties
+
+<ResponseField name="paused" type="boolean">
+  Whether the engine is currently paused
+</ResponseField>
+
+<ResponseField name="reqId" type="number">
+  Current requestAnimationFrame ID (0 if not running)
+</ResponseField>
+
+<ResponseField name="timeUnit" type="string">
+  Current time unit ('ms' or 's')
+</ResponseField>
+
+```javascript
+console.log(engine.paused);   // false
+console.log(engine.reqId);    // 123 (or 0)
+console.log(engine.timeUnit); // 'ms'
+```
+
+### Writable Properties
+
+```javascript
+// Control global speed
+engine.speed = 1.5;
+
+// Set time unit
+engine.timeUnit = 's';
+
+// Set precision
+engine.precision = 3;
+```
+
+## Advanced Features
+
+### Document Visibility
+
+<ParamField path="pauseOnDocumentHidden" type="boolean" default="true">
+  Automatically pause when browser tab is hidden
+</ParamField>
+
+```javascript
+// Disable auto-pause on tab switch
+engine.pauseOnDocumentHidden = false;
+
+// Now animations continue in background tabs
+```
+
+<Warning>
+  Disabling `pauseOnDocumentHidden` may impact performance and battery life on mobile devices.
+</Warning>
+
+### Custom Main Loop
+
+<ParamField path="useDefaultMainLoop" type="boolean" default="true">
+  Use built-in requestAnimationFrame loop
+</ParamField>
+
+```javascript
+// Disable default loop for custom implementation
+engine.useDefaultMainLoop = false;
+
+// Implement custom loop
+function customLoop() {
+  engine.update();
+  requestAnimationFrame(customLoop);
+}
+
+customLoop();
+```
+
+### Manual Updates
+
+```javascript
+// Manually update engine (when using custom loop)
+engine.update();
+```
+
+## Global Defaults
+
+### Setting Defaults
+
+Access and modify default animation parameters:
+
+```javascript
+import { engine } from 'animejs';
+
+// Modify global defaults
+engine.defaults.duration = 800;
+engine.defaults.ease = 'outExpo';
+engine.defaults.composition = 'blend';
+
+// Now all animations use these defaults
+animate('.box', {
+  translateX: 250
+  // duration: 800 (inherited)
+  // ease: 'outExpo' (inherited)
+});
+```
+
+### Available Defaults
+
+```javascript
+engine.defaults = {
+  duration: 1000,
+  delay: 0,
+  ease: 'outQuad',
+  playbackEase: null,
+  composition: 'replace',
+  modifier: null,
+  loop: false,
+  alternate: false,
+  loopDelay: 0,
+  autoplay: true,
+  frameRate: 60,
+  playbackRate: 1,
+  reversed: false,
+  // ... and all callback defaults
+};
+```
+
+## Performance Monitoring
+
+### Check Active Animations
+
+```javascript
+import { engine } from 'animejs';
+
+// Check if animations are running
+if (engine.reqId > 0) {
+  console.log('Animations are running');
+}
+
+// Access internal state (for debugging)
+console.log(engine._head); // First active animation
+console.log(engine._tail); // Last active animation
+```
+
+## Practical Examples
+
+### Speed Slider
+
+```javascript
+import { engine } from 'animejs';
+
+const slider = document.querySelector('#speed-slider');
+slider.addEventListener('input', (e) => {
+  const speed = parseFloat(e.target.value);
+  engine.speed = speed;
+  document.querySelector('#speed-value').textContent = speed + 'x';
+});
+```
+
+### Slow Motion Effect
+
+```javascript
+function enableSlowMotion() {
+  engine.speed = 0.1; // Super slow
+  
+  setTimeout(() => {
+    engine.speed = 1; // Back to normal
+  }, 3000);
+}
+```
+
+### Global Pause/Resume
+
+```javascript
+const pauseBtn = document.querySelector('#pause');
+let isPaused = false;
+
+pauseBtn.addEventListener('click', () => {
+  if (isPaused) {
+    engine.resume();
+    pauseBtn.textContent = 'Pause All';
+  } else {
+    engine.pause();
+    pauseBtn.textContent = 'Resume All';
+  }
+  isPaused = !isPaused;
+});
+```
+
+### Accessibility: Reduced Motion
+
+```javascript
+import { engine } from 'animejs';
+
+// Respect user's motion preferences
+const prefersReducedMotion = window.matchMedia(
+  '(prefers-reduced-motion: reduce)'
+);
+
+if (prefersReducedMotion.matches) {
+  // Disable animations
+  engine.speed = 0;
+  // Or reduce duration
+  engine.defaults.duration = 0;
+}
+
+// Listen for changes
+prefersReducedMotion.addEventListener('change', (e) => {
+  engine.speed = e.matches ? 0 : 1;
+});
+```
+
+### Time Unit Conversion
+
+```javascript
+// Work in seconds for physics calculations
+engine.timeUnit = 's';
+
+const gravity = 9.8; // m/s²
+const fallTime = 2;  // seconds
+
+animate('.ball', {
+  translateY: 0.5 * gravity * fallTime * fallTime * 100,
+  duration: fallTime,
+  ease: 'linear'
+});
+```
+
+### Performance Optimization
+
+```javascript
+import { engine } from 'animejs';
+
+// Reduce precision for better performance
+engine.precision = 2;
+
+// Lower FPS for background animations
+engine.defaults.frameRate = 30;
+
+// Pause when tab is hidden
+engine.pauseOnDocumentHidden = true;
+```
+
+## Best Practices
+
+<Tip>
+  Use `engine.pause()` and `engine.resume()` for global animation control instead of pausing individual animations.
+</Tip>
+
+<Tip>
+  Set global defaults via `engine.defaults` to avoid repeating common parameters.
+</Tip>
+
+<Warning>
+  Changing `engine.speed` affects ALL animations globally. Use individual animation `speed` properties for selective control.
+</Warning>
+
+```javascript
+// Good: Global control
+engine.speed = 0.5; // Slow down everything
+
+// Good: Selective control
+const anim = animate('.box', { translateX: 250 });
+anim.speed = 0.5; // Only this animation
+
+// Be careful with:
+engine.timeUnit = 's'; // Affects all existing animations
+```
+
+## Related
+
+- [Animation](/modules/animation) - Creating animations
+- [Timer](/modules/timer) - Base timing functionality
+- [Timeline](/modules/timeline) - Animation sequencing

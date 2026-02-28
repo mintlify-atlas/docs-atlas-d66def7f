@@ -1,0 +1,555 @@
+---
+title: Animation Parameters
+description: Comprehensive reference for all animation parameters and property values
+---
+
+Animation parameters define how your animations behave. They can be passed to the [`animate()`](/api/animate) function or used when creating animation instances.
+
+## Core Parameters
+
+### targets
+
+<ParamField path="targets" type="TargetsParam" required>
+  The element(s) to animate. This is the first argument to `animate()` and accepts multiple formats:
+  
+  - **CSS Selector**: `'.my-element'`, `'#box'`, `'div'`
+  - **DOM Element**: `document.querySelector('.box')`
+  - **NodeList**: `document.querySelectorAll('.boxes')`
+  - **Array**: `[element1, element2, '.selector']`
+  - **JavaScript Object**: `{ x: 0, y: 0 }`
+</ParamField>
+
+## Timing Parameters
+
+### duration
+
+<ParamField path="duration" type="number | FunctionValue" default="1000">
+  Animation duration in milliseconds.
+  
+  ```javascript
+  // Fixed duration
+  animate('.box', { translateX: 250, duration: 2000 });
+  
+  // Function-based duration
+  animate('.box', {
+    translateX: 250,
+    duration: (target, index, total) => {
+      return (index + 1) * 500; // Each element takes longer
+    }
+  });
+  ```
+</ParamField>
+
+### delay
+
+<ParamField path="delay" type="number | FunctionValue" default="0">
+  Delay before animation starts in milliseconds.
+  
+  ```javascript
+  // Fixed delay
+  animate('.box', { translateX: 250, delay: 500 });
+  
+  // Staggered delay
+  animate('.box', {
+    translateX: 250,
+    delay: (target, index) => index * 100
+  });
+  ```
+</ParamField>
+
+### loopDelay
+
+<ParamField path="loopDelay" type="number" default="0">
+  Delay between loop iterations in milliseconds.
+  
+  ```javascript
+  animate('.box', {
+    translateX: 250,
+    loop: 3,
+    loopDelay: 500 // Wait 500ms between each loop
+  });
+  ```
+</ParamField>
+
+## Playback Parameters
+
+### ease
+
+<ParamField path="ease" type="EasingParam" default="'outQuad'">
+  Easing function for the animation. Can be a string name or custom function.
+  
+  **Built-in Easings:**
+  - `'linear'`, `'none'`
+  - `'in'`, `'out'`, `'inOut'`
+  - `'inQuad'`, `'outQuad'`, `'inOutQuad'`
+  - `'inCubic'`, `'outCubic'`, `'inOutCubic'`
+  - `'inQuart'`, `'outQuart'`, `'inOutQuart'`
+  - `'inQuint'`, `'outQuint'`, `'inOutQuint'`
+  - `'inSine'`, `'outSine'`, `'inOutSine'`
+  - `'inExpo'`, `'outExpo'`, `'inOutExpo'`
+  - `'inCirc'`, `'outCirc'`, `'inOutCirc'`
+  - `'inBounce'`, `'outBounce'`, `'inOutBounce'`
+  - `'inBack'`, `'outBack'`, `'inOutBack'`
+  - `'inElastic'`, `'outElastic'`, `'inOutElastic'`
+  
+  ```javascript
+  // String easing
+  animate('.box', { translateX: 250, ease: 'outElastic' });
+  
+  // Custom easing function
+  animate('.box', {
+    translateX: 250,
+    ease: (t) => t * t * t // Cubic ease
+  });
+  
+  // Function-based easing
+  animate('.box', {
+    translateX: 250,
+    ease: (target, index) => {
+      return index % 2 === 0 ? 'outQuad' : 'outElastic';
+    }
+  });
+  ```
+</ParamField>
+
+### playbackEase
+
+<ParamField path="playbackEase" type="EasingParam">
+  Easing applied to the entire animation timeline playback.
+  
+  ```javascript
+  animate('.box', {
+    translateX: 250,
+    duration: 2000,
+    playbackEase: 'inOutQuad' // Eases the entire animation
+  });
+  ```
+</ParamField>
+
+### playbackRate
+
+<ParamField path="playbackRate" type="number" default="1">
+  Speed multiplier for animation playback. Values > 1 speed up, < 1 slow down.
+  
+  ```javascript
+  // Play at half speed
+  animate('.box', {
+    translateX: 250,
+    playbackRate: 0.5
+  });
+  
+  // Play at double speed
+  animate('.box', {
+    translateX: 250,
+    playbackRate: 2
+  });
+  ```
+</ParamField>
+
+### frameRate
+
+<ParamField path="frameRate" type="number" default="60">
+  Maximum frame rate for the animation in frames per second.
+  
+  ```javascript
+  // Limit to 30fps
+  animate('.box', {
+    translateX: 250,
+    frameRate: 30
+  });
+  ```
+</ParamField>
+
+## Loop Parameters
+
+### loop
+
+<ParamField path="loop" type="number | boolean" default="false">
+  Number of times to loop the animation. `true` or negative values create infinite loops.
+  
+  ```javascript
+  // Loop 3 times
+  animate('.box', { translateX: 250, loop: 3 });
+  
+  // Loop infinitely
+  animate('.box', { translateX: 250, loop: true });
+  ```
+</ParamField>
+
+### alternate
+
+<ParamField path="alternate" type="boolean" default="false">
+  Whether to alternate direction on each loop iteration.
+  
+  ```javascript
+  animate('.box', {
+    translateX: 250,
+    loop: true,
+    alternate: true // Goes back and forth
+  });
+  ```
+</ParamField>
+
+### reversed
+
+<ParamField path="reversed" type="boolean" default="false">
+  Whether to play the animation in reverse from the start.
+  
+  ```javascript
+  animate('.box', {
+    translateX: 250,
+    reversed: true // Plays from end to start
+  });
+  ```
+</ParamField>
+
+## Control Parameters
+
+### autoplay
+
+<ParamField path="autoplay" type="boolean" default="true">
+  Whether to automatically start the animation.
+  
+  ```javascript
+  const anim = animate('.box', {
+    translateX: 250,
+    autoplay: false
+  });
+  
+  // Manually start later
+  button.onclick = () => anim.play();
+  ```
+</ParamField>
+
+### id
+
+<ParamField path="id" type="string | number">
+  Custom identifier for the animation instance.
+  
+  ```javascript
+  const anim = animate('.box', {
+    id: 'myAnimation',
+    translateX: 250
+  });
+  
+  console.log(anim.id); // 'myAnimation'
+  ```
+</ParamField>
+
+## Property Composition
+
+### composition
+
+<ParamField path="composition" type="'none' | 'replace' | 'blend'" default="'replace'">
+  How to compose with other animations on the same property.
+  
+  - **`'none'`**: No composition, properties are independent
+  - **`'replace'`**: New animations replace old ones on the same property
+  - **`'blend'`**: New animations blend additively with existing ones
+  
+  ```javascript
+  // First animation
+  animate('.box', { translateX: 100 });
+  
+  // Second animation replaces the first
+  animate('.box', {
+    translateX: 250,
+    composition: 'replace' // Default
+  });
+  
+  // Additive animation
+  animate('.box', {
+    translateX: 100,
+    composition: 'blend' // Adds to existing animations
+  });
+  ```
+</ParamField>
+
+### modifier
+
+<ParamField path="modifier" type="(value: number) => number | string">
+  Function to modify animated values before they're applied.
+  
+  ```javascript
+  animate('.box', {
+    translateX: 250,
+    modifier: (value) => Math.round(value) // Round to integers
+  });
+  
+  // Add units
+  animate('.box', {
+    translateX: 250,
+    modifier: (value) => `${value}px`
+  });
+  ```
+</ParamField>
+
+## Property Values
+
+Animation parameters can include any animatable properties. Property values support multiple formats:
+
+### Number Values
+
+```javascript
+animate('.box', {
+  translateX: 250,
+  opacity: 0.5,
+  scale: 2
+});
+```
+
+### String Values with Units
+
+```javascript
+animate('.box', {
+  width: '100%',
+  translateX: '250px',
+  rotate: '1turn'
+});
+```
+
+### From-To Arrays
+
+```javascript
+animate('.box', {
+  translateX: [0, 250],    // From 0 to 250
+  opacity: [1, 0]          // From 1 to 0
+});
+```
+
+### Multi-Value Arrays (Keyframes)
+
+```javascript
+animate('.box', {
+  translateX: [0, 100, 250, 100, 0], // Keyframe values
+  duration: 2000
+});
+```
+
+### Object Values
+
+```javascript
+animate('.box', {
+  translateX: {
+    to: 250,
+    duration: 1000,
+    ease: 'outQuad'
+  },
+  translateY: {
+    from: 0,
+    to: 100,
+    delay: 500
+  }
+});
+```
+
+### Function Values
+
+```javascript
+animate('.box', {
+  translateX: (target, index, total) => {
+    return index * 100; // Different value per target
+  },
+  duration: 1000
+});
+```
+
+### Relative Values
+
+```javascript
+animate('.box', {
+  translateX: '+=250',  // Add 250 to current value
+  translateY: '-=100',  // Subtract 100 from current value
+  scale: '*=2'          // Multiply current value by 2
+});
+```
+
+## Keyframes
+
+### Duration-Based Keyframes
+
+<ParamField path="keyframes" type="DurationKeyframes">
+  Array of keyframe objects, each with its own timing.
+  
+  ```javascript
+  animate('.box', {
+    keyframes: [
+      { translateX: 100, duration: 500 },
+      { translateY: 100, duration: 500, ease: 'outElastic' },
+      { translateX: 0, duration: 500 },
+      { translateY: 0, duration: 500 }
+    ]
+  });
+  ```
+</ParamField>
+
+### Percentage-Based Keyframes
+
+<ParamField path="keyframes" type="PercentageKeyframes">
+  Object with percentage keys defining keyframe positions.
+  
+  ```javascript
+  animate('.box', {
+    duration: 2000,
+    keyframes: {
+      '0%': { translateX: 0, scale: 1 },
+      '25%': { translateX: 100, scale: 1.2 },
+      '50%': { translateX: 250, scale: 1.5 },
+      '75%': { translateX: 100, scale: 1.2 },
+      '100%': { translateX: 0, scale: 1 }
+    }
+  });
+  ```
+</ParamField>
+
+## Callbacks
+
+### onBegin
+
+<ParamField path="onBegin" type="(anim: JSAnimation) => void">
+  Called when the animation begins playing.
+  
+  ```javascript
+  animate('.box', {
+    translateX: 250,
+    onBegin: (anim) => {
+      console.log('Animation started');
+    }
+  });
+  ```
+</ParamField>
+
+### onUpdate
+
+<ParamField path="onUpdate" type="(anim: JSAnimation) => void">
+  Called on every frame during the animation.
+  
+  ```javascript
+  animate('.box', {
+    translateX: 250,
+    onUpdate: (anim) => {
+      console.log('Progress:', anim.progress);
+      console.log('Current time:', anim.currentTime);
+    }
+  });
+  ```
+</ParamField>
+
+### onComplete
+
+<ParamField path="onComplete" type="(anim: JSAnimation) => void">
+  Called when the animation completes.
+  
+  ```javascript
+  animate('.box', {
+    translateX: 250,
+    onComplete: (anim) => {
+      console.log('Animation finished');
+      anim.targets[0].classList.add('done');
+    }
+  });
+  ```
+</ParamField>
+
+### onLoop
+
+<ParamField path="onLoop" type="(anim: JSAnimation) => void">
+  Called when the animation loops.
+  
+  ```javascript
+  animate('.box', {
+    translateX: 250,
+    loop: true,
+    onLoop: (anim) => {
+      console.log('Loop iteration:', anim.currentIteration);
+    }
+  });
+  ```
+</ParamField>
+
+### onPause
+
+<ParamField path="onPause" type="(anim: JSAnimation) => void">
+  Called when the animation is paused.
+  
+  ```javascript
+  const anim = animate('.box', {
+    translateX: 250,
+    onPause: (anim) => {
+      console.log('Animation paused at:', anim.currentTime);
+    }
+  });
+  
+  setTimeout(() => anim.pause(), 500);
+  ```
+</ParamField>
+
+### onRender
+
+<ParamField path="onRender" type="(anim: JSAnimation) => void">
+  Called when the animation renders to the DOM.
+  
+  ```javascript
+  animate('.box', {
+    translateX: 250,
+    onRender: (anim) => {
+      console.log('Rendered');
+    }
+  });
+  ```
+</ParamField>
+
+### onBeforeUpdate
+
+<ParamField path="onBeforeUpdate" type="(anim: JSAnimation) => void">
+  Called before each update tick.
+  
+  ```javascript
+  animate('.box', {
+    translateX: 250,
+    onBeforeUpdate: (anim) => {
+      // Prepare for update
+    }
+  });
+  ```
+</ParamField>
+
+## Function Value Parameters
+
+Many parameters accept functions that receive target information:
+
+```typescript
+type FunctionValue = (
+  target: Target,   // The current target element/object
+  index: number,    // Index of the target (0-based)
+  length: number    // Total number of targets
+) => number | string | object
+```
+
+**Example:**
+
+```javascript
+animate('.box', {
+  translateX: (target, index, total) => {
+    // Stagger positions based on index
+    return index * 100;
+  },
+  delay: (target, index, total) => {
+    // Stagger delays
+    return index * 100;
+  },
+  duration: (target, index, total) => {
+    // Vary duration
+    return 500 + (index * 100);
+  },
+  ease: (target, index, total) => {
+    // Alternate easing
+    return index % 2 === 0 ? 'outQuad' : 'outElastic';
+  }
+});
+```
+
+## Related
+
+- [animate()](/api/animate) - Main animation function
+- [Animation Class](/api/animation-class) - Animation instance methods

@@ -1,0 +1,359 @@
+---
+title: Spring
+description: Physics-based spring animations with natural bouncing motion
+---
+
+Spring easings create realistic, physics-based animations that simulate the motion of a spring-mass-damper system. Unlike traditional easings that use fixed duration curves, springs feel natural and responsive.
+
+## Basic Usage
+
+```javascript
+import { spring } from 'animejs';
+
+anime({
+  targets: '.element',
+  translateX: 250,
+  easing: spring()
+});
+```
+
+<Warning>
+The old string syntax `easing: 'spring(...)'` has been removed. You must now import and call `spring()` as a function.
+</Warning>
+
+## Two Configuration Approaches
+
+Spring easings can be configured using either:
+
+1. **High-level parameters**: `bounce` and `duration` (user-friendly)
+2. **Physics parameters**: `mass`, `stiffness`, `damping`, `velocity` (precise control)
+
+### High-Level Parameters (Recommended)
+
+The easiest way to configure springs using perceived behavior:
+
+```javascript
+import { spring } from 'animejs';
+
+anime({
+  targets: '.box',
+  scale: 1.5,
+  easing: spring({
+    bounce: 0.5,      // How bouncy (0 = no bounce, 1 = very bouncy)
+    duration: 800     // Perceived duration in ms
+  })
+});
+```
+
+**Parameters:**
+- **bounce** (default: 0.5) - Bounce intensity from -1 to 1
+  - `1` = Maximum underdamped (very bouncy)
+  - `0` = Critically damped (no bounce)
+  - `-1` = Maximum overdamped (sluggish)
+- **duration** (default: 628) - Perceived animation duration in milliseconds
+  - Range: 10ms to 10,000ms
+  - Based on SwiftUI's spring duration implementation
+
+### Physics Parameters (Advanced)
+
+For precise control over spring physics:
+
+```javascript
+import { spring } from 'animejs';
+
+anime({
+  targets: '.box',
+  translateX: 250,
+  easing: spring({
+    mass: 1,          // Object mass
+    stiffness: 100,   // Spring stiffness
+    damping: 10,      // Damping resistance
+    velocity: 0       // Initial velocity
+  })
+});
+```
+
+**Parameters:**
+- **mass** (default: 1) - The object's mass (1 to 10,000)
+- **stiffness** (default: 100) - Spring tension (0.0001 to 10,000)
+- **damping** (default: 10) - Resistance to motion (0.0001 to 10,000)
+- **velocity** (default: 0) - Initial velocity (-10,000 to 10,000)
+
+<Info>
+When you set `bounce` or `duration`, the spring automatically calculates the corresponding physics parameters. You can mix both approaches, but high-level parameters take precedence.
+</Info>
+
+## Spring Types
+
+Springs are classified by their damping ratio (zeta):
+
+### Underdamped (Bouncy)
+
+Oscillates before settling (zeta < 1):
+
+```javascript
+import { spring } from 'animejs';
+
+// High bounce - very springy
+anime({
+  targets: '.ball',
+  translateY: -200,
+  easing: spring({ bounce: 0.8, duration: 1000 })
+});
+
+// Medium bounce - natural feel
+anime({
+  targets: '.button',
+  scale: 1.1,
+  easing: spring({ bounce: 0.4, duration: 600 })
+});
+```
+
+### Critically Damped (No Bounce)
+
+Reaches target as quickly as possible without overshooting (zeta = 1):
+
+```javascript
+import { spring } from 'animejs';
+
+anime({
+  targets: '.panel',
+  translateX: 300,
+  easing: spring({ bounce: 0, duration: 500 })
+});
+```
+
+### Overdamped (Sluggish)
+
+Slowly approaches target without oscillation (zeta > 1):
+
+```javascript
+import { spring } from 'animejs';
+
+anime({
+  targets: '.heavy-door',
+  rotate: 90,
+  easing: spring({ bounce: -0.5, duration: 1200 })
+});
+```
+
+## Dynamic Spring Properties
+
+The Spring class exposes properties that can be modified after creation:
+
+```javascript
+import { spring } from 'animejs';
+
+const mySpring = spring({ bounce: 0.5, duration: 800 });
+
+// Access computed physics values
+console.log(mySpring.stiffness); // Auto-calculated from bounce/duration
+console.log(mySpring.damping);   // Auto-calculated from bounce/duration
+
+// Modify properties (triggers recalculation)
+mySpring.bounce = 0.7;
+mySpring.duration = 1000;
+
+// Or modify physics parameters directly
+mySpring.stiffness = 200;
+mySpring.mass = 2;
+```
+
+<Note>
+Changing any spring property automatically recalculates the internal physics and duration. The spring will recompute its solver on every property change.
+</Note>
+
+## Completion Callback
+
+Springs support an `onComplete` callback that fires when the animation reaches the perceived duration:
+
+```javascript
+import { spring } from 'animejs';
+
+anime({
+  targets: '.notification',
+  translateY: [100, 0],
+  opacity: [0, 1],
+  easing: spring({
+    bounce: 0.3,
+    duration: 600,
+    onComplete: (animation) => {
+      console.log('Spring reached perceived duration');
+      // animation is the parent JSAnimation instance
+    }
+  })
+});
+```
+
+## Understanding Spring Duration
+
+Springs have two duration concepts:
+
+1. **Perceived Duration** (`duration` parameter) - When the animation appears complete to users
+2. **Settling Duration** (calculated) - Actual time until the spring fully settles
+
+The spring solver calculates settling duration by:
+- Simulating the spring in 0.02s intervals
+- Detecting when motion is below rest threshold (0.0005)
+- Ensuring it stays at rest for 200ms
+- Capping at maximum 60 seconds
+
+```javascript
+// From src/easings/spring/index.js:155-188
+compute() {
+  // ... physics calculations ...
+  
+  let solverTime = 0;
+  let restSteps = 0;
+  let iterations = 0;
+  
+  while (restSteps <= maxRestSteps && iterations <= maxIterations) {
+    if (Math.abs(1 - this.solve(solverTime)) < restThreshold) {
+      restSteps++; // Count consecutive rest steps
+    } else {
+      restSteps = 0; // Reset if motion detected
+    }
+    this.solverDuration = solverTime;
+    solverTime += timeStep; // Advance by 0.02s
+    iterations++;
+  }
+  
+  this.settlingDuration = Math.round(this.solverDuration * 1000);
+}
+```
+
+## Common Spring Presets
+
+```javascript
+import { spring } from 'animejs';
+
+// Gentle bounce - UI elements
+const gentle = spring({ bounce: 0.25, duration: 600 });
+
+// Default - balanced feel
+const balanced = spring({ bounce: 0.5, duration: 800 });
+
+// Playful - attention-grabbing
+const playful = spring({ bounce: 0.7, duration: 1000 });
+
+// Wobbly - exaggerated
+const wobbly = spring({ bounce: 0.9, duration: 1200 });
+
+// Stiff - quick response
+const stiff = spring({ bounce: 0.1, duration: 400 });
+
+// Slow - smooth and heavy
+const slow = spring({ bounce: 0.3, duration: 1500 });
+```
+
+## Physics-Based Configuration
+
+For developers familiar with spring physics:
+
+```javascript
+import { spring } from 'animejs';
+
+// Light, bouncy spring
+const light = spring({
+  mass: 0.5,
+  stiffness: 200,
+  damping: 8
+});
+
+// Heavy, stiff spring
+const heavy = spring({
+  mass: 3,
+  stiffness: 300,
+  damping: 40
+});
+
+// With initial velocity (for gesture-driven animations)
+const gesture = spring({
+  mass: 1,
+  stiffness: 150,
+  damping: 15,
+  velocity: 5 // Starts with momentum
+});
+```
+
+## Implementation Details
+
+The spring solver is adapted from [WebKit's spring implementation](https://webkit.org/demos/spring/spring.js) and uses three damping equations:
+
+**Underdamped** (zeta < 1):
+```javascript
+t = exp(-t * zeta * w0) * (cos(wd * t) + b * sin(wd * t))
+```
+
+**Critically Damped** (zeta = 1):
+```javascript
+t = (1 + b * t) * exp(-t * w0)
+```
+
+**Overdamped** (zeta > 1):
+```javascript
+t = ((1 + b) * exp((-zeta * w0 + wd) * t) + (1 - b) * exp((-zeta * w0 - wd) * t)) / 2
+```
+
+Where:
+- `w0` = natural frequency = sqrt(stiffness / mass)
+- `zeta` = damping ratio = damping / (2 * sqrt(stiffness * mass))
+- `wd` = damped frequency
+- `b` = velocity coefficient
+
+## Complete Example
+
+```javascript
+import anime from 'animejs';
+import { spring } from 'animejs';
+
+// Interactive spring animation
+const button = document.querySelector('.spring-button');
+
+button.addEventListener('mouseenter', () => {
+  anime({
+    targets: button,
+    scale: 1.1,
+    easing: spring({
+      bounce: 0.4,
+      duration: 500
+    })
+  });
+});
+
+button.addEventListener('mouseleave', () => {
+  anime({
+    targets: button,
+    scale: 1,
+    easing: spring({
+      bounce: 0.3,
+      duration: 400
+    })
+  });
+});
+
+// Card entrance with spring
+anime({
+  targets: '.card',
+  translateY: [50, 0],
+  opacity: [0, 1],
+  scale: [0.9, 1],
+  easing: spring({
+    bounce: 0.6,
+    duration: 800,
+    onComplete: () => console.log('Card settled')
+  }),
+  delay: anime.stagger(100)
+});
+```
+
+## See Also
+
+<CardGroup cols={2}>
+  <Card title="Built-in Easings" href="/easings/built-in">
+    Traditional easing functions like Elastic and Back
+  </Card>
+  <Card title="Cubic Bezier" href="/easings/cubic-bezier">
+    Curve-based custom easings
+  </Card>
+</CardGroup>

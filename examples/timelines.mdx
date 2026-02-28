@@ -1,0 +1,284 @@
+---
+title: Timelines
+description: Create complex, sequenced animations with precise timing control using Anime.js timelines
+---
+
+## Creating a Timeline
+
+Timelines allow you to sequence multiple animations with precise control:
+
+```javascript
+import { createTimeline } from 'animejs';
+
+const tl = createTimeline({
+  defaults: {
+    duration: 1000,
+    ease: 'outQuad'
+  }
+});
+
+tl.add('.box1', { x: 100 })
+  .add('.box2', { x: 100 })
+  .add('.box3', { x: 100 });
+```
+
+## Timeline Positioning
+
+Control when animations start within the timeline:
+
+```javascript
+const tl = createTimeline();
+
+// Start at specific time (ms)
+tl.add('.element1', { x: 100 }, 0)
+  // Start after previous animation
+  .add('.element2', { y: 100 })
+  // Start 500ms after previous
+  .add('.element3', { scale: 2 }, '+=500')
+  // Start 200ms before previous ends
+  .add('.element4', { rotate: 360 }, '-=200');
+```
+
+## Seamless Looping
+
+Create infinitely looping animations with synchronized timing:
+
+```javascript
+import { createTimeline, stagger, utils } from 'animejs';
+
+const numberOfElements = 500;
+const loopDuration = 6000;
+const animDuration = loopDuration * 0.2;
+const delay = loopDuration / numberOfElements;
+
+const tl = createTimeline({
+  defaults: {
+    ease: 'inOutSine',
+    loopDelay: (loopDuration * 0.2) - animDuration,
+    duration: animDuration
+  }
+});
+
+// Add wrapper rotation
+tl.add('.wrapper', {
+  rotate: -360,
+  loop: true,
+  duration: 24000,
+  ease: 'linear'
+});
+
+// Add individual element animations
+for (let i = 0; i < numberOfElements; i++) {
+  const element = elements[i];
+  tl.add(element, {
+    scale: [1, 1.25, 1],
+    backgroundColor: ['#FF4B4B', '#FFC730', '#FF4B4B'],
+    loop: -1, // Infinite loop
+  }, delay * i);
+}
+
+// Seek to avoid initial delay
+tl.seek(10000);
+```
+
+## Timeline Controls
+
+Control timeline playback:
+
+```javascript
+const tl = createTimeline({ autoplay: false });
+
+tl.add('.element', { x: 100, duration: 1000 });
+
+// Playback controls
+tl.play();       // Start playing
+tl.pause();      // Pause
+tl.restart();    // Restart from beginning
+tl.reverse();    // Reverse direction
+tl.seek(500);    // Jump to 500ms
+
+// Access properties
+console.log(tl.progress);  // 0 to 1
+console.log(tl.duration);  // Total duration
+console.log(tl.currentTime); // Current time in ms
+```
+
+## Animating Timeline Progress
+
+Animate the timeline itself for advanced control:
+
+```javascript
+import { animate, createTimeline } from 'animejs';
+
+const tl = createTimeline({ autoplay: false });
+
+tl.add('.element', {
+  rotate: 360,
+  scale: 2,
+  duration: 2000
+});
+
+// Scrub through the timeline
+animate(tl, {
+  progress: 1,
+  duration: 3000,
+  ease: 'inOutCubic'
+});
+```
+
+## Staggered Timeline Animations
+
+Combine timelines with staggering:
+
+```javascript
+import { createTimeline, stagger } from 'animejs';
+
+const tl = createTimeline({
+  defaults: {
+    duration: 800,
+    ease: 'outElastic'
+  }
+});
+
+// Stagger start times
+tl.add('.card', {
+  y: [50, 0],
+  opacity: [0, 1],
+  rotate: [-5, 0]
+}, stagger(100, { start: 0 }));
+
+// Stagger with grid
+tl.add('.grid-item', {
+  scale: [0, 1]
+}, stagger(50, {
+  grid: [5, 5],
+  from: 'center',
+  start: 1000 // Start at 1000ms
+}));
+```
+
+## Complex Synchronized Sequences
+
+```javascript
+const tl = createTimeline({
+  defaults: {
+    duration: 1000,
+    ease: 'inOutQuad'
+  }
+});
+
+// Multiple animations at same time
+tl.add('.title', { 
+  y: [-50, 0],
+  opacity: [0, 1]
+}, 0)
+.add('.subtitle', {
+  y: [30, 0],
+  opacity: [0, 1],
+  duration: 800
+}, 200) // Start 200ms later
+.add('.content', {
+  x: [-100, 0],
+  opacity: [0, 1]
+}, 400)
+// These run simultaneously
+.add('.button', {
+  scale: [0, 1]
+}, 600)
+.add('.image', {
+  rotate: [-90, 0],
+  opacity: [0, 1]
+}, 600); // Same start time
+```
+
+## Timeline with OnUpdate
+
+Use callbacks to sync animations with other values:
+
+```javascript
+const tl = createTimeline({
+  defaults: {
+    duration: 2000,
+    ease: 'linear'
+  },
+  onUpdate: (self) => {
+    // Update progress indicator
+    document.querySelector('.progress').textContent = 
+      `${Math.round(self.progress * 100)}%`;
+  }
+});
+
+tl.add('.element', {
+  x: 500,
+  onUpdate: (self) => {
+    // This runs for the specific animation
+    console.log('Element progress:', self.progress);
+  }
+});
+```
+
+## Timeline with Multiple Targets
+
+```javascript
+const tl = createTimeline();
+
+// Animate multiple selectors
+tl.add(['.box1', '.box2', '.box3'], {
+  x: 200,
+  duration: 1000
+}, 0)
+// Then animate them differently
+.add('.box1', { backgroundColor: '#FF4B4B' }, 1000)
+.add('.box2', { backgroundColor: '#FFC730' }, 1000)
+.add('.box3', { backgroundColor: '#A4FF4F' }, 1000);
+```
+
+## Refresh and Init
+
+Control when timeline calculations occur:
+
+```javascript
+const tl = createTimeline({ autoplay: false })
+  .add('.element', {
+    x: () => window.innerWidth, // Dynamic value
+    duration: 1000
+  })
+  .init(); // Calculate values but don't play
+
+// Recalculate dynamic values
+window.addEventListener('resize', () => {
+  tl.refresh(); // Recalculate
+});
+```
+
+## Timeline Defaults
+
+Set default properties for all animations:
+
+```javascript
+const tl = createTimeline({
+  defaults: {
+    duration: 1000,
+    ease: 'outQuad',
+    composition: 'blend' // How animations layer
+  }
+});
+
+// All animations inherit defaults
+tl.add('.el1', { x: 100 }) // Uses defaults
+  .add('.el2', { 
+    y: 100,
+    duration: 2000 // Override default
+  });
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Scroll Animations" icon="scroll" href="/examples/scroll-animations">
+    Sync timelines with scroll position
+  </Card>
+  <Card title="Text Animations" icon="text" href="/examples/text-animations">
+    Animate text with split effects
+  </Card>
+</CardGroup>

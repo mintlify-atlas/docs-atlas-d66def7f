@@ -1,0 +1,221 @@
+---
+title: Installation
+description: Install Anime.js v4.3.6 via npm, yarn, pnpm, or CDN to start animating your projects
+---
+
+Anime.js is available through multiple package managers and CDN providers. Choose the installation method that works best for your project.
+
+## Package Manager Installation
+
+Install Anime.js using your preferred package manager:
+
+<CodeGroup>
+```bash npm
+npm install animejs
+```
+
+```bash yarn
+yarn add animejs
+```
+
+```bash pnpm
+pnpm add animejs
+```
+</CodeGroup>
+
+<Info>
+  The current stable version is **4.3.6**. This will install the latest version with full TypeScript support.
+</Info>
+
+## CDN Installation
+
+For quick prototyping or static sites, you can use a CDN to load Anime.js directly in the browser:
+
+<CodeGroup>
+```html jsDelivr
+<!-- UMD Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/animejs@4.3.6/dist/bundles/anime.umd.min.js"></script>
+
+<!-- ES Module -->
+<script type="module">
+  import { animate } from 'https://cdn.jsdelivr.net/npm/animejs@4.3.6/+esm';
+</script>
+```
+
+```html unpkg
+<!-- UMD Bundle -->
+<script src="https://unpkg.com/animejs@4.3.6/dist/bundles/anime.umd.min.js"></script>
+
+<!-- ES Module -->
+<script type="module">
+  import { animate } from 'https://unpkg.com/animejs@4.3.6/dist/modules/index.js';
+</script>
+```
+</CodeGroup>
+
+<Warning>
+  Always specify a version number in production to prevent unexpected breaking changes from automatic updates.
+</Warning>
+
+## Import Syntax
+
+### ES Module Imports (Recommended)
+
+Anime.js V4 is designed as a modern ES module package. Import functions as needed:
+
+```javascript
+// Import core functions
+import { animate, createTimeline, stagger } from 'animejs';
+
+// Import utilities
+import { utils } from 'animejs';
+
+// Create an animation
+animate('.element', {
+  translateX: 250,
+  rotate: '1turn',
+  duration: 800
+});
+```
+
+### Specialized Module Imports
+
+Anime.js V4 provides specialized exports for advanced features:
+
+```javascript
+// Timer module
+import { createTimer } from 'animejs/timer';
+
+// Timeline module
+import { createTimeline } from 'animejs/timeline';
+
+// Animatable module
+import { createAnimatable } from 'animejs/animatable';
+
+// Draggable module
+import { createDraggable } from 'animejs/draggable';
+
+// SVG utilities
+import { svg } from 'animejs/svg';
+
+// Text utilities
+import { text } from 'animejs/text';
+
+// Spring easing
+import { spring } from 'animejs/easings/spring';
+
+// Cubic bezier easing
+import { cubicBezier } from 'animejs/easings/cubic-bezier';
+
+// WAAPI integration
+import { waapi } from 'animejs/waapi';
+```
+
+<Tip>
+  Using specialized imports enables tree-shaking, reducing your final bundle size by including only the features you actually use.
+</Tip>
+
+### CommonJS (Node.js)
+
+If you're using Node.js or a build system that requires CommonJS:
+
+```javascript
+const { animate, createTimeline, stagger } = require('animejs');
+```
+
+### UMD (Browser Global)
+
+When using the UMD bundle via CDN, Anime.js is available as a global:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/animejs@4.3.6/dist/bundles/anime.umd.min.js"></script>
+<script>
+  // Access via global 'anime' object
+  anime.animate('.element', {
+    translateX: 250,
+    duration: 800
+  });
+</script>
+```
+
+## TypeScript Support
+
+Anime.js V4 includes complete TypeScript definitions out of the box:
+
+```typescript
+import { animate, AnimationParams } from 'animejs';
+
+const params: AnimationParams = {
+  translateX: 250,
+  rotate: '1turn',
+  duration: 800,
+  ease: 'outQuad'
+};
+
+animate('.element', params);
+```
+
+<Info>
+  Type definitions are located at `dist/modules/index.d.ts` and will be automatically recognized by TypeScript.
+</Info>
+
+## Package Structure
+
+The Anime.js package includes:
+
+```
+animejs/
+├── dist/
+│   ├── modules/        # ES modules and type definitions
+│   │   ├── index.js    # Main entry point
+│   │   ├── index.cjs   # CommonJS entry point
+│   │   ├── index.d.ts  # TypeScript definitions
+│   │   └── */          # Specialized modules
+│   └── bundles/        # Pre-built bundles
+│       └── anime.umd.min.js  # UMD bundle
+└── package.json
+```
+
+## Verification
+
+To verify your installation, create a simple test:
+
+```javascript
+import { animate } from 'animejs';
+
+console.log('Anime.js loaded successfully!');
+
+// Create a simple animation
+animate('body', {
+  backgroundColor: '#F0F0F0',
+  duration: 1000
+});
+```
+
+If the animation runs without errors, you're all set!
+
+## Next Steps
+
+<Steps>
+  <Step title="Create Your First Animation">
+    Jump into the Quick Start guide to create your first animation
+    
+    [Go to Quick Start →](/quickstart)
+  </Step>
+  
+  <Step title="Explore Core Concepts">
+    Learn about targets, properties, and timing controls
+    
+    [View Core Concepts →](/concepts/animations)
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+<Warning>
+  **Module not found error?** Make sure you're using a build tool that supports ES modules (Vite, Webpack 5+, Rollup, etc.) or import from the correct path.
+</Warning>
+
+<Note>
+  **Using an older build tool?** Some older bundlers may require additional configuration to handle ES modules. Check your bundler's documentation for ES module support.
+</Note>

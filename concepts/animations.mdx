@@ -1,0 +1,236 @@
+---
+title: Animations
+description: Learn how to create and control animations in Anime.js using the animate() function
+---
+
+Animations are the core building blocks of Anime.js. The `animate()` function creates individual animation instances that can target DOM elements, SVG elements, or JavaScript objects.
+
+## Creating Animations
+
+The `animate()` function accepts two parameters: targets and animation parameters.
+
+```javascript
+import { animate } from 'animejs';
+
+animate('.square', {
+  x: 320,
+  rotate: { from: -180 },
+  duration: 1250,
+  ease: 'inOutQuint',
+  loop: true,
+  alternate: true
+});
+```
+
+## Animation Parameters
+
+### Duration and Timing
+
+<ParamField path="duration" type="number" default="1000">
+  The animation duration in milliseconds.
+</ParamField>
+
+<ParamField path="delay" type="number | function" default="0">
+  Delay before the animation starts. Can be a function for per-target delays.
+</ParamField>
+
+<ParamField path="ease" type="string | function" default="'outQuad'">
+  The easing function to control animation acceleration.
+</ParamField>
+
+```javascript
+animate('.element', {
+  x: 100,
+  duration: 2000,
+  delay: 500,
+  ease: 'inOutQuad'
+});
+```
+
+### Playback Control
+
+<ParamField path="loop" type="number | boolean" default="false">
+  Number of loops or `true` for infinite looping. Use `-1` for infinite.
+</ParamField>
+
+<ParamField path="alternate" type="boolean" default="false">
+  If true, animation alternates direction on each loop.
+</ParamField>
+
+<ParamField path="autoplay" type="boolean" default="true">
+  Whether the animation starts automatically.
+</ParamField>
+
+```javascript
+animate('.box', {
+  scale: 1.5,
+  loop: -1,
+  alternate: true,
+  duration: 1000
+});
+```
+
+## Animation Methods
+
+All animations return an instance with control methods:
+
+### play()
+
+Starts or resumes the animation.
+
+```javascript
+const anim = animate('.element', { x: 100, autoplay: false });
+anim.play();
+```
+
+### pause()
+
+Pauses the animation at its current position.
+
+```javascript
+anim.pause();
+```
+
+### restart()
+
+Restarts the animation from the beginning.
+
+```javascript
+anim.restart();
+```
+
+### reverse()
+
+Reverses the animation playback direction.
+
+```javascript
+anim.reverse();
+```
+
+### seek(time)
+
+Seeks to a specific time in milliseconds.
+
+```javascript
+anim.seek(500); // Seek to 500ms
+```
+
+## Animating Canvas Objects
+
+Anime.js can animate JavaScript objects, making it perfect for canvas animations:
+
+```javascript
+import { animate } from 'animejs';
+
+const particle = {
+  x: 0,
+  y: 0,
+  radius: 1,
+  color: '#FF4B4B'
+};
+
+animate(particle, {
+  x: 500,
+  y: 300,
+  radius: 6,
+  ease: 'out(1)',
+  duration: 2000,
+  onUpdate: () => {
+    // Redraw canvas with updated values
+    ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+  }
+});
+```
+
+## Callbacks
+
+<ParamField path="onUpdate" type="function">
+  Called on each animation frame with the animation instance.
+</ParamField>
+
+<ParamField path="onComplete" type="function">
+  Called when the animation completes.
+</ParamField>
+
+<ParamField path="onBegin" type="function">
+  Called when the animation begins.
+</ParamField>
+
+<ParamField path="onRender" type="function">
+  Called on each render frame.
+</ParamField>
+
+```javascript
+animate('.element', {
+  x: 100,
+  onBegin: (anim) => console.log('Animation started'),
+  onUpdate: (anim) => console.log(`Progress: ${anim.progress}`),
+  onComplete: (anim) => console.log('Animation finished')
+});
+```
+
+## Composition
+
+Control how animations compose with existing animations on the same property:
+
+<ParamField path="composition" type="string | number" default="'replace'">
+  - `'replace'` - Replaces the current animation
+  - `'blend'` - Additively blends with existing animations
+  - `'none'` - No composition (faster for many targets)
+</ParamField>
+
+```javascript
+// First animation
+animate('.box', { x: 100, duration: 2000 });
+
+// This will blend with the first animation
+animate('.box', { 
+  y: 100, 
+  duration: 2000,
+  composition: 'blend'
+});
+```
+
+## Promises
+
+Animations return promises that resolve when complete:
+
+```javascript
+const anim = animate('.element', { x: 100 });
+
+anim.then(() => {
+  console.log('Animation complete');
+  return animate('.element', { y: 100 });
+}).then(() => {
+  console.log('Second animation complete');
+});
+```
+
+## Advanced: Modifiers
+
+<ParamField path="modifier" type="function">
+  A function to modify the animated value before it's applied.
+</ParamField>
+
+```javascript
+animate('.element', {
+  x: 100,
+  modifier: (value) => Math.round(value) // Round to integers
+});
+```
+
+## API Reference
+
+### animate(targets, parameters)
+
+Creates and returns a new animation instance.
+
+**Parameters:**
+- `targets` (string | Element | Object | Array) - The elements or objects to animate
+- `parameters` (Object) - Animation configuration object
+
+**Returns:** `JSAnimation` - Animation instance with control methods
+
+<Note>
+Animations automatically initialize and play unless `autoplay: false` is specified.
+</Note>

@@ -1,0 +1,241 @@
+---
+title: Easing Functions
+description: Built-in easing functions for smooth animations in Anime.js
+---
+
+Anime.js provides a comprehensive set of easing functions to control the acceleration and deceleration of your animations.
+
+## Basic Easing Functions
+
+### none / linear
+
+No easing applied. Creates a constant-speed transition.
+
+```javascript
+import { eases } from 'animejs';
+
+animate({
+  targets: '.element',
+  translateX: 250,
+  ease: eases.linear // or eases.none
+});
+```
+
+## Power Easing
+
+Power easing functions allow you to control the acceleration curve using a power value.
+
+### in / out / inOut / outIn
+
+Generic power easing functions that accept a custom power parameter.
+
+<ParamField path="power" type="number" default="1.675">
+  The power value that controls the strength of the easing curve. Higher values create more pronounced acceleration/deceleration.
+</ParamField>
+
+```javascript
+import { eases } from 'animejs';
+
+// Using default power (1.675)
+animate({
+  targets: '.element',
+  translateX: 250,
+  ease: eases.in()
+});
+
+// Custom power value
+animate({
+  targets: '.element',
+  translateX: 250,
+  ease: eases.out(2.5)
+});
+```
+
+### Quad, Cubic, Quart, Quint
+
+Pre-configured power easing functions:
+- **Quad**: Power of 2
+- **Cubic**: Power of 3
+- **Quart**: Power of 4
+- **Quint**: Power of 5
+
+Each available in four variations: `in`, `out`, `inOut`, `outIn`
+
+```javascript
+import { eases } from 'animejs';
+
+animate({
+  targets: '.element',
+  translateX: 250,
+  ease: eases.inQuad
+});
+
+animate({
+  targets: '.element',
+  translateX: 250,
+  ease: eases.outCubic
+});
+```
+
+## Sine Easing
+
+Sine-based easing creates smooth, natural motion.
+
+```javascript
+import { eases } from 'animejs';
+
+animate({
+  targets: '.element',
+  translateX: 250,
+  ease: eases.inSine
+});
+```
+
+Available variations:
+- `eases.inSine`
+- `eases.outSine`
+- `eases.inOutSine`
+- `eases.outInSine`
+
+## Circular Easing
+
+Circular easing uses a circular function for acceleration/deceleration.
+
+```javascript
+import { eases } from 'animejs';
+
+animate({
+  targets: '.element',
+  translateX: 250,
+  ease: eases.inCirc
+});
+```
+
+Available variations:
+- `eases.inCirc`
+- `eases.outCirc`
+- `eases.inOutCirc`
+- `eases.outInCirc`
+
+## Exponential Easing
+
+Exponential easing creates dramatic acceleration/deceleration.
+
+```javascript
+import { eases } from 'animejs';
+
+animate({
+  targets: '.element',
+  translateX: 250,
+  ease: eases.inExpo
+});
+```
+
+Available variations:
+- `eases.inExpo`
+- `eases.outExpo`
+- `eases.inOutExpo`
+- `eases.outInExpo`
+
+## Bounce Easing
+
+Bounce easing creates a bouncing effect.
+
+```javascript
+import { eases } from 'animejs';
+
+animate({
+  targets: '.element',
+  translateX: 250,
+  ease: eases.outBounce
+});
+```
+
+Available variations:
+- `eases.inBounce`
+- `eases.outBounce`
+- `eases.inOutBounce`
+- `eases.outInBounce`
+
+## Back Easing
+
+Back easing creates an overshoot effect where the animation goes slightly beyond the target before returning.
+
+<ParamField path="overshoot" type="number" default="1.7">
+  Controls the amount of overshoot. Higher values create more pronounced overshooting.
+</ParamField>
+
+```javascript
+import { eases } from 'animejs';
+
+// Using default overshoot (1.7)
+animate({
+  targets: '.element',
+  translateX: 250,
+  ease: eases.outBack()
+});
+
+// Custom overshoot value
+animate({
+  targets: '.element',
+  translateX: 250,
+  ease: eases.inBack(2.5)
+});
+```
+
+Available variations:
+- `eases.inBack(overshoot)`
+- `eases.outBack(overshoot)`
+- `eases.inOutBack(overshoot)`
+- `eases.outInBack(overshoot)`
+
+## Elastic Easing
+
+Elastic easing creates a spring-like oscillating effect.
+
+<ParamField path="amplitude" type="number" default="1">
+  Controls the amplitude of the oscillation. Clamped between 1 and 10.
+</ParamField>
+
+<ParamField path="period" type="number" default="0.3">
+  Controls the period of the oscillation. Determines how tight or loose the oscillations are. Clamped between a minimum value and 2.
+</ParamField>
+
+```javascript
+import { eases } from 'animejs';
+
+// Using default values
+animate({
+  targets: '.element',
+  translateX: 250,
+  ease: eases.outElastic()
+});
+
+// Custom amplitude and period
+animate({
+  targets: '.element',
+  translateX: 250,
+  ease: eases.inElastic(2, 0.5)
+});
+```
+
+Available variations:
+- `eases.inElastic(amplitude, period)`
+- `eases.outElastic(amplitude, period)`
+- `eases.inOutElastic(amplitude, period)`
+- `eases.outInElastic(amplitude, period)`
+
+## Advanced Easing
+
+For more control over easing, see:
+- [Spring Easing](/api/spring-easing) - Physics-based spring animations
+- [Cubic Bezier](/api/cubic-bezier) - Custom cubic bezier curves
+
+## Easing Types
+
+All easing functions (except linear/none) are available in four variations:
+
+- **in**: Acceleration at the start
+- **out**: Deceleration at the end
+- **inOut**: Acceleration at start, deceleration at end
+- **outIn**: Deceleration at start, acceleration at end

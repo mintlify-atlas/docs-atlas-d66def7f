@@ -1,0 +1,314 @@
+---
+title: 'Text Animations'
+description: 'Split and animate text by lines, words, and characters'
+---
+
+Anime.js provides powerful text splitting capabilities that allow you to animate text by lines, words, or individual characters.
+
+## Text Splitter
+
+The `TextSplitter` class wraps text content in elements for granular animation control.
+
+### Basic Usage
+
+```javascript
+import { text } from 'animejs';
+
+const splitter = new text.TextSplitter('.title', {
+  chars: true,
+  words: true
+});
+```
+
+### Split by Characters
+
+```javascript
+import { animate, text } from 'animejs';
+
+const splitter = new text.TextSplitter('.text', {
+  chars: true
+});
+
+animate(splitter.chars, {
+  translateY: [40, 0],
+  opacity: [0, 1],
+  duration: 800,
+  delay: (el, i) => i * 30
+});
+```
+
+### Split by Words
+
+```javascript
+const splitter = new text.TextSplitter('.paragraph', {
+  words: true
+});
+
+animate(splitter.words, {
+  scale: [0, 1],
+  opacity: [0, 1],
+  duration: 600,
+  delay: (el, i) => i * 50,
+  ease: 'out(3)'
+});
+```
+
+### Split by Lines
+
+```javascript
+const splitter = new text.TextSplitter('.content', {
+  lines: true
+});
+
+animate(splitter.lines, {
+  translateX: [-100, 0],
+  opacity: [0, 1],
+  duration: 1000,
+  delay: (el, i) => i * 100
+});
+```
+
+## Advanced Options
+
+### Custom Templates
+
+Customize the wrapper elements:
+
+```javascript
+const splitter = new text.TextSplitter('.text', {
+  chars: {
+    class: 'char',
+    wrap: 'clip'
+  },
+  words: {
+    class: 'word',
+    clone: 'bottom'
+  }
+});
+```
+
+### Template Parameters
+
+<ParamField path="class" type="string">
+  CSS class to apply to wrapper elements
+</ParamField>
+
+<ParamField path="wrap" type="boolean | 'clip' | string">
+  Wrap elements in additional container. Use 'clip' for overflow clipping.
+</ParamField>
+
+<ParamField path="clone" type="boolean | 'left' | 'right' | 'top' | 'bottom'">
+  Create clone elements for advanced effects. Position determines clone offset direction.
+</ParamField>
+
+### Function Templates
+
+```javascript
+const splitter = new text.TextSplitter('.text', {
+  chars: (node) => {
+    const char = node.textContent;
+    return `<span class="char char-${char}">{value}</span>`;
+  }
+});
+```
+
+<Note>
+  Use `{value}` as a placeholder for the text content and `{i}` for the index in custom templates.
+</Note>
+
+## Configuration Options
+
+### Include Spaces
+
+```javascript
+const splitter = new text.TextSplitter('.text', {
+  chars: true,
+  includeSpaces: true
+});
+```
+
+### Accessibility
+
+Keep original text accessible for screen readers:
+
+```javascript
+const splitter = new text.TextSplitter('.text', {
+  chars: true,
+  accessible: true // Default: true
+});
+```
+
+<Check>
+  When `accessible` is true, the original text is preserved in a visually-hidden element for screen readers.
+</Check>
+
+### Debug Mode
+
+Visualize split boundaries:
+
+```javascript
+const splitter = new text.TextSplitter('.text', {
+  lines: true,
+  words: true,
+  chars: true,
+  debug: true
+});
+```
+
+## Responsive Behavior
+
+The splitter automatically re-splits text on resize:
+
+```javascript
+const splitter = new text.TextSplitter('.text', {
+  lines: true,
+  words: true
+});
+
+// Text will re-split when window resizes
+// Line breaks are recalculated automatically
+```
+
+### Manual Refresh
+
+```javascript
+// Force a refresh
+splitter.refresh();
+```
+
+## Effects with addEffect
+
+Add effects that automatically refresh on resize:
+
+```javascript
+import { animate, text } from 'animejs';
+
+const splitter = new text.TextSplitter('.text', {
+  chars: true
+});
+
+splitter.addEffect((splitter) => {
+  return animate(splitter.chars, {
+    translateY: [20, 0],
+    opacity: [0, 1],
+    duration: 600,
+    delay: (el, i) => i * 20
+  });
+});
+```
+
+<Note>
+  Effects added with `addEffect()` are automatically cleaned up and re-run when the splitter refreshes.
+</Note>
+
+## Combining Split Types
+
+```javascript
+const splitter = new text.TextSplitter('.text', {
+  lines: true,
+  words: true,
+  chars: true
+});
+
+// Animate lines first
+animate(splitter.lines, {
+  translateY: [100, 0],
+  opacity: [0, 1],
+  duration: 800,
+  delay: (el, i) => i * 100
+});
+
+// Then animate characters within words
+animate(splitter.chars, {
+  scale: [0, 1],
+  duration: 400,
+  delay: (el, i) => i * 10 + 800
+});
+```
+
+## Revert Changes
+
+Restore original HTML:
+
+```javascript
+// Clean up and restore original text
+splitter.revert();
+```
+
+<Warning>
+  Calling `revert()` removes all split elements and restores the original HTML. Any running animations on split elements will be cancelled.
+</Warning>
+
+## Stagger Patterns
+
+```javascript
+import { stagger, animate, text } from 'animejs';
+
+const splitter = new text.TextSplitter('.text', {
+  chars: true
+});
+
+// Stagger from center
+animate(splitter.chars, {
+  scale: [0, 1],
+  opacity: [0, 1],
+  duration: 600,
+  delay: stagger(50, { from: 'center' })
+});
+
+// Stagger in a grid pattern
+animate(splitter.chars, {
+  translateY: [40, 0],
+  opacity: [0, 1],
+  duration: 800,
+  delay: stagger(30, { grid: [10, 5], from: 'last' })
+});
+```
+
+## Helper Function
+
+Convenience function for creating text splitters:
+
+```javascript
+import { splitText } from 'animejs';
+
+const splitter = splitText('.text', {
+  words: true,
+  chars: true
+});
+```
+
+## Performance Tips
+
+<AccordionGroup>
+  <Accordion title="Limit Split Depth">
+    Only split by what you need. Splitting by all three (lines, words, chars) creates many DOM elements:
+    ```javascript
+    // Only split by chars if that's all you need
+    const splitter = new text.TextSplitter('.text', {
+      chars: true
+    });
+    ```
+  </Accordion>
+
+  <Accordion title="Debounce Resize Events">
+    The built-in resize observer already debounces with a 150ms delay, but you can disable automatic refreshing:
+    ```javascript
+    const splitter = new text.TextSplitter('.text', { chars: true });
+    // Manual control over when to refresh
+    ```
+  </Accordion>
+
+  <Accordion title="Clean Up When Done">
+    Call `revert()` when animations are complete to reduce DOM size:
+    ```javascript
+    splitter.addEffect((split) => {
+      return animate(split.chars, {
+        opacity: [0, 1],
+        duration: 1000,
+        onComplete: () => splitter.revert()
+      });
+    });
+    ```
+  </Accordion>
+</AccordionGroup>

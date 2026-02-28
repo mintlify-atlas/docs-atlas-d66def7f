@@ -1,0 +1,216 @@
+---
+title: Timeline Class
+description: The Timeline class extends Timer to manage and orchestrate multiple animations with precise timing control and sequencing capabilities.
+---
+
+The `Timeline` class is the core class for creating complex animation sequences in Anime.js. It extends the `Timer` class and provides methods to add, synchronize, and control multiple animations along a shared timeline.
+
+## Constructor
+
+### Timeline(parameters?)
+
+Creates a new Timeline instance.
+
+<ParamField path="parameters" type="TimelineParams" default="{}">
+  Optional configuration object for the timeline
+
+  <Expandable title="TimelineParams properties">
+    <ParamField path="id" type="String | Number">
+      Unique identifier for the timeline. If not provided, an auto-incrementing ID will be assigned.
+    </ParamField>
+
+    <ParamField path="defaults" type="DefaultsParams">
+      Default parameters to apply to all child animations. These defaults will be merged with global defaults and inherited by all animations added to the timeline.
+    </ParamField>
+
+    <ParamField path="playbackEase" type="EasingParam">
+      Easing function to apply to the timeline's playback rate. This affects how the entire timeline progresses through time.
+    </ParamField>
+
+    <ParamField path="composition" type="Boolean" default="true">
+      Controls whether animations should be composed immediately when added. When `true`, animations are rendered and composed as they're added. When `false`, composition is deferred.
+    </ParamField>
+
+    <ParamField path="duration" type="Number | Function">
+      Initial duration in milliseconds. Note: Timeline duration automatically grows as children are added.
+    </ParamField>
+
+    <ParamField path="delay" type="Number | Function">
+      Delay in milliseconds before the timeline starts.
+    </ParamField>
+
+    <ParamField path="loopDelay" type="Number" default="0">
+      Delay in milliseconds between loop iterations.
+    </ParamField>
+
+    <ParamField path="reversed" type="Boolean" default="false">
+      Whether the timeline should play in reverse direction.
+    </ParamField>
+
+    <ParamField path="alternate" type="Boolean" default="false">
+      Whether the timeline should alternate direction on each loop iteration.
+    </ParamField>
+
+    <ParamField path="loop" type="Boolean | Number" default="false">
+      Number of times to loop the timeline. Set to `true` or `Infinity` for infinite looping.
+    </ParamField>
+
+    <ParamField path="autoplay" type="Boolean | ScrollObserver" default="false">
+      Whether to automatically start playing the timeline. Can also accept a `ScrollObserver` instance for scroll-driven animations.
+    </ParamField>
+
+    <ParamField path="frameRate" type="Number">
+      Target frame rate for the timeline. Limits the update frequency.
+    </ParamField>
+
+    <ParamField path="playbackRate" type="Number" default="1">
+      Playback speed multiplier. Values > 1 speed up, values < 1 slow down.
+    </ParamField>
+
+    <ParamField path="onBegin" type="Callback<Timeline>">
+      Callback function called when the timeline begins playing for the first time.
+    </ParamField>
+
+    <ParamField path="onBeforeUpdate" type="Callback<Timeline>">
+      Callback function called before each timeline update tick.
+    </ParamField>
+
+    <ParamField path="onUpdate" type="Callback<Timeline>">
+      Callback function called on each timeline update tick.
+    </ParamField>
+
+    <ParamField path="onLoop" type="Callback<Timeline>">
+      Callback function called when the timeline completes a loop iteration.
+    </ParamField>
+
+    <ParamField path="onPause" type="Callback<Timeline>">
+      Callback function called when the timeline is paused.
+    </ParamField>
+
+    <ParamField path="onComplete" type="Callback<Timeline>">
+      Callback function called when the timeline completes all iterations.
+    </ParamField>
+
+    <ParamField path="onRender" type="Callback<Timeline>">
+      Callback function called when the timeline renders.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+```javascript
+// Create a timeline with default parameters
+const tl = new Timeline({
+  id: 'myTimeline',
+  loop: true,
+  defaults: {
+    duration: 1000,
+    ease: 'outQuad'
+  },
+  onComplete: (timeline) => {
+    console.log('Timeline completed');
+  }
+});
+```
+
+## Properties
+
+### id
+
+<ParamField path="id" type="String | Number">
+  Unique identifier for the timeline instance.
+</ParamField>
+
+### duration
+
+<ParamField path="duration" type="Number">
+  Total duration of the timeline in milliseconds, including all loops. This value automatically updates as children are added.
+</ParamField>
+
+### iterationDuration
+
+<ParamField path="iterationDuration" type="Number">
+  Duration of a single iteration (loop) of the timeline in milliseconds.
+</ParamField>
+
+### labels
+
+<ParamField path="labels" type="Record<String, Number>">
+  Object containing named position labels. Used for positioning animations at specific named points in the timeline.
+</ParamField>
+
+```javascript
+tl.label('scene1', 0)
+  .label('scene2', 2000)
+  .add(targets, params, 'scene1') // Position at scene1 label
+  .add(targets2, params2, 'scene2'); // Position at scene2 label
+```
+
+### defaults
+
+<ParamField path="defaults" type="DefaultsParams">
+  Default parameters inherited by all child animations added to the timeline.
+</ParamField>
+
+### composition
+
+<ParamField path="composition" type="Boolean">
+  Indicates whether the timeline automatically composes animations as they're added.
+</ParamField>
+
+### onRender
+
+<ParamField path="onRender" type="Callback<Timeline>">
+  Callback function invoked when the timeline renders.
+</ParamField>
+
+## Inherited Properties
+
+The Timeline class inherits all properties from the [Timer class](/api/timer-class), including:
+
+- `currentTime` - Current playback position in milliseconds
+- `progress` - Current playback progress (0-1)
+- `iterationCurrentTime` - Current time within the current iteration
+- `iterationProgress` - Progress within the current iteration (0-1)
+- `currentIteration` - Current loop iteration index
+- `paused` - Whether the timeline is paused
+- `began` - Whether the timeline has begun playing
+- `completed` - Whether the timeline has completed
+- `cancelled` - Whether the timeline has been cancelled
+- `reversed` - Whether the timeline is playing in reverse
+- `speed` - Playback speed multiplier
+- `iterationCount` - Total number of iterations
+
+## Factory Function
+
+### createTimeline(parameters?)
+
+Convenience factory function that creates and initializes a Timeline instance.
+
+<ParamField path="parameters" type="TimelineParams">
+  Optional timeline configuration parameters.
+</ParamField>
+
+<ParamField path="returns" type="Timeline">
+  An initialized Timeline instance ready to play.
+</ParamField>
+
+```javascript
+import { createTimeline } from 'animejs';
+
+const tl = createTimeline({
+  loop: true,
+  defaults: {
+    duration: 1000,
+    ease: 'outExpo'
+  }
+});
+
+// Equivalent to:
+const tl2 = new Timeline({ /* ... */ }).init();
+```
+
+## See Also
+
+- [Timeline Methods](/api/timeline-methods) - Methods for controlling and manipulating the timeline
+- [Timeline Parameters](/api/timeline-parameters) - Detailed parameter reference
+- [Timer Class](/api/timer-class) - Base class that Timeline extends

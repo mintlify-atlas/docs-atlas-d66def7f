@@ -1,0 +1,444 @@
+---
+title: Canvas Animations
+description: Create high-performance canvas animations with thousands of particles using Anime.js
+---
+
+## Basic Canvas Setup
+
+Set up a canvas for animation:
+
+```javascript
+import { animate, createTimer, utils } from 'animejs';
+
+const canvas = document.querySelector('canvas');
+const ctx = canvas.getContext('2d', { alpha: false });
+const viewport = { width: 0, height: 0 };
+
+function setCanvasSize() {
+  const { innerWidth, innerHeight } = window;
+  const ratio = 2;  // High DPI support
+  
+  canvas.width = innerWidth * ratio;
+  canvas.height = innerHeight * ratio;
+  canvas.style.width = innerWidth + 'px';
+  canvas.style.height = innerHeight + 'px';
+  canvas.getContext('2d').scale(ratio, ratio);
+  
+  viewport.width = innerWidth;
+  viewport.height = innerHeight;
+}
+
+setCanvasSize();
+window.addEventListener('resize', setCanvasSize);
+```
+
+## Particle System
+
+Animate thousands of particles on canvas:
+
+```javascript
+import { animate, createTimer, utils } from 'animejs';
+
+const canvas = document.querySelector('canvas');
+const ctx = canvas.getContext('2d');
+const maxParticles = 4000;
+const colors = ['#FF4B4B', '#FF8F42', '#FFC730', '#F6FF56'];
+const particles = [];
+
+function createParticle(x, y) {
+  return {
+    x,
+    y,
+    color: utils.randomPick(colors),
+    radius: 1
+  };
+}
+
+function drawParticle(p) {
+  ctx.beginPath();
+  ctx.fillStyle = p.color;
+  ctx.arc(p.x, p.y, p.radius, 0, 2 * Math.PI, true);
+  ctx.fill();
+}
+
+// Create particles
+for (let i = 0; i < maxParticles; i++) {
+  const p = createParticle(
+    viewport.width * 0.5,
+    viewport.height * 0.5
+  );
+  particles.push(p);
+}
+```
+
+## Animating Particles
+
+Animate particle properties:
+
+```javascript
+import { animate, utils } from 'animejs';
+
+function animateParticle(p) {
+  const newX = utils.random(0, viewport.width);
+  const diffX = newX - p.x;
+  const durX = Math.abs(diffX * 20);
+  
+  const newY = utils.random(0, viewport.height);
+  const diffY = newY - p.y;
+  const durY = Math.abs(diffY * 20);
+  
+  animate(p, {
+    x: { to: newX, duration: durX },
+    y: { to: newY, duration: durY },
+    radius: utils.random(2, 6),
+    ease: 'out(1)',
+    onComplete: () => {
+      animateParticle(p);  // Loop animation
+    }
+  });
+}
+
+// Start animating all particles
+for (let i = 0; i < maxParticles; i++) {
+  animateParticle(particles[i]);
+}
+```
+
+## Render Loop
+
+Create a rendering loop with `createTimer`:
+
+```javascript
+import { createTimer } from 'animejs';
+
+createTi mer({
+  onUpdate: (self) => {
+    // Clear with fade effect
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = 0.1;
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, viewport.width, viewport.height);
+    
+    // Draw particles
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'screen';  // Additive blending
+    
+    for (let i = 0; i < maxParticles; i++) {
+      drawParticle(particles[i]);
+    }
+  }
+});
+```
+
+## Canvas Composite Operations
+
+Use different blend modes for effects:
+
+```javascript
+// Additive blending (lighter)
+ctx.globalCompositeOperation = 'screen';
+ctx.globalCompositeOperation = 'lighter';
+
+// Multiply (darker)
+ctx.globalCompositeOperation = 'multiply';
+
+// Overlay
+ctx.globalCompositeOperation = 'overlay';
+
+// Normal
+ctx.globalCompositeOperation = 'source-over';
+
+// Erase
+ctx.globalCompositeOperation = 'destination-out';
+```
+
+## Trail Effect
+
+Create particle trails:
+
+```javascript
+import { createTimer } from 'animejs';
+
+createTi mer({
+  onUpdate: () => {
+    // Fade previous frame instead of clearing
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = 0.05;  // Lower = longer trails
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, viewport.width, viewport.height);
+    
+    // Draw new frame
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'lighter';
+    
+    for (const particle of particles) {
+      drawParticle(particle);
+    }
+  }
+});
+```
+
+## Optimized Drawing
+
+Batch draw operations for performance:
+
+```javascript
+function drawParticles(particles) {
+  // Group by color for fewer state changes
+  const byColor = {};
+  
+  for (const p of particles) {
+    if (!byColor[p.color]) byColor[p.color] = [];
+    byColor[p.color].push(p);
+  }
+  
+  // Draw each color group
+  for (const color in byColor) {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    
+    for (const p of byColor[color]) {
+      ctx.moveTo(p.x + p.radius, p.y);
+      ctx.arc(p.x, p.y, p.radius, 0, 2 * Math.PI);
+    }
+    
+    ctx.fill();
+  }
+}
+```
+
+## Animating Canvas Properties
+
+Animate canvas state itself:
+
+```javascript
+import { animate, createTimer } from 'animejs';
+
+const canvasState = {
+  alpha: 0.1,
+  hue: 0,
+  scale: 1
+};
+
+// Animate state
+animate(canvasState, {
+  alpha: [0.1, 0.3, 0.1],
+  hue: 360,
+  scale: [1, 1.2, 1],
+  duration: 5000,
+  loop: true,
+  ease: 'inOutSine'
+});
+
+// Use in render loop
+createTimer({
+  onUpdate: () => {
+    ctx.globalAlpha = canvasState.alpha;
+    ctx.fillStyle = `hsl(${canvasState.hue}, 50%, 50%)`;
+    // ... draw
+  }
+});
+```
+
+## Mouse Interaction
+
+Respond to mouse movement:
+
+```javascript
+const mouse = { x: 0, y: 0 };
+
+canvas.addEventListener('mousemove', (e) => {
+  mouse.x = e.clientX;
+  mouse.y = e.clientY;
+});
+
+function animateParticle(p) {
+  // Calculate attraction to mouse
+  const angle = Math.atan2(mouse.y - p.y, mouse.x - p.x);
+  const distance = utils.random(50, 200);
+  
+  const targetX = mouse.x + Math.cos(angle) * distance;
+  const targetY = mouse.y + Math.sin(angle) * distance;
+  
+  animate(p, {
+    x: targetX,
+    y: targetY,
+    duration: utils.random(500, 1500),
+    ease: 'outCirc',
+    onComplete: () => animateParticle(p)
+  });
+}
+```
+
+## Glow Effect
+
+Add glow to particles:
+
+```javascript
+function drawParticleWithGlow(p) {
+  // Outer glow
+  const gradient = ctx.createRadialGradient(
+    p.x, p.y, 0,
+    p.x, p.y, p.radius * 3
+  );
+  gradient.addColorStop(0, p.color);
+  gradient.addColorStop(0.5, p.color + '80');  // 50% opacity
+  gradient.addColorStop(1, p.color + '00');    // Transparent
+  
+  ctx.fillStyle = gradient;
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, p.radius * 3, 0, 2 * Math.PI);
+  ctx.fill();
+  
+  // Core
+  ctx.fillStyle = '#FFF';
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, p.radius * 0.5, 0, 2 * Math.PI);
+  ctx.fill();
+}
+```
+
+## Performance Monitoring
+
+Track FPS and particle count:
+
+```javascript
+import { createTimer } from 'animejs';
+
+let lastTime = performance.now();
+let fps = 60;
+
+createTi mer({
+  onUpdate: () => {
+    // Calculate FPS
+    const now = performance.now();
+    fps = Math.round(1000 / (now - lastTime));
+    lastTime = now;
+    
+    // Draw
+    drawScene();
+    
+    // Display stats
+    ctx.fillStyle = '#FFF';
+    ctx.font = '16px monospace';
+    ctx.fillText(`FPS: ${fps}`, 10, 20);
+    ctx.fillText(`Particles: ${particles.length}`, 10, 40);
+  }
+});
+```
+
+## WebGL Context
+
+For even better performance, use WebGL:
+
+```javascript
+const canvas = document.querySelector('canvas');
+const gl = canvas.getContext('webgl2', {
+  alpha: false,
+  antialias: false,
+  depth: false
+});
+
+// WebGL can render 100k+ particles at 60fps
+// But requires shader programming
+```
+
+## Offscreen Canvas
+
+Use OffscreenCanvas for better performance (where supported):
+
+```javascript
+if ('OffscreenCanvas' in window) {
+  const offscreen = canvas.transferControlToOffscreen();
+  const worker = new Worker('canvas-worker.js');
+  worker.postMessage({ canvas: offscreen }, [offscreen]);
+}
+```
+
+## Complete Particle Example
+
+Putting it all together:
+
+```javascript
+import { animate, createTimer, utils } from 'animejs';
+
+const canvas = document.querySelector('canvas');
+const ctx = canvas.getContext('2d', { alpha: false });
+const colors = ['#FF4B4B', '#FF8F42', '#FFC730', '#F6FF56'];
+const particles = [];
+const maxParticles = 4000;
+
+function setup() {
+  setCanvasSize();
+  window.addEventListener('resize', setCanvasSize);
+  
+  // Create particles
+  for (let i = 0; i < maxParticles; i++) {
+    const p = {
+      x: window.innerWidth / 2,
+      y: window.innerHeight / 2,
+      color: utils.randomPick(colors),
+      radius: 1
+    };
+    particles.push(p);
+    animateParticle(p);
+  }
+  
+  // Start render loop
+  createTimer({ onUpdate: render });
+}
+
+function animateParticle(p) {
+  animate(p, {
+    x: utils.random(0, window.innerWidth),
+    y: utils.random(0, window.innerHeight),
+    radius: utils.random(2, 6),
+    duration: utils.random(1000, 3000),
+    ease: 'out(1)',
+    onComplete: () => animateParticle(p)
+  });
+}
+
+function render() {
+  // Fade effect
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = 0.1;
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Draw particles
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'screen';
+  
+  for (const p of particles) {
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.radius, 0, 2 * Math.PI);
+    ctx.fill();
+  }
+}
+
+setup();
+```
+
+## Performance Tips
+
+<Warning>
+  - Use `{ alpha: false }` context option when you don't need transparency
+  - Disable antialiasing for better performance: `{ antialias: false }`
+  - Batch drawing operations by color/style
+  - Use `requestAnimationFrame` via `createTimer` instead of `setInterval`
+  - Consider using WebGL for 10k+ particles
+  - Limit particle count based on device capabilities
+</Warning>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Basic Animations" icon="play" href="/examples/basic-animations">
+    Learn core animation concepts
+  </Card>
+  <Card title="Timelines" icon="clock" href="/examples/timelines">
+    Sequence canvas animations
+  </Card>
+</CardGroup>

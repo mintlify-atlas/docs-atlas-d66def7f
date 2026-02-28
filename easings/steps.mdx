@@ -1,0 +1,317 @@
+---
+title: Steps
+description: Create discrete, frame-by-frame animations with step-based easing
+---
+
+Step easings create animations that jump between discrete values rather than smoothly interpolating, perfect for frame-by-frame animations, pixel art, and sprite-based effects.
+
+## Basic Usage
+
+```javascript
+import { steps } from 'animejs';
+
+anime({
+  targets: '.element',
+  translateX: 250,
+  easing: steps(10) // 10 discrete steps
+});
+```
+
+<Warning>
+The old string syntax `easing: 'steps(10)'` has been removed. You must now import and call `steps()` as a function.
+</Warning>
+
+## Parameters
+
+The `steps()` function accepts two parameters:
+
+```javascript
+steps(numberOfSteps, fromStart)
+```
+
+- **numberOfSteps** (default: 10) - Number of discrete intervals
+- **fromStart** (boolean, optional) - Jump position timing
+  - `false` or omitted: Jump at end (default, like CSS `step-end`)
+  - `true`: Jump at start (like CSS `step-start`)
+
+## Jump Positions
+
+### Jump at End (Default)
+
+Value changes at the end of each interval:
+
+```javascript
+import { steps } from 'animejs';
+
+anime({
+  targets: '.box',
+  translateX: 300,
+  easing: steps(5), // or steps(5, false)
+  duration: 1000
+});
+
+// Timeline:
+// 0ms:   0px
+// 200ms: 60px   (jumps to first step)
+// 400ms: 120px  (jumps to second step)
+// 600ms: 180px  (jumps to third step)
+// 800ms: 240px  (jumps to fourth step)
+// 1000ms: 300px (jumps to final value)
+```
+
+This is equivalent to CSS `steps(5, end)` or `steps(5, jump-end)`.
+
+### Jump at Start
+
+Value changes at the start of each interval:
+
+```javascript
+import { steps } from 'animejs';
+
+anime({
+  targets: '.box',
+  translateX: 300,
+  easing: steps(5, true),
+  duration: 1000
+});
+
+// Timeline:
+// 0ms:   60px   (jumps immediately)
+// 200ms: 120px
+// 400ms: 180px
+// 600ms: 240px
+// 800ms: 300px
+// 1000ms: 300px (already at final value)
+```
+
+This is equivalent to CSS `steps(5, start)` or `steps(5, jump-start)`.
+
+## Common Use Cases
+
+### Sprite Animation
+
+Animate through sprite frames:
+
+```javascript
+import anime from 'animejs';
+import { steps } from 'animejs';
+
+// Sprite sheet with 8 frames
+anime({
+  targets: '.character',
+  backgroundPosition: ['0px 0px', '-800px 0px'], // 8 frames × 100px width
+  easing: steps(8),
+  duration: 800,
+  loop: true
+});
+```
+
+### Loading Indicators
+
+Discrete progress steps:
+
+```javascript
+import { steps } from 'animejs';
+
+anime({
+  targets: '.progress-bar',
+  width: '100%',
+  easing: steps(10), // 10% increments
+  duration: 3000
+});
+```
+
+### Pixel Art Movement
+
+Grid-based character movement:
+
+```javascript
+import { steps } from 'animejs';
+
+// Move 8 tiles (32px each)
+anime({
+  targets: '.pixel-character',
+  translateX: 256, // 8 × 32px
+  easing: steps(8),
+  duration: 800
+});
+```
+
+### Counter Animation
+
+Increment numbers in discrete steps:
+
+```javascript
+import anime from 'animejs';
+import { steps } from 'animejs';
+
+const counter = { value: 0 };
+
+anime({
+  targets: counter,
+  value: 100,
+  easing: steps(100),
+  duration: 2000,
+  update: () => {
+    document.querySelector('.counter').textContent = Math.round(counter.value);
+  }
+});
+```
+
+### Typing Effect
+
+Reveal text character by character:
+
+```javascript
+import { steps } from 'animejs';
+
+const text = 'Hello, World!';
+const element = document.querySelector('.typewriter');
+
+anime({
+  targets: { length: 0 },
+  length: text.length,
+  easing: steps(text.length),
+  duration: text.length * 100,
+  update: (anim) => {
+    const currentLength = Math.round(anim.animations[0].currentValue);
+    element.textContent = text.substring(0, currentLength);
+  }
+});
+```
+
+## Implementation
+
+The steps function uses simple rounding logic:
+
+```javascript
+// From src/easings/steps/index.js:20-23
+export const steps = (steps = 10, fromStart) => {
+  const roundMethod = fromStart ? Math.ceil : Math.floor;
+  return t => roundMethod(clamp(t, 0, 1) * steps) * (1 / steps);
+}
+```
+
+**How it works:**
+1. Multiply progress (0-1) by number of steps
+2. Round using `floor` (default) or `ceil` (fromStart)
+3. Divide back to get stepped progress value
+4. Values are clamped between 0 and 1
+
+## Visual Comparison
+
+```javascript
+import { steps } from 'animejs';
+
+// Large steps - noticeable jumps
+const chunky = steps(4);
+// 0 → 0.25 → 0.5 → 0.75 → 1
+
+// Medium steps - balanced
+const medium = steps(10);
+// 0 → 0.1 → 0.2 → ... → 1
+
+// Small steps - smoother appearance
+const smooth = steps(50);
+// 0 → 0.02 → 0.04 → ... → 1
+
+// Single step - binary on/off
+const binary = steps(1);
+// 0 → 1 (instant jump)
+```
+
+## Combining with Other Properties
+
+```javascript
+import anime from 'animejs';
+import { steps } from 'animejs';
+
+// Different easings for different properties
+anime({
+  targets: '.sprite',
+  // Stepped sprite animation
+  backgroundPositionX: {
+    value: '-800px',
+    easing: steps(8)
+  },
+  // Smooth movement
+  translateX: {
+    value: 300,
+    easing: 'easeOutQuad'
+  },
+  duration: 1000
+});
+```
+
+## CSS Equivalents
+
+Anime.js steps map to CSS steps:
+
+| Anime.js | CSS Equivalent |
+|----------|----------------|
+| `steps(5)` | `steps(5, end)` or `steps(5, jump-end)` |
+| `steps(5, true)` | `steps(5, start)` or `steps(5, jump-start)` |
+
+<Info>
+CSS also supports `jump-both` and `jump-none` variants, but Anime.js only implements the two most common cases: jump-end and jump-start.
+</Info>
+
+## Complete Example
+
+```javascript
+import anime from 'animejs';
+import { steps } from 'animejs';
+
+// Walking character sprite animation
+class SpriteAnimator {
+  constructor(element, spriteWidth, frameCount) {
+    this.element = element;
+    this.spriteWidth = spriteWidth;
+    this.frameCount = frameCount;
+  }
+  
+  walk(distance, duration) {
+    return anime({
+      targets: this.element,
+      // Smooth horizontal movement
+      translateX: distance,
+      // Stepped sprite frames
+      backgroundPositionX: {
+        value: -(this.spriteWidth * this.frameCount),
+        easing: steps(this.frameCount)
+      },
+      duration: duration,
+      easing: 'linear'
+    });
+  }
+}
+
+const character = new SpriteAnimator(
+  document.querySelector('.character'),
+  64,  // 64px per frame
+  8    // 8 frames total
+);
+
+character.walk(400, 1000); // Walk 400px in 1 second
+```
+
+## Performance Notes
+
+- Steps easings are computationally efficient (just a multiply + round + divide)
+- Better than using `requestAnimationFrame` loops for frame-based animations
+- GPU-accelerated when used with transform properties
+- No overhead compared to continuous easings
+
+## See Also
+
+<CardGroup cols={2}>
+  <Card title="Irregular" href="/easings/irregular">
+    Random step-based animations
+  </Card>
+  <Card title="Linear" href="/easings/overview">
+    Smooth piecewise linear easing
+  </Card>
+  <Card title="Custom Functions" href="/easings/custom">
+    Write your own discrete easing logic
+  </Card>
+</CardGroup>

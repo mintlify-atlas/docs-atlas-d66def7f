@@ -1,0 +1,556 @@
+---
+title: Draggable
+description: Create smooth drag-and-drop interactions with physics-based momentum, snapping, and container constraints
+---
+
+## Overview
+
+The Draggable module enables smooth drag-and-drop interactions with momentum-based physics, boundary constraints, snapping, and extensive customization options. Perfect for sliders, sortable lists, and interactive UI elements.
+
+## Importing
+
+```javascript
+import { createDraggable, Draggable } from 'animejs';
+```
+
+## Creating Draggables
+
+### createDraggable()
+
+Create a draggable element:
+
+```javascript
+const draggable = createDraggable(target, parameters);
+```
+
+**Parameters:**
+- `target` - DOM element or selector to make draggable
+- `parameters` - Configuration object (optional)
+
+### Basic Example
+
+```javascript
+import { createDraggable } from 'animejs';
+
+const draggable = createDraggable('.box');
+```
+
+## Axis Configuration
+
+### Both Axes (Default)
+
+```javascript
+const draggable = createDraggable('.box');
+// Draggable on both x and y axes
+```
+
+### Single Axis
+
+<ParamField path="x" type="boolean | object" default="true">
+  Enable/configure horizontal dragging
+</ParamField>
+
+<ParamField path="y" type="boolean | object" default="true">
+  Enable/configure vertical dragging
+</ParamField>
+
+```javascript
+// Horizontal only
+const slider = createDraggable('.slider', {
+  y: false
+});
+
+// Vertical only
+const scrollbar = createDraggable('.scrollbar', {
+  x: false
+});
+```
+
+### Custom Property Mapping
+
+Map drag axes to different CSS properties:
+
+```javascript
+const draggable = createDraggable('.box', {
+  x: {
+    mapTo: 'left' // Use 'left' instead of 'translateX'
+  },
+  y: {
+    mapTo: 'top' // Use 'top' instead of 'translateY'
+  }
+});
+```
+
+## Container Constraints
+
+### Contain Within Element
+
+<ParamField path="container" type="string | element">
+  Element to constrain dragging within
+</ParamField>
+
+```javascript
+const draggable = createDraggable('.box', {
+  container: '.container' // Stay within .container
+});
+
+// Using element reference
+const container = document.querySelector('.bounds');
+const draggable = createDraggable('.box', {
+  container: container
+});
+```
+
+### Custom Bounds
+
+Define exact pixel boundaries:
+
+```javascript
+const draggable = createDraggable('.box', {
+  container: [top, right, bottom, left]
+});
+
+// Example: 50px padding from window edges
+const draggable = createDraggable('.box', {
+  container: [50, window.innerWidth - 50, window.innerHeight - 50, 50]
+});
+```
+
+### Container Padding
+
+<ParamField path="containerPadding" type="number | array">
+  Padding inside container bounds [top, right, bottom, left]
+</ParamField>
+
+```javascript
+// Uniform padding
+const draggable = createDraggable('.box', {
+  container: '.container',
+  containerPadding: 20 // 20px padding on all sides
+});
+
+// Individual sides
+const draggable = createDraggable('.box', {
+  container: '.container',
+  containerPadding: [10, 20, 30, 40] // top, right, bottom, left
+});
+```
+
+## Snapping
+
+### Grid Snapping
+
+<ParamField path="snap" type="number | array">
+  Snap increment value or array of snap points
+</ParamField>
+
+```javascript
+// Snap to 50px grid
+const draggable = createDraggable('.box', {
+  snap: 50
+});
+
+// Snap to specific points
+const draggable = createDraggable('.box', {
+  snap: [0, 100, 250, 500, 1000]
+});
+```
+
+### Per-Axis Snapping
+
+```javascript
+const draggable = createDraggable('.box', {
+  x: {
+    snap: 100 // Snap horizontally every 100px
+  },
+  y: {
+    snap: 50  // Snap vertically every 50px
+  }
+});
+```
+
+## Trigger Element
+
+<ParamField path="trigger" type="string | element">
+  Element that initiates dragging (handle)
+</ParamField>
+
+```javascript
+// Drag box only by its header
+const draggable = createDraggable('.modal', {
+  trigger: '.modal-header'
+});
+```
+
+## Cursor Styling
+
+<ParamField path="cursor" type="boolean | object" default="false">
+  Cursor styles for hover and drag states
+</ParamField>
+
+```javascript
+const draggable = createDraggable('.box', {
+  cursor: {
+    onHover: 'grab',
+    onGrab: 'grabbing'
+  }
+});
+
+// Disable cursor changes
+const draggable = createDraggable('.box', {
+  cursor: false
+});
+```
+
+## Drag Behavior
+
+### Drag Speed
+
+<ParamField path="dragSpeed" type="number" default="1">
+  Drag movement multiplier
+</ParamField>
+
+```javascript
+const draggable = createDraggable('.box', {
+  dragSpeed: 0.5 // Half speed (slower)
+});
+
+const fast = createDraggable('.fast', {
+  dragSpeed: 2 // Double speed (faster)
+});
+```
+
+### Drag Threshold
+
+<ParamField path="dragThreshold" type="number | object" default="{mouse: 3, touch: 7}">
+  Minimum pixels to move before drag starts
+</ParamField>
+
+```javascript
+// Uniform threshold
+const draggable = createDraggable('.box', {
+  dragThreshold: 10
+});
+
+// Different for mouse and touch
+const draggable = createDraggable('.box', {
+  dragThreshold: {
+    mouse: 5,
+    touch: 15
+  }
+});
+```
+
+### Container Friction
+
+<ParamField path="containerFriction" type="number" default="0.8">
+  Resistance when dragging beyond container bounds (0-1)
+</ParamField>
+
+<ParamField path="releaseContainerFriction" type="number">
+  Friction applied during release momentum
+</ParamField>
+
+```javascript
+const draggable = createDraggable('.box', {
+  container: '.bounds',
+  containerFriction: 0.9,        // Less resistance while dragging
+  releaseContainerFriction: 0.5  // More resistance on release
+});
+```
+
+## Release Physics
+
+### Velocity & Momentum
+
+<ParamField path="minVelocity" type="number" default="0">
+  Minimum velocity threshold
+</ParamField>
+
+<ParamField path="maxVelocity" type="number" default="50">
+  Maximum velocity cap
+</ParamField>
+
+<ParamField path="velocityMultiplier" type="number" default="1">
+  Velocity calculation multiplier
+</ParamField>
+
+```javascript
+const draggable = createDraggable('.box', {
+  minVelocity: 5,         // Ignore tiny movements
+  maxVelocity: 100,       // Cap maximum throw speed
+  velocityMultiplier: 1.5 // Amplify momentum
+});
+```
+
+### Release Easing
+
+<ParamField path="releaseEase" type="string | function">
+  Easing function for momentum animation
+</ParamField>
+
+<ParamField path="releaseMass" type="number" default="1">
+  Spring mass for physics-based release
+</ParamField>
+
+<ParamField path="releaseStiffness" type="number" default="80">
+  Spring stiffness for physics-based release
+</ParamField>
+
+<ParamField path="releaseDamping" type="number" default="20">
+  Spring damping for physics-based release
+</ParamField>
+
+```javascript
+// Easing-based release
+const draggable = createDraggable('.box', {
+  releaseEase: 'outQuint'
+});
+
+// Spring-based release
+const springy = createDraggable('.box', {
+  releaseMass: 1,
+  releaseStiffness: 60,
+  releaseDamping: 15
+});
+```
+
+## Scrolling
+
+<ParamField path="scrollSpeed" type="number" default="1.5">
+  Auto-scroll speed when near container edges
+</ParamField>
+
+<ParamField path="scrollThreshold" type="number" default="20">
+  Distance from edge to trigger auto-scroll
+</ParamField>
+
+```javascript
+const draggable = createDraggable('.item', {
+  container: '.scrollable',
+  scrollSpeed: 2,      // Faster scrolling
+  scrollThreshold: 30  // Trigger earlier
+});
+```
+
+## Callbacks
+
+<ParamField path="onGrab" type="function">
+  Called when drag starts (mousedown/touchstart)
+</ParamField>
+
+<ParamField path="onDrag" type="function">
+  Called on every drag movement
+</ParamField>
+
+<ParamField path="onRelease" type="function">
+  Called when drag ends (mouseup/touchend)
+</ParamField>
+
+<ParamField path="onUpdate" type="function">
+  Called on every position update (including momentum)
+</ParamField>
+
+<ParamField path="onSettle" type="function">
+  Called when all movement stops
+</ParamField>
+
+<ParamField path="onSnap" type="function">
+  Called when element snaps to a position
+</ParamField>
+
+```javascript
+const draggable = createDraggable('.box', {
+  onGrab: (d) => {
+    console.log('Grabbed at:', d.x, d.y);
+  },
+  onDrag: (d) => {
+    console.log('Dragging:', d.deltaX, d.deltaY);
+    console.log('Velocity:', d.velocity);
+  },
+  onRelease: (d) => {
+    console.log('Released with velocity:', d.velocity);
+    console.log('Release angle:', d.angle);
+  },
+  onUpdate: (d) => {
+    console.log('Position:', d.x, d.y);
+  },
+  onSettle: (d) => {
+    console.log('Settled at:', d.x, d.y);
+  },
+  onSnap: (d) => {
+    console.log('Snapped to:', d.snapped);
+  }
+});
+```
+
+## Draggable Properties
+
+### Position Properties
+
+<ResponseField name="x" type="number">
+  Current x position
+</ResponseField>
+
+<ResponseField name="y" type="number">
+  Current y position
+</ResponseField>
+
+<ResponseField name="progressX" type="number">
+  Horizontal progress within container (0-1)
+</ResponseField>
+
+<ResponseField name="progressY" type="number">
+  Vertical progress within container (0-1)
+</ResponseField>
+
+<ResponseField name="destX" type="number">
+  Target x position (after momentum)
+</ResponseField>
+
+<ResponseField name="destY" type="number">
+  Target y position (after momentum)
+</ResponseField>
+
+<ResponseField name="deltaX" type="number">
+  Change in x since last frame
+</ResponseField>
+
+<ResponseField name="deltaY" type="number">
+  Change in y since last frame
+</ResponseField>
+
+### Physics Properties
+
+<ResponseField name="velocity" type="number">
+  Current velocity magnitude
+</ResponseField>
+
+<ResponseField name="angle" type="number">
+  Movement angle in radians
+</ResponseField>
+
+### State Properties
+
+<ResponseField name="grabbed" type="boolean">
+  Whether currently being dragged
+</ResponseField>
+
+<ResponseField name="dragged" type="boolean">
+  Whether has moved during current grab
+</ResponseField>
+
+<ResponseField name="released" type="boolean">
+  Whether in release/momentum phase
+</ResponseField>
+
+## Methods
+
+### Position Control
+
+```javascript
+const draggable = createDraggable('.box');
+
+// Set position
+draggable.x = 200;
+draggable.y = 100;
+
+// Or use methods
+draggable.setX(200);
+draggable.setY(100);
+
+// Set progress
+draggable.progressX = 0.5; // 50% across container
+draggable.progressY = 0.75; // 75% down container
+```
+
+### State Control
+
+```javascript
+// Stop all movement
+draggable.stop();
+
+// Enable/disable
+draggable.enable();
+draggable.disable();
+
+// Reset to origin
+draggable.reset();
+
+// Cleanup and remove
+draggable.revert();
+```
+
+### Utility Methods
+
+```javascript
+// Update bounds and configuration
+draggable.refresh();
+
+// Animate into view within container
+draggable.animateInView(duration, gap, ease);
+
+// Scroll container to show element
+draggable.scrollInView(duration, gap, ease);
+```
+
+## Advanced Examples
+
+### Carousel/Slider
+
+```javascript
+const slider = createDraggable('.slider', {
+  y: false,
+  container: [0, 0, 0, -1000],
+  snap: 250,
+  releaseEase: 'outQuint',
+  onSnap: (d) => {
+    const index = Math.abs(d.x / 250);
+    updateIndicator(index);
+  }
+});
+```
+
+### Constrained to Path
+
+```javascript
+const draggable = createDraggable('.ball', {
+  y: {
+    modifier: (value) => 0 // Lock y to 0
+  },
+  container: [0, 500, 0, 0]
+});
+```
+
+### Custom Physics
+
+```javascript
+const draggable = createDraggable('.box', {
+  releaseMass: 2,
+  releaseStiffness: 40,
+  releaseDamping: 8,
+  velocityMultiplier: 2,
+  maxVelocity: 200,
+  onUpdate: (d) => {
+    // Custom physics modifications
+  }
+});
+```
+
+### Throwable Within Bounds
+
+```javascript
+const throwable = createDraggable('.card', {
+  container: '.area',
+  containerFriction: 0.95,
+  releaseContainerFriction: 0.3,
+  maxVelocity: 150,
+  releaseEase: 'outQuart'
+});
+```
+
+## Related
+
+- [Animatable](/modules/animatable) - Reactive animation controllers
+- [Animation](/modules/animation) - Core animations
+- [Timeline](/modules/timeline) - Animation sequencing

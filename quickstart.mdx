@@ -1,80 +1,395 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quick Start
+description: Create your first animation with Anime.js in minutes with this step-by-step guide
 ---
 
-## Get started in three steps
+Get started with Anime.js by creating your first animation. This guide will walk you through the basics.
 
-Get your documentation site running locally and make your first customization.
+## Your First Animation
 
-### Step 1: Set up your local environment
+Let's create a simple animation that moves and rotates an element:
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
+<Steps>
+  <Step title="Create HTML Structure">
+    First, create an HTML file with an element to animate:
     
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
+    ```html
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Anime.js Quick Start</title>
+      <style>
+        .square {
+          width: 100px;
+          height: 100px;
+          background: #FF4B4B;
+          border-radius: 8px;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="square"></div>
+      <script type="module" src="./main.js"></script>
+    </body>
+    </html>
+    ```
+  </Step>
+  
+  <Step title="Import Anime.js">
+    Create a `main.js` file and import the `animate` function:
     
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
+    ```javascript
+    import { animate } from 'animejs';
+    ```
+  </Step>
+  
+  <Step title="Create the Animation">
+    Call `animate()` with a target selector and animation properties:
     
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+    ```javascript
+    import { animate } from 'animejs';
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+    animate('.square', {
+      x: 320,
+      rotate: '1turn',
+      duration: 1250,
+      ease: 'inOutQuint',
+      loop: true,
+      alternate: true
+    });
+    ```
+  </Step>
+</Steps>
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+<Info>
+  The animation will move the square 320 pixels to the right, rotate it one full turn, and alternate back and forth infinitely.
+</Info>
 
-### Step 3: Go live
+## Understanding the Parameters
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+Let's break down what each parameter does:
 
-## Next steps
+```javascript
+animate('.square', {
+  x: 320,              // Translate 320px on X axis
+  rotate: '1turn',     // Rotate 360 degrees (1 full turn)
+  duration: 1250,      // Animation lasts 1250ms
+  ease: 'inOutQuint',  // Easing function for smooth motion
+  loop: true,          // Repeat forever
+  alternate: true      // Reverse direction on each iteration
+});
+```
 
-Now that you have your docs running, explore these key features:
+### Common Properties
 
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Transform Properties" icon="up-down-left-right">
+    `x`, `y`, `z`, `rotate`, `rotateX`, `rotateY`, `scale`, `skew`
+  </Card>
+  
+  <Card title="CSS Properties" icon="paintbrush">
+    `opacity`, `backgroundColor`, `width`, `height`, `borderRadius`
+  </Card>
+  
+  <Card title="Timing Controls" icon="clock">
+    `duration`, `delay`, `ease`, `loop`, `alternate`
+  </Card>
+  
+  <Card title="SVG Attributes" icon="draw-polygon">
+    `strokeDashoffset`, `fill`, `stroke`, `points`, `d`
+  </Card>
 </CardGroup>
 
+## Multiple Elements with Stagger
+
+Animate multiple elements with cascading delays using `stagger()`:
+
+<CodeGroup>
+```javascript HTML Setup
+<div class="square"></div>
+<div class="square"></div>
+<div class="square"></div>
+<div class="square"></div>
+```
+
+```javascript Animation
+import { animate, stagger } from 'animejs';
+
+animate('.square', {
+  x: 320,
+  rotate: { from: -180 },
+  duration: 1250,
+  delay: stagger(65, { from: 'center' }),
+  ease: 'inOutQuint',
+  loop: true,
+  alternate: true
+});
+```
+</CodeGroup>
+
+<Tip>
+  `stagger()` creates a cascading effect by adding incremental delays to each element. The `from: 'center'` option starts from the middle element.
+</Tip>
+
+## Using Timelines
+
+Create complex animation sequences with `createTimeline()`:
+
+```javascript
+import { createTimeline, stagger } from 'animejs';
+
+const timeline = createTimeline({
+  loop: true,
+  defaults: {
+    duration: 800,
+    ease: 'inOutQuad'
+  }
+});
+
+timeline
+  .add('.square', {
+    x: 320,
+    backgroundColor: '#4BFF8C'
+  })
+  .add('.square', {
+    y: 160,
+    rotate: '1turn'
+  })
+  .add('.square', {
+    x: 0,
+    backgroundColor: '#FF4B4B'
+  })
+  .add('.square', {
+    y: 0,
+    rotate: 0
+  });
+```
+
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  Timelines execute animations in sequence. Use position parameters to control timing (e.g., `'-=400'` to start 400ms before the previous animation ends).
+</Note>
+
+## Working with SVG
+
+Anime.js excels at SVG animations. Here's a line drawing effect:
+
+<CodeGroup>
+```html SVG Setup
+<svg width="100" height="100">
+  <circle class="circle" 
+    cx="50" cy="50" r="40" 
+    fill="none" 
+    stroke="#A4FF4F" 
+    stroke-width="4" />
+</svg>
+```
+
+```javascript Animation
+import { svg, animate } from 'animejs';
+
+// Create a drawable target
+const drawable = svg.createDrawable('.circle');
+
+animate(drawable, {
+  draw: ['0 1', '1 1'],  // Draw from 0% to 100%
+  duration: 2000,
+  ease: 'inOutQuad',
+  loop: true,
+  alternate: true
+});
+```
+</CodeGroup>
+
+## Spring Animations
+
+Create natural, physics-based motion with spring easing:
+
+```javascript
+import { animate, spring } from 'animejs';
+
+animate('.square', {
+  x: 320,
+  rotate: 180,
+  ease: spring({
+    mass: 1,
+    stiffness: 100,
+    damping: 10
+  })
+});
+```
+
+<Info>
+  Spring animations automatically calculate duration based on physics parameters. Adjust `mass`, `stiffness`, and `damping` to control the motion feel.
+</Info>
+
+## Animating JavaScript Objects
+
+Anime.js can animate any JavaScript object property:
+
+```javascript
+import { animate } from 'animejs';
+
+const obj = { count: 0 };
+
+animate(obj, {
+  count: 100,
+  duration: 2000,
+  ease: 'linear',
+  onUpdate: () => {
+    console.log(Math.round(obj.count));
+    // Update your UI here
+  }
+});
+```
+
+## Playback Controls
+
+Control your animations programmatically:
+
+```javascript
+import { animate } from 'animejs';
+
+const animation = animate('.square', {
+  x: 320,
+  duration: 2000,
+  autoplay: false  // Don't start automatically
+});
+
+// Control the animation
+animation.play();           // Start
+animation.pause();          // Pause
+animation.restart();        // Restart from beginning
+animation.reverse();        // Play in reverse
+animation.seek(1000);       // Jump to 1000ms
+animation.timeScale = 0.5;  // Play at half speed
+```
+
+<CardGroup cols={2}>
+  <Card title="Play Methods" icon="play">
+    `play()`, `pause()`, `restart()`, `reverse()`
+  </Card>
+  
+  <Card title="Properties" icon="sliders">
+    `timeScale`, `currentTime`, `progress`, `duration`
+  </Card>
+</CardGroup>
+
+## Complete Example
+
+Here's a complete working example that combines multiple concepts:
+
+```javascript
+import { createTimeline, stagger, utils } from 'animejs';
+
+// Set initial position
+utils.set('.square', {
+  opacity: 0,
+  scale: 0
+});
+
+const timeline = createTimeline({
+  loop: true,
+  defaults: {
+    ease: 'inOutQuad',
+    duration: 800
+  }
+});
+
+timeline
+  // Fade in and scale up
+  .add('.square', {
+    opacity: 1,
+    scale: 1,
+    delay: stagger(65)
+  })
+  // Move in sequence
+  .add('.square', {
+    x: 320,
+    rotate: 180,
+    backgroundColor: '#4BFF8C',
+    delay: stagger(50)
+  })
+  // Move back
+  .add('.square', {
+    x: 0,
+    rotate: 360,
+    backgroundColor: '#FF4B4B',
+    delay: stagger(50, { from: 'last' })
+  }, '+=500')
+  // Fade out
+  .add('.square', {
+    opacity: 0,
+    scale: 0,
+    delay: stagger(65, { from: 'center' })
+  });
+```
+
+## Next Steps
+
+<Steps>
+  <Step title="Explore Animation Properties">
+    Learn about all available properties and how to animate them
+    
+    [View Properties Guide →](/concepts/properties)
+  </Step>
+  
+  <Step title="Master Timelines">
+    Create complex sequences with precise timing control
+    
+    [Timeline Documentation →](/concepts/timelines)
+  </Step>
+  
+  <Step title="Learn Advanced Techniques">
+    Discover stagger effects, spring physics, and scroll animations
+    
+    [Advanced Features →](/advanced/svg)
+  </Step>
+</Steps>
+
+## Common Patterns
+
+<Tip>
+  **From-To Values**: Specify start and end values with object syntax:
+  ```javascript
+  animate('.element', {
+    x: { from: 0, to: 320 },
+    rotate: { from: -180, to: 180 }
+  });
+  ```
+</Tip>
+
+<Tip>
+  **Function-Based Values**: Calculate values dynamically for each element:
+  ```javascript
+  animate('.element', {
+    x: (el, i) => i * 100,
+    delay: (el, i) => i * 50
+  });
+  ```
+</Tip>
+
+<Tip>
+  **Keyframes**: Define multiple states in an animation:
+  ```javascript
+  animate('.element', {
+    keyframes: [
+      { x: 100, backgroundColor: '#FF4B4B' },
+      { x: 200, backgroundColor: '#4BFF8C' },
+      { x: 300, backgroundColor: '#4B8CFF' }
+    ],
+    duration: 3000
+  });
+  ```
+</Tip>
+
+## Troubleshooting
+
+<Warning>
+  **Element not animating?** Make sure the element exists in the DOM before calling `animate()`. Use `DOMContentLoaded` or place your script at the end of the body.
+</Warning>
+
+<Note>
+  **Transforms not working?** Check that the element has `position: relative` or `absolute` set, or use transform properties instead of position properties.
 </Note>

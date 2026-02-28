@@ -1,0 +1,465 @@
+---
+title: Properties
+description: Animate CSS properties, transforms, SVG attributes, and object properties with flexible value formats
+---
+
+Anime.js can animate virtually any numeric property across different target types. Understanding how properties work is essential for creating sophisticated animations.
+
+## Property Types
+
+Anime.js automatically detects and handles different property types:
+
+### CSS Properties
+
+Standard CSS properties can be animated:
+
+```javascript
+import { animate } from 'animejs';
+
+animate('.box', {
+  opacity: 0.5,
+  backgroundColor: '#FF4B4B',
+  width: '100px',
+  padding: '20px'
+});
+```
+
+### Transform Properties
+
+Transforms are treated specially for better performance:
+
+```javascript
+animate('.box', {
+  translateX: 100,
+  translateY: 50,
+  rotate: 180,
+  scale: 1.5,
+  skewX: 10
+});
+
+// Shorthand properties
+animate('.box', {
+  x: 100,      // translateX
+  y: 50,       // translateY
+  z: 25,       // translateZ
+  rotate: 180, // rotateZ
+  scale: 1.5   // scale
+});
+```
+
+<Note>
+Transform properties are rendered together for optimal performance, avoiding layout thrashing.
+</Note>
+
+### SVG Attributes
+
+SVG-specific attributes are fully supported:
+
+```javascript
+animate('circle', {
+  r: 50,
+  cx: 100,
+  cy: 100,
+  fill: '#FF4B4B'
+});
+
+animate('rect', {
+  x: 50,
+  y: 50,
+  width: 100,
+  height: 100,
+  rx: 10
+});
+```
+
+### Object Properties
+
+Animate properties on any JavaScript object:
+
+```javascript
+const obj = { value: 0, count: 0 };
+
+animate(obj, {
+  value: 100,
+  count: 50,
+  duration: 2000,
+  onUpdate: () => {
+    console.log(`Value: ${obj.value}, Count: ${obj.count}`);
+  }
+});
+```
+
+### CSS Variables
+
+Custom CSS properties (variables) can be animated:
+
+```javascript
+animate('.element', {
+  '--custom-color': 255,
+  '--progress': 100
+});
+```
+
+## Value Formats
+
+### Simple Values
+
+The simplest form - animate to a specific value:
+
+```javascript
+animate('.box', {
+  x: 100,
+  opacity: 0.5,
+  scale: 1.5
+});
+```
+
+### From-To Values
+
+Specify both start and end values:
+
+```javascript
+animate('.box', {
+  x: { from: -100, to: 100 },
+  opacity: { from: 0, to: 1 }
+});
+
+// Shorthand array syntax
+animate('.box', {
+  x: [-100, 100],
+  opacity: [0, 1]
+});
+```
+
+### Unit Values
+
+Include units in your values:
+
+```javascript
+animate('.box', {
+  width: '100px',
+  height: '50%',
+  margin: '2rem',
+  fontSize: '2em'
+});
+```
+
+### Unit Conversion
+
+Anime.js automatically converts between compatible units:
+
+```javascript
+animate('.box', {
+  width: { from: '50px', to: '10rem' } // Converts units automatically
+});
+```
+
+### Color Values
+
+Animate colors in various formats:
+
+```javascript
+animate('.box', {
+  backgroundColor: '#FF4B4B',
+  color: 'rgb(255, 75, 75)',
+  borderColor: 'rgba(255, 75, 75, 0.5)',
+  fill: 'hsl(0, 100%, 64%)'
+});
+
+// From-to colors
+animate('.box', {
+  backgroundColor: { from: '#FF4B4B', to: '#4BFF4B' }
+});
+```
+
+### Complex Values
+
+Complex string values with multiple numbers:
+
+```javascript
+animate('.box', {
+  filter: 'blur(10px) brightness(1.5)',
+  transform: 'translateX(100px) rotate(45deg)',
+  boxShadow: '0 10px 20px rgba(0,0,0,0.5)'
+});
+```
+
+## Relative Values
+
+Use operators for relative animations:
+
+### Addition
+
+```javascript
+animate('.box', {
+  x: '+=100',  // Add 100 to current value
+  y: '+=50'
+});
+```
+
+### Subtraction
+
+```javascript
+animate('.box', {
+  opacity: '-=0.5',  // Subtract 0.5 from current value
+  scale: '-=0.2'
+});
+```
+
+### Multiplication
+
+```javascript
+animate('.box', {
+  scale: '*=2',  // Multiply current value by 2
+  width: '*=1.5'
+});
+```
+
+### Chaining Relative Values
+
+```javascript
+const box = document.querySelector('.box');
+
+// First animation
+animate(box, { x: 100 });
+
+// Second animation continues from previous
+animate(box, { x: '+=100' }); // Now at x: 200
+```
+
+## Function-Based Values
+
+Generate values dynamically for each target:
+
+```javascript
+animate('.box', {
+  x: (el, i, total) => {
+    // el: the current element
+    // i: element index (0-based)
+    // total: total number of elements
+    return (i + 1) * 50;
+  },
+  rotate: (el, i) => i * 45,
+  scale: (el, i, total) => 1 + (i / total)
+});
+```
+
+### CSS Variable Functions
+
+Access CSS variables as values:
+
+```javascript
+// HTML: <div class="box" style="--end-pos: 200;"></div>
+
+animate('.box', {
+  x: 'var(--end-pos)',           // Use variable
+  y: 'var(--y-pos, 100)'         // With fallback
+});
+```
+
+## Per-Property Timing
+
+Different properties can have different durations and easings:
+
+```javascript
+animate('.box', {
+  x: {
+    value: 100,
+    duration: 2000,
+    ease: 'easeInOutQuad'
+  },
+  opacity: {
+    value: 0.5,
+    duration: 500,
+    ease: 'linear'
+  }
+});
+```
+
+## Property Detection
+
+Anime.js detects property types from source code (src/core/values.js):
+
+```javascript
+export const getTweenType = (target, prop) => {
+  return !target[isDomSymbol] ? tweenTypes.OBJECT :
+    // Handle SVG attributes
+    target[isSvgSymbol] && isValidSVGAttribute(target, prop) 
+      ? tweenTypes.ATTRIBUTE :
+    // Handle CSS Transform properties
+    validTransforms.includes(prop) || shortTransforms.get(prop) 
+      ? tweenTypes.TRANSFORM :
+    // CSS variables
+    stringStartsWith(prop, '--') ? tweenTypes.CSS_VAR :
+    // All other CSS properties
+    prop in target.style ? tweenTypes.CSS :
+    // Handle other DOM Attributes
+    prop in target ? tweenTypes.OBJECT :
+    tweenTypes.ATTRIBUTE;
+}
+```
+
+## SVG Line Drawing
+
+Animate SVG paths with the `draw` property:
+
+```javascript
+import { svg, createTimeline, stagger } from 'animejs';
+
+createTim eline({
+  defaults: {
+    ease: 'inOut(4)',
+    duration: 10000,
+    loop: true
+  }
+})
+.add(svg.createDrawable('.line'), {
+  draw: [
+    '0.5 0.5',  // Start and end at middle
+    '0 1',      // Draw full line
+    '0.5 0.5'   // Return to middle
+  ],
+  stroke: '#FF4B4B'
+}, stagger([0, 8000], { from: 'first' }));
+```
+
+## Multiple Values (Keyframe Values)
+
+Animate through multiple values in sequence:
+
+```javascript
+animate('.box', {
+  x: [0, 100, 50, 150],  // Animates: 0→100→50→150
+  opacity: [1, 0.5, 0.8, 0]
+});
+```
+
+<Tip>
+For more control over keyframes, see the [Keyframes](/concepts/keyframes) documentation.
+</Tip>
+
+## Property Modifiers
+
+Apply modifiers to transform values before rendering:
+
+```javascript
+animate('.counter', {
+  textContent: 100,
+  duration: 2000,
+  modifier: (value) => Math.round(value),
+  onUpdate: (anim) => {
+    // textContent will always be an integer
+  }
+});
+
+// Round to specific decimal places
+animate('.progress', {
+  value: 100,
+  modifier: (value) => Math.round(value * 100) / 100
+});
+```
+
+## Original Value Retrieval
+
+Anime.js intelligently retrieves original values:
+
+```javascript
+// From source: src/core/values.js
+export const getOriginalAnimatableValue = (target, propName, tweenType, animationInlineStyles) => {
+  const type = !isUnd(tweenType) ? tweenType : getTweenType(target, propName);
+  return type === tweenTypes.OBJECT ? target[propName] || 0 :
+         type === tweenTypes.ATTRIBUTE ? target.getAttribute(propName) :
+         type === tweenTypes.TRANSFORM ? parseInlineTransforms(target, propName, animationInlineStyles) :
+         type === tweenTypes.CSS_VAR ? getCSSValue(target, propName, animationInlineStyles).trimStart() :
+         getCSSValue(target, propName, animationInlineStyles);
+}
+```
+
+## Layered Transforms
+
+Create complex layered transform animations:
+
+```javascript
+import { animate } from 'animejs';
+
+// Multiple transforms on same element don't conflict
+animate('.box', { rotate: 360, duration: 2000 });
+animate('.box', { x: 100, duration: 1000, composition: 'blend' });
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use shorthand properties">
+    Shorthand properties are more readable and concise.
+    
+    ```javascript
+    // Good
+    animate('.box', { x: 100, y: 50, rotate: 180 });
+    
+    // Also works but more verbose
+    animate('.box', { 
+      translateX: 100, 
+      translateY: 50, 
+      rotateZ: 180 
+    });
+    ```
+  </Accordion>
+
+  <Accordion title="Specify units explicitly">
+    Including units prevents ambiguity and improves reliability.
+    
+    ```javascript
+    // Good - explicit units
+    animate('.box', { width: '100px', margin: '2rem' });
+    
+    // Avoid - ambiguous
+    animate('.box', { width: 100 }); // Might be px, %, or unitless
+    ```
+  </Accordion>
+
+  <Accordion title="Use from-to for precision">
+    Specify both values when you need exact control.
+    
+    ```javascript
+    animate('.box', {
+      opacity: { from: 0, to: 1 },
+      x: { from: -100, to: 100 }
+    });
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## API Reference
+
+### Property Value Formats
+
+**Simple value:**
+```javascript
+propertyName: value
+```
+
+**From-to object:**
+```javascript
+propertyName: { from: startValue, to: endValue }
+```
+
+**Array syntax:**
+```javascript
+propertyName: [startValue, endValue]
+```
+
+**Extended object:**
+```javascript
+propertyName: {
+  value: endValue,
+  duration: 1000,
+  delay: 100,
+  ease: 'easeInQuad'
+}
+```
+
+**Function:**
+```javascript
+propertyName: (element, index, total) => value
+```

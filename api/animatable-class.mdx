@@ -1,0 +1,160 @@
+---
+title: Animatable Class
+description: A reactive wrapper that creates animatable properties on target elements with dynamic getter/setter methods.
+---
+
+The `Animatable` class provides a powerful way to create reactive, animatable properties on DOM elements or JavaScript objects. Each property becomes both a getter and setter that can smoothly animate to new values.
+
+## Constructor
+
+```javascript
+new Animatable(targets, parameters)
+```
+
+<ParamField path="targets" type="TargetsParam">
+  Target element(s) to make animatable. Can be:
+  - CSS selector string (e.g., `'.element'`)
+  - DOM element
+  - Array of elements
+  - JavaScript object
+</ParamField>
+
+<ParamField path="parameters" type="AnimatableParams">
+  Configuration object defining animatable properties. Each key becomes an animatable property on the instance.
+</ParamField>
+
+## Parameters Object
+
+The `parameters` object defines which properties should be animatable and their configuration:
+
+<ParamField path="[propertyName]" type="number | AnimatablePropertyParamsOptions">
+  Define an animatable property. Can be:
+  - `number`: Duration in milliseconds for default animations
+  - `object`: Configuration options for the property
+</ParamField>
+
+### Property Configuration Options
+
+<ParamField path="duration" type="number">
+  Default animation duration in milliseconds when property is updated.
+</ParamField>
+
+<ParamField path="unit" type="string">
+  Unit to append to the animated value (e.g., `'px'`, `'%'`, `'deg'`).
+</ParamField>
+
+<ParamField path="ease" type="EasingParam">
+  Default easing function for animations.
+</ParamField>
+
+<ParamField path="modifier" type="(value: any) => any">
+  Function to transform the animated value before applying it.
+</ParamField>
+
+<ParamField path="composition" type="'none' | 'replace' | 'blend'">
+  How this animation composes with other animations on the same property.
+</ParamField>
+
+### Animation Callbacks
+
+<ParamField path="onBegin" type="(self: Animatable) => void">
+  Called when any property animation begins.
+</ParamField>
+
+<ParamField path="onUpdate" type="(self: Animatable) => void">
+  Called on each frame while any property is animating.
+</ParamField>
+
+<ParamField path="onComplete" type="(self: Animatable) => void">
+  Called when all property animations complete.
+</ParamField>
+
+<ParamField path="onLoop" type="(self: Animatable) => void">
+  Called when animations loop.
+</ParamField>
+
+<ParamField path="onPause" type="(self: Animatable) => void">
+  Called when animations are paused.
+</ParamField>
+
+## Properties
+
+<ParamField path="targets" type="Array<HTMLElement | SVGElement | Object>" readOnly>
+  Array of target elements being animated.
+</ParamField>
+
+<ParamField path="animations" type="Object" readOnly>
+  Internal object containing the JSAnimation instances for each property.
+</ParamField>
+
+<ParamField path="callbacks" type="JSAnimation | null" readOnly>
+  Internal animation instance managing callbacks.
+</ParamField>
+
+## Dynamic Properties
+
+Each property defined in the `parameters` object becomes a dynamic property on the Animatable instance:
+
+```javascript
+const animatable = new Animatable('.box', {
+  x: 500,
+  y: { duration: 800, unit: 'px' },
+  rotate: 1000
+});
+
+// Getter - returns current value
+const currentX = animatable.x(); // [0]
+
+// Setter - animates to new value
+animatable.x(100); // Animates x to 100 over 500ms
+animatable.y(200, 1000); // Animates y to 200px over 1000ms
+animatable.rotate(360, 800, 'inOutQuad'); // Animates rotate to 360 over 800ms with custom easing
+```
+
+## Example
+
+```javascript
+import { Animatable } from 'anime';
+
+// Create animatable properties
+const box = new Animatable('.box', {
+  // Simple property with duration
+  x: 500,
+  
+  // Property with configuration
+  y: {
+    duration: 800,
+    unit: 'px',
+    ease: 'inOutQuad'
+  },
+  
+  // Property with modifier
+  rotate: {
+    duration: 1000,
+    unit: 'deg',
+    modifier: (value) => value % 360
+  },
+  
+  // Callbacks
+  onUpdate: (self) => {
+    console.log('Animating:', self.x());
+  },
+  onComplete: () => {
+    console.log('Animation complete!');
+  }
+});
+
+// Animate properties
+box.x(100); // Move to x: 100
+box.y(200, 1000); // Move to y: 200 over 1000ms
+box.rotate(360, 800, 'inOutElastic'); // Rotate with custom duration and easing
+
+// Get current values
+console.log(box.x()); // Current x position
+console.log(box.y()); // Current y position
+```
+
+## See Also
+
+- [Animatable Methods](/api/animatable-methods)
+- [createAnimatable()](/api/animatable-methods#create-animatable)

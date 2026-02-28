@@ -1,0 +1,423 @@
+---
+title: Timeline
+description: Create complex animation sequences by chaining multiple animations together
+---
+
+## Overview
+
+The Timeline module allows you to sequence multiple animations, creating complex animation choreography. Timelines support positioning, labels, and nested timelines.
+
+## Importing
+
+```javascript
+import { createTimeline, Timeline } from 'animejs';
+```
+
+## Creating Timelines
+
+### createTimeline()
+
+Create and initialize a new timeline.
+
+```javascript
+const tl = createTimeline(parameters);
+```
+
+**Parameters:**
+- `parameters` - Timeline configuration object (optional)
+
+### Basic Example
+
+```javascript
+import { createTimeline } from 'animejs';
+
+const tl = createTimeline();
+
+tl.add('.box1', { translateX: 250 })
+  .add('.box2', { translateY: 100 })
+  .add('.box3', { scale: 2 });
+```
+
+## Timeline Parameters
+
+<ParamField path="defaults" type="object">
+  Default parameters for all child animations
+</ParamField>
+
+<ParamField path="playbackEase" type="string | function">
+  Easing applied to the entire timeline playback
+</ParamField>
+
+<ParamField path="composition" type="boolean" default="true">
+  Whether to enable composition for child animations
+</ParamField>
+
+```javascript
+const tl = createTimeline({
+  defaults: {
+    duration: 1000,
+    ease: 'outExpo'
+  },
+  playbackEase: 'linear'
+});
+```
+
+## Adding Animations
+
+### .add()
+
+Add an animation to the timeline.
+
+```javascript
+tl.add(targets, parameters, position)
+```
+
+**Parameters:**
+- `targets` - Elements or objects to animate
+- `parameters` - Animation parameters
+- `position` - When to start this animation (optional)
+
+### Position Parameter
+
+Control when animations start in the timeline:
+
+```javascript
+// Start after previous animation ends (default)
+tl.add('.box1', { translateX: 100 });
+
+// Start at absolute time
+tl.add('.box2', { translateX: 100 }, 1000);
+
+// Relative to previous animation
+tl.add('.box3', { translateX: 100 }, '-=500'); // 500ms before end
+tl.add('.box4', { translateX: 100 }, '+=200'); // 200ms after end
+
+// At the start of timeline
+tl.add('.box5', { translateX: 100 }, 0);
+
+// Using labels
+tl.add('.box6', { translateX: 100 }, 'myLabel');
+tl.add('.box7', { translateX: 100 }, 'myLabel+=500');
+```
+
+### Examples
+
+```javascript
+// Sequential animations
+const tl = createTimeline();
+tl.add('.box1', { translateX: 250, duration: 1000 })
+  .add('.box2', { translateY: 100, duration: 800 })
+  .add('.box3', { scale: 2, duration: 600 });
+
+// Overlapping animations
+tl.add('.box1', { translateX: 250 })
+  .add('.box2', { translateX: 250 }, '-=500') // Start 500ms before previous ends
+  .add('.box3', { translateX: 250 }, '-=800'); // Start 800ms before previous ends
+
+// Start all at the same time
+tl.add('.box1', { translateX: 250 }, 0)
+  .add('.box2', { translateY: 100 }, 0)
+  .add('.box3', { scale: 2 }, 0);
+```
+
+## Stagger Support
+
+Animate multiple elements with a stagger delay:
+
+```javascript
+tl.add('.box', 
+  { translateX: 250 },
+  (el, index, total) => index * 100 // Stagger by index
+);
+
+// Advanced stagger
+tl.add('.box',
+  { scale: 2 },
+  (el, index, total, timeline) => {
+    return timeline.duration + (index * 100);
+  }
+);
+```
+
+## Labels
+
+Add labels to mark specific points in the timeline:
+
+### .label()
+
+```javascript
+tl.label(name, position)
+```
+
+```javascript
+const tl = createTimeline();
+
+tl.add('.box1', { translateX: 100 })
+  .label('midpoint')
+  .add('.box2', { translateY: 100 })
+  .label('end');
+
+// Reference labels in positions
+tl.add('.box3', { scale: 2 }, 'midpoint');
+tl.add('.box4', { rotate: 360 }, 'midpoint+=500');
+```
+
+## Special Methods
+
+### .set()
+
+Instantly set properties without animation:
+
+```javascript
+tl.set(targets, parameters, position)
+```
+
+```javascript
+tl.set('.box', { opacity: 0 })
+  .add('.box', { opacity: 1, duration: 1000 });
+```
+
+### .call()
+
+Execute a callback at a specific point:
+
+```javascript
+tl.call(callback, position)
+```
+
+```javascript
+tl.add('.box1', { translateX: 100 })
+  .call(() => console.log('First animation done!'))
+  .add('.box2', { translateX: 100 });
+```
+
+### .sync()
+
+Synchronize external animations or WAAPI animations:
+
+```javascript
+tl.sync(animation, position)
+```
+
+```javascript
+const externalAnim = animate('.other', { scale: 2 });
+tl.sync(externalAnim, 1000);
+
+// Sync WAAPI animation
+const waapi = element.animate([...], { duration: 1000 });
+tl.sync(waapi, 500);
+```
+
+## Timeline Control
+
+### Playback Methods
+
+```javascript
+const tl = createTimeline();
+  .add('.box', { translateX: 250 });
+
+// Control playback
+tl.pause();      // Pause timeline
+tl.resume();     // Resume playback
+tl.play();       // Play forward
+tl.reverse();    // Play in reverse
+tl.restart();    // Restart from beginning
+```
+
+### Seeking
+
+```javascript
+// Seek to specific time
+tl.seek(1500);
+
+// Seek using progress
+tl.progress = 0.5; // Jump to 50%
+
+// Seek to label
+tl.seek(tl.labels['midpoint']);
+```
+
+### State Management
+
+```javascript
+// Cancel timeline
+tl.cancel();
+
+// Revert all animations
+tl.revert();
+
+// Complete immediately
+tl.complete();
+```
+
+## Removing Animations
+
+### .remove()
+
+Remove animations targeting specific elements:
+
+```javascript
+tl.remove(targets, propertyName)
+```
+
+```javascript
+// Remove all animations for .box
+tl.remove('.box');
+
+// Remove only translateX animations for .box
+tl.remove('.box', 'translateX');
+```
+
+## Timeline Properties
+
+<ResponseField name="duration" type="number">
+  Total timeline duration
+</ResponseField>
+
+<ResponseField name="iterationDuration" type="number">
+  Duration of a single iteration
+</ResponseField>
+
+<ResponseField name="labels" type="object">
+  Object containing all timeline labels and their times
+</ResponseField>
+
+<ResponseField name="defaults" type="object">
+  Default parameters for child animations
+</ResponseField>
+
+<ResponseField name="paused" type="boolean">
+  Whether timeline is paused
+</ResponseField>
+
+<ResponseField name="completed" type="boolean">
+  Whether timeline has completed
+</ResponseField>
+
+## Advanced Features
+
+### Nested Timelines
+
+Add timelines to other timelines:
+
+```javascript
+const innerTL = createTimeline();
+innerTL.add('.inner1', { scale: 2 })
+       .add('.inner2', { rotate: 360 });
+
+const outerTL = createTimeline();
+outerTL.add('.outer', { translateX: 100 })
+       .add(innerTL, 500); // Add entire timeline at 500ms
+```
+
+### Stretching
+
+Adjust timeline duration while preserving proportions:
+
+```javascript
+tl.stretch(newDuration)
+```
+
+```javascript
+const tl = createTimeline();
+tl.add('.box1', { translateX: 100, duration: 1000 })
+  .add('.box2', { translateY: 100, duration: 1000 });
+
+// Stretch timeline to 3 seconds
+tl.stretch(3000);
+```
+
+### Refreshing
+
+Refresh function-based values:
+
+```javascript
+tl.refresh()
+```
+
+```javascript
+let value = 100;
+
+const tl = createTimeline();
+tl.add('.box', {
+  translateX: () => value // Function-based value
+});
+
+value = 200;
+tl.refresh(); // Re-evaluate function
+```
+
+## Callbacks
+
+<ParamField path="onBegin" type="function">
+  Called when timeline begins
+</ParamField>
+
+<ParamField path="onUpdate" type="function">
+  Called on each frame
+</ParamField>
+
+<ParamField path="onLoop" type="function">
+  Called when timeline loops
+</ParamField>
+
+<ParamField path="onComplete" type="function">
+  Called when timeline completes
+</ParamField>
+
+<ParamField path="onRender" type="function">
+  Custom render callback
+</ParamField>
+
+```javascript
+const tl = createTimeline({
+  onBegin: (tl) => console.log('Timeline started'),
+  onUpdate: (tl) => console.log('Progress:', tl.progress),
+  onComplete: (tl) => console.log('Timeline complete')
+});
+```
+
+## Promise Support
+
+```javascript
+const tl = createTimeline();
+tl.add('.box', { translateX: 250 });
+
+await tl.then();
+console.log('Timeline complete!');
+```
+
+## Complete Example
+
+```javascript
+import { createTimeline } from 'animejs';
+
+const tl = createTimeline({
+  defaults: {
+    duration: 800,
+    ease: 'outExpo'
+  },
+  loop: true,
+  alternate: true
+});
+
+tl.add('.hero', { opacity: [0, 1], translateY: [50, 0] })
+  .add('.title', { opacity: [0, 1], scale: [0.8, 1] }, '-=400')
+  .label('titleComplete')
+  .add('.subtitle', { opacity: [0, 1] }, 'titleComplete-=200')
+  .add('.cta', {
+    scale: [0, 1],
+    rotate: [180, 0]
+  }, '-=600')
+  .call(() => console.log('Animation sequence complete!'))
+  .add('.background', {
+    backgroundColor: '#FF6B6B',
+    duration: 2000
+  }, 0);
+```
+
+## Related
+
+- [Animation](/modules/animation) - Individual animations
+- [Timer](/modules/timer) - Base timing functionality
+- [Engine](/modules/engine) - Global animation engine

@@ -1,0 +1,311 @@
+---
+title: Draggable Class
+description: Create interactive drag and drop interfaces with physics-based animations, snap points, and advanced touch controls.
+---
+
+The `Draggable` class enables you to make DOM elements or JavaScript objects draggable with advanced features like momentum scrolling, container constraints, snap points, and customizable physics.
+
+## Constructor
+
+```javascript
+new Draggable(target, parameters)
+```
+
+<ParamField path="target" type="TargetsParam" required>
+  Element to make draggable. Can be:
+  - CSS selector string (e.g., `'.draggable'`)
+  - DOM element
+  - JavaScript object with `x`, `y`, `width`, `height` properties
+</ParamField>
+
+<ParamField path="parameters" type="DraggableParams">
+  Configuration object for draggable behavior.
+</ParamField>
+
+## Configuration Parameters
+
+### Axis Control
+
+<ParamField path="x" type="boolean | DraggableAxisParam" default="true">
+  Enable or configure horizontal dragging:
+  - `true`: Enable with defaults
+  - `false`: Disable horizontal dragging
+  - Object: Configure axis behavior
+</ParamField>
+
+<ParamField path="y" type="boolean | DraggableAxisParam" default="true">
+  Enable or configure vertical dragging:
+  - `true`: Enable with defaults
+  - `false`: Disable vertical dragging
+  - Object: Configure axis behavior
+</ParamField>
+
+#### Axis Configuration Object
+
+<ParamField path="x.mapTo" type="string" default="'translateX'">
+  Property to map the x-axis to (e.g., `'left'`, `'x'`, `'scrollLeft'`).
+</ParamField>
+
+<ParamField path="x.modifier" type="(value: number) => number | string">
+  Transform the value before applying.
+</ParamField>
+
+<ParamField path="x.composition" type="'none' | 'replace' | 'blend'">
+  How dragging composes with other animations.
+</ParamField>
+
+<ParamField path="x.snap" type="number | Array<number> | Function">
+  Snap points specific to this axis.
+</ParamField>
+
+### Container & Boundaries
+
+<ParamField path="container" type="DOMTargetSelector | Array<number> | Function">
+  Constrain dragging within boundaries:
+  - CSS selector or element: Use element bounds
+  - `[top, right, bottom, left]`: Custom boundaries in pixels
+  - Function: Dynamically return container
+</ParamField>
+
+<ParamField path="containerPadding" type="number | Array<number> | Function" default="0">
+  Padding inside the container boundaries:
+  - Single number: Same padding on all sides
+  - `[top, right, bottom, left]`: Individual side padding
+</ParamField>
+
+<ParamField path="containerFriction" type="number | Function" default="0.8">
+  Friction when dragging outside container (0-1). Higher values = more friction.
+</ParamField>
+
+<ParamField path="releaseContainerFriction" type="number | Function" default="containerFriction">
+  Friction when releasing outside container (0-1).
+</ParamField>
+
+### Interaction
+
+<ParamField path="trigger" type="DOMTargetSelector">
+  Element that triggers the drag. If not specified, uses the target element.
+</ParamField>
+
+<ParamField path="cursor" type="boolean | DraggableCursorParams | Function" default="false">
+  Cursor behavior:
+  - `false`: No cursor change
+  - `true`: Use default cursors
+  - Object: Custom cursor styles
+</ParamField>
+
+#### Cursor Configuration
+
+<ParamField path="cursor.onHover" type="string" default="'grab'">
+  Cursor when hovering over trigger element.
+</ParamField>
+
+<ParamField path="cursor.onGrab" type="string" default="'grabbing'">
+  Cursor while dragging.
+</ParamField>
+
+### Drag Behavior
+
+<ParamField path="dragSpeed" type="number | Function" default="1">
+  Speed multiplier for drag movement.
+</ParamField>
+
+<ParamField path="dragThreshold" type="number | DraggableDragThresholdParams | Function" default="{mouse: 3, touch: 7}">
+  Minimum distance in pixels before drag starts:
+  - Single number: Same for mouse and touch
+  - Object: Different values for `mouse` and `touch`
+</ParamField>
+
+### Snap Points
+
+<ParamField path="snap" type="number | Array<number> | Function" default="0">
+  Global snap points for both axes:
+  - Number: Snap to multiples of this value
+  - Array: Snap to specific values
+  - Function: Dynamically calculate snap points
+</ParamField>
+
+### Momentum & Physics
+
+<ParamField path="minVelocity" type="number | Function" default="0">
+  Minimum velocity for momentum scrolling.
+</ParamField>
+
+<ParamField path="maxVelocity" type="number | Function" default="50">
+  Maximum velocity cap for momentum scrolling.
+</ParamField>
+
+<ParamField path="velocityMultiplier" type="number | Function" default="1">
+  Multiplier for velocity calculations.
+</ParamField>
+
+### Release Animation
+
+<ParamField path="releaseEase" type="EasingParam">
+  Easing function for release animation. Can be spring configuration or standard easing.
+</ParamField>
+
+<ParamField path="releaseMass" type="number" default="1">
+  Spring mass for release animation (when using spring physics).
+</ParamField>
+
+<ParamField path="releaseStiffness" type="number" default="80">
+  Spring stiffness for release animation.
+</ParamField>
+
+<ParamField path="releaseDamping" type="number" default="20">
+  Spring damping for release animation.
+</ParamField>
+
+### Auto-Scroll
+
+<ParamField path="scrollSpeed" type="number | Function" default="1.5">
+  Speed of auto-scrolling when dragging near container edges.
+</ParamField>
+
+<ParamField path="scrollThreshold" type="number | Function" default="20">
+  Distance from edge (in pixels) that triggers auto-scroll.
+</ParamField>
+
+### Modifiers
+
+<ParamField path="modifier" type="(value: number) => number | string">
+  Global modifier function for both x and y values.
+</ParamField>
+
+### Event Callbacks
+
+<ParamField path="onGrab" type="(self: Draggable) => void">
+  Called when dragging starts (on mousedown/touchstart).
+</ParamField>
+
+<ParamField path="onDrag" type="(self: Draggable) => void">
+  Called continuously while dragging.
+</ParamField>
+
+<ParamField path="onRelease" type="(self: Draggable) => void">
+  Called when drag is released (on mouseup/touchend).
+</ParamField>
+
+<ParamField path="onUpdate" type="(self: Draggable) => void">
+  Called on every position update (during drag and release animation).
+</ParamField>
+
+<ParamField path="onSettle" type="(self: Draggable) => void">
+  Called when the element comes to rest after release.
+</ParamField>
+
+<ParamField path="onSnap" type="(self: Draggable) => void">
+  Called when element snaps to a snap point.
+</ParamField>
+
+<ParamField path="onResize" type="(self: Draggable) => void">
+  Called when container or target is resized.
+</ParamField>
+
+<ParamField path="onAfterResize" type="(self: Draggable) => void">
+  Called after resize calculations complete.
+</ParamField>
+
+## Instance Properties
+
+### Position Properties
+
+<ParamField path="x" type="number">
+  Current x position. Can be read or set directly.
+</ParamField>
+
+<ParamField path="y" type="number">
+  Current y position. Can be read or set directly.
+</ParamField>
+
+<ParamField path="progressX" type="number">
+  Normalized x position (0-1) within container bounds.
+</ParamField>
+
+<ParamField path="progressY" type="number">
+  Normalized y position (0-1) within container bounds.
+</ParamField>
+
+<ParamField path="deltaX" type="number" readOnly>
+  Change in x position since last frame.
+</ParamField>
+
+<ParamField path="deltaY" type="number" readOnly>
+  Change in y position since last frame.
+</ParamField>
+
+<ParamField path="velocity" type="number" readOnly>
+  Current velocity magnitude.
+</ParamField>
+
+<ParamField path="angle" type="number" readOnly>
+  Current drag angle in radians.
+</ParamField>
+
+### State Properties
+
+<ParamField path="grabbed" type="boolean" readOnly>
+  Whether the element is currently grabbed.
+</ParamField>
+
+<ParamField path="dragged" type="boolean" readOnly>
+  Whether dragging has started (moved beyond threshold).
+</ParamField>
+
+<ParamField path="released" type="boolean" readOnly>
+  Whether the element was just released.
+</ParamField>
+
+<ParamField path="enabled" type="boolean" readOnly>
+  Whether the draggable is currently enabled.
+</ParamField>
+
+### Target Elements
+
+<ParamField path="$target" type="HTMLElement" readOnly>
+  The target DOM element being dragged.
+</ParamField>
+
+<ParamField path="$trigger" type="HTMLElement" readOnly>
+  The element that triggers the drag interaction.
+</ParamField>
+
+<ParamField path="$container" type="HTMLElement" readOnly>
+  The container element (if specified).
+</ParamField>
+
+<ParamField path="animate" type="AnimatableObject" readOnly>
+  Internal Animatable instance used for animations.
+</ParamField>
+
+## Example
+
+```javascript
+import { Draggable } from 'anime';
+
+const draggable = new Draggable('.box', {
+  container: '.container',
+  containerPadding: 20,
+  snap: 50,
+  cursor: {
+    onHover: 'grab',
+    onGrab: 'grabbing'
+  },
+  onDrag: (self) => {
+    console.log('Position:', self.x, self.y);
+    console.log('Velocity:', self.velocity);
+  },
+  onSnap: (self) => {
+    console.log('Snapped to:', self.x, self.y);
+  },
+  onSettle: (self) => {
+    console.log('Settled at:', self.x, self.y);
+  }
+});
+```
+
+## See Also
+
+- [Draggable Methods](/api/draggable-methods)
+- [createDraggable()](/api/draggable-methods#create-draggable)

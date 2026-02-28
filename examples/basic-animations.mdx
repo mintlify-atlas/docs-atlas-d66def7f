@@ -1,0 +1,230 @@
+---
+title: Basic Animations
+description: Learn the fundamentals of creating animations with Anime.js including property animations, easings, and staggering effects
+---
+
+## Simple Property Animation
+
+The most basic animation in Anime.js involves animating CSS properties or object values:
+
+```javascript
+import { animate } from 'animejs';
+
+// Animate a DOM element
+animate('.box', {
+  translateX: 250,
+  rotate: 360,
+  duration: 1500,
+  ease: 'outQuad'
+});
+```
+
+## Using Easing Functions
+
+Anime.js provides a comprehensive set of easing functions:
+
+```javascript
+import { animate, eases } from 'animejs';
+
+// Predefined easings
+animate('.element', {
+  x: 200,
+  ease: 'inOutSine',
+  duration: 1000
+});
+
+// Custom power easing
+animate('.element', {
+  y: 100,
+  ease: eases.out(3), // Power of 3
+  duration: 800
+});
+
+// Elastic easing with parameters
+animate('.element', {
+  scale: 1.5,
+  ease: eases.outElastic(1, 0.3), // amplitude, period
+  duration: 1200
+});
+```
+
+## Available Easing Types
+
+<CardGroup cols={3}>
+  <Card title="Power" icon="chart-line">
+    `in`, `out`, `inOut` - Configurable power curve
+  </Card>
+  <Card title="Sine/Quad/Cubic" icon="wave-square">
+    Polynomial easing functions
+  </Card>
+  <Card title="Elastic" icon="spring">
+    Elastic bounce with amplitude and period
+  </Card>
+  <Card title="Back" icon="arrow-rotate-left">
+    Overshoot with configurable amount
+  </Card>
+  <Card title="Bounce" icon="basketball">
+    Bouncing effect
+  </Card>
+  <Card title="Spring" icon="spring">
+    Physics-based spring animation
+  </Card>
+</CardGroup>
+
+## Spring Physics
+
+Create natural, physics-based animations:
+
+```javascript
+import { animate, createSpring } from 'animejs';
+
+const springEase = createSpring({
+  mass: 1,
+  stiffness: 100,
+  damping: 10,
+  velocity: 0
+});
+
+animate('.element', {
+  x: 300,
+  ease: springEase,
+});
+```
+
+## Staggering Animations
+
+Create cascading effects across multiple elements:
+
+```javascript
+import { animate, stagger } from 'animejs';
+
+// Simple stagger with delay
+animate('.dot', {
+  scale: 2,
+  duration: 500,
+  delay: stagger(50) // 50ms between each
+});
+
+// Stagger from a specific position
+animate('.item', {
+  translateY: -20,
+  opacity: 1,
+  delay: stagger(100, { from: 'center' })
+});
+
+// Grid-based stagger
+animate('.grid-item', {
+  scale: [0, 1],
+  delay: stagger(30, {
+    grid: [10, 10],
+    from: 'center'
+  })
+});
+```
+
+## Using Utils
+
+The utils object provides helpful functions:
+
+```javascript
+import { animate, utils } from 'animejs';
+
+// Set initial values
+utils.set('.box', {
+  x: 0,
+  y: 0,
+  scale: 1,
+  backgroundColor: '#FF4B4B'
+});
+
+// Random values
+animate('.particle', {
+  x: () => utils.random(0, 500),
+  y: () => utils.random(0, 300),
+  duration: 2000
+});
+
+// Wrap values for infinite scrolling
+const wrappedX = utils.wrap(-100, 100);
+```
+
+## Keyframe Animations
+
+Define multi-step animations:
+
+```javascript
+animate('.box', {
+  keyframes: [
+    { scale: 1.2, duration: 200 },
+    { scale: 0.8, duration: 300 },
+    { scale: 1.0, duration: 200 }
+  ],
+  ease: 'inOutQuad'
+});
+
+// Or as an array for a single property
+animate('.element', {
+  backgroundColor: ['#FF4B4B', '#FFC730', '#A4FF4F'],
+  duration: 1500
+});
+```
+
+## Animation Callbacks
+
+Respond to animation lifecycle events:
+
+```javascript
+animate('.element', {
+  x: 200,
+  duration: 1000,
+  onBegin: (self) => {
+    console.log('Animation started');
+  },
+  onUpdate: (self) => {
+    console.log('Progress:', self.progress);
+  },
+  onComplete: (self) => {
+    console.log('Animation finished');
+  }
+});
+```
+
+## Looping Animations
+
+```javascript
+// Loop infinitely
+animate('.spinner', {
+  rotate: 360,
+  duration: 2000,
+  loop: true,
+  ease: 'linear'
+});
+
+// Loop with alternating direction
+animate('.pulse', {
+  scale: 1.2,
+  duration: 800,
+  loop: true,
+  alternate: true,
+  ease: 'inOutSine'
+});
+
+// Loop specific number of times
+animate('.bounce', {
+  y: -50,
+  duration: 500,
+  loop: 3,
+  alternate: true
+});
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Timelines" icon="clock" href="/examples/timelines">
+    Sequence multiple animations
+  </Card>
+  <Card title="SVG Animations" icon="draw-polygon" href="/examples/svg-animations">
+    Animate SVG elements and paths
+  </Card>
+</CardGroup>

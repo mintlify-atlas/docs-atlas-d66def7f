@@ -1,0 +1,407 @@
+---
+title: Timeline Methods
+description: Methods for adding, controlling, and manipulating animations within a Timeline instance.
+---
+
+## Adding Animations
+
+### add()
+
+Adds an animation or timer to the timeline at a specific position.
+
+#### Overload 1: Add Animation
+
+```typescript
+add(targets: TargetsParam, parameters: AnimationParams, position?: TimelinePosition): Timeline
+```
+
+<ParamField path="targets" type="TargetsParam" required>
+  Target elements to animate. Accepts CSS selectors (strings), DOM elements, JavaScript objects, NodeLists, or arrays of these.
+</ParamField>
+
+<ParamField path="parameters" type="AnimationParams" required>
+  Animation parameters including properties to animate and animation options.
+</ParamField>
+
+<ParamField path="position" type="TimelinePosition">
+  Position in the timeline where the animation should be added. See [Timeline Position Types](#timeline-position-types) for details.
+</ParamField>
+
+```javascript
+tl.add('.element', {
+  translateX: 250,
+  duration: 1000,
+  ease: 'outQuad'
+}, '+=500'); // Start 500ms after previous animation ends
+```
+
+#### Overload 2: Add Timer
+
+```typescript
+add(parameters: TimerParams, position?: TimelinePosition): Timeline
+```
+
+<ParamField path="parameters" type="TimerParams" required>
+  Timer parameters including duration, delay, and callbacks.
+</ParamField>
+
+<ParamField path="position" type="TimelinePosition">
+  Position in the timeline where the timer should be added.
+</ParamField>
+
+```javascript
+tl.add({
+  duration: 2000,
+  onComplete: () => console.log('Timer complete')
+}, 1000);
+```
+
+#### Overload 3: Add with Stagger Function
+
+```typescript
+add(
+  targets: TargetsParam,
+  parameters: AnimationParams,
+  staggerFn: StaggerFunction<Number | String>
+): Timeline
+```
+
+<ParamField path="staggerFn" type="StaggerFunction" required>
+  Function that returns the position for each target element, enabling staggered animations.
+
+  **Signature:** `(target, index, length, timeline) => TimelinePosition`
+</ParamField>
+
+```javascript
+import { stagger } from 'animejs';
+
+tl.add('.item', {
+  translateY: -100,
+  duration: 800
+}, stagger(100)); // Stagger each item by 100ms
+```
+
+---
+
+### set()
+
+Instantly sets property values on targets at a specific timeline position (zero-duration animation).
+
+```typescript
+set(targets: TargetsParam, parameters: AnimationParams, position?: TimelinePosition): Timeline
+```
+
+<ParamField path="targets" type="TargetsParam" required>
+  Target elements to set properties on.
+</ParamField>
+
+<ParamField path="parameters" type="AnimationParams" required>
+  Properties to set instantly. Duration is automatically set to 0.
+</ParamField>
+
+<ParamField path="position" type="TimelinePosition">
+  Timeline position where values should be set.
+</ParamField>
+
+```javascript
+tl.set('.element', {
+  opacity: 0,
+  translateX: -100
+}, 0); // Set initial state at timeline start
+```
+
+<Note>
+  The `set()` method automatically sets `duration: 0` and `composition: 'replace'`, making it ideal for setting initial states or creating instant property changes.
+</Note>
+
+---
+
+### sync()
+
+Synchronizes external animations (WAAPI animations, Anime.js instances) with the timeline.
+
+```typescript
+sync(
+  animation: Tickable | WAAPIAnimation | globalThis.Animation,
+  position?: TimelinePosition
+): Timeline
+```
+
+<ParamField path="animation" type="Tickable | WAAPIAnimation | Animation" required>
+  The animation to synchronize. Can be an Anime.js Timer/Animation/Timeline, a WAAPI Animation, or a native Animation instance.
+</ParamField>
+
+<ParamField path="position" type="TimelinePosition">
+  Timeline position where the synchronized animation should start.
+</ParamField>
+
+```javascript
+// Sync a WAAPI animation
+const waapi = element.animate(
+  { transform: ['rotate(0deg)', 'rotate(360deg)'] },
+  { duration: 2000 }
+);
+
+tl.sync(waapi, 1000);
+
+// Sync another Anime.js timeline
+const nestedTl = createTimeline({ /* ... */ });
+tl.sync(nestedTl, '+=500');
+```
+
+<Warning>
+  The synced animation is automatically paused when added to the timeline. The timeline takes control of its playback.
+</Warning>
+
+---
+
+### call()
+
+Executes a callback function at a specific timeline position.
+
+```typescript
+call(callback: Callback<Timer>, position?: TimelinePosition): Timeline
+```
+
+<ParamField path="callback" type="Callback<Timer>" required>
+  Function to execute. Receives the timeline instance as its argument.
+</ParamField>
+
+<ParamField path="position" type="TimelinePosition">
+  Timeline position where the callback should be executed.
+</ParamField>
+
+```javascript
+tl.add('.element1', { translateX: 100 })
+  .call((tl) => {
+    console.log('Animation 1 complete');
+  })
+  .add('.element2', { scale: 2 });
+```
+
+---
+
+### label()
+
+Adds a named position label to the timeline for easier positioning of subsequent animations.
+
+```typescript
+label(labelName: String, position?: TimelinePosition): Timeline
+```
+
+<ParamField path="labelName" type="String" required>
+  Name of the label to create.
+</ParamField>
+
+<ParamField path="position" type="TimelinePosition">
+  Timeline position for the label. Defaults to current timeline duration.
+</ParamField>
+
+```javascript
+tl.label('intro', 0)
+  .add('.element', { opacity: 1 }, 'intro')
+  .label('main')
+  .add('.element', { translateX: 100 }, 'main+=500')
+  .label('outro', 5000)
+  .add('.element', { opacity: 0 }, 'outro');
+```
+
+---
+
+## Control Methods
+
+### remove()
+
+Removes animations for specific targets or properties from the timeline.
+
+```typescript
+remove(targets: TargetsParam, propertyName?: String): Timeline
+```
+
+<ParamField path="targets" type="TargetsParam" required>
+  Target elements whose animations should be removed.
+</ParamField>
+
+<ParamField path="propertyName" type="String">
+  Optional specific property name to remove. If omitted, all animations for the targets are removed.
+</ParamField>
+
+```javascript
+// Remove all animations for .element
+tl.remove('.element');
+
+// Remove only translateX animations for .element
+tl.remove('.element', 'translateX');
+```
+
+---
+
+### stretch()
+
+Stretches or compresses the timeline to a new duration, proportionally adjusting all children and labels.
+
+```typescript
+stretch(newDuration: Number): Timeline
+```
+
+<ParamField path="newDuration" type="Number" required>
+  New total duration for the timeline in milliseconds.
+</ParamField>
+
+```javascript
+// Timeline is currently 4000ms
+tl.stretch(8000); // Stretches to 8000ms - everything takes twice as long
+tl.stretch(2000); // Compresses to 2000ms - everything is twice as fast
+```
+
+<Note>
+  The `stretch()` method proportionally scales:
+  - All child animation durations
+  - All child animation delays and offsets
+  - All label positions
+  - Loop delays
+</Note>
+
+---
+
+### refresh()
+
+Refreshes all child animations in the timeline, recalculating dynamic values and updating target references.
+
+```typescript
+refresh(): Timeline
+```
+
+```javascript
+// Useful when target elements or properties have changed
+tl.refresh();
+```
+
+---
+
+### revert()
+
+Reverts the timeline to its initial state, seeking to time 0, cancelling playback, and cleaning up inline styles.
+
+```typescript
+revert(): Timeline
+```
+
+```javascript
+tl.revert(); // Resets timeline and removes inline styles
+```
+
+<Warning>
+  The `revert()` method cancels the timeline and removes all inline styles that were applied by the animations. This is useful for cleanup but cannot be undone.
+</Warning>
+
+---
+
+## Inherited Methods from Timer
+
+The Timeline class inherits all control methods from Timer:
+
+### Playback Control
+
+- `play()` - Starts or resumes playback in forward direction
+- `pause()` - Pauses playback
+- `resume()` - Resumes playback from current position
+- `restart()` - Resets to beginning and starts playing
+- `reverse()` - Starts or resumes playback in reverse direction
+- `alternate()` - Alternates playback direction
+
+### Seeking
+
+- `seek(time, muteCallbacks?, internalRender?)` - Seeks to a specific time position
+- `reset(softReset?)` - Resets the timeline to its initial state
+
+### Lifecycle
+
+- `init(internalRender?)` - Initializes the timeline
+- `cancel()` - Cancels the timeline and removes it from the engine
+- `complete(muteCallbacks?)` - Immediately completes the timeline
+
+### Promise Support
+
+- `then(callback?)` - Returns a Promise that resolves when the timeline completes
+
+```javascript
+tl.play().then(() => {
+  console.log('Timeline completed');
+});
+
+// Or with async/await
+await tl.play();
+console.log('Timeline completed');
+```
+
+---
+
+## Timeline Position Types
+
+The `TimelinePosition` parameter accepts various formats for positioning animations:
+
+<ParamField path="Number" type="Number">
+  Absolute position in milliseconds from timeline start.
+  
+  **Example:** `1000` - Places animation at exactly 1000ms
+</ParamField>
+
+<ParamField path="'+=Number'" type="String">
+  Relative position after the previous animation ends.
+  
+  **Example:** `'+=500'` - Starts 500ms after previous animation
+</ParamField>
+
+<ParamField path="'-=Number'" type="String">
+  Relative position before the previous animation ends.
+  
+  **Example:** `'-=200'` - Starts 200ms before previous animation ends
+</ParamField>
+
+<ParamField path="'*=Number'" type="String">
+  Position as a multiplier of total timeline duration.
+  
+  **Example:** `'*=0.5'` - Places at 50% of timeline duration
+</ParamField>
+
+<ParamField path="'<'" type="String">
+  At the end of the previous animation.
+  
+  **Example:** `'<'` - Starts when previous animation ends
+</ParamField>
+
+<ParamField path="'<<'" type="String">
+  At the start of the previous animation.
+  
+  **Example:** `'<<'` - Starts at same time as previous animation
+</ParamField>
+
+<ParamField path="'<<+=Number'" type="String">
+  Relative to the start of the previous animation.
+  
+  **Example:** `'<<+=250'` - Starts 250ms after previous animation starts
+</ParamField>
+
+<ParamField path="Label name" type="String">
+  At a named label position.
+  
+  **Example:** `'myLabel'` or `'myLabel+=500'`
+</ParamField>
+
+```javascript
+// Various positioning examples
+tl.add('.el1', { x: 100 }, 0)           // Absolute: at 0ms
+  .add('.el2', { x: 100 }, 1000)        // Absolute: at 1000ms
+  .add('.el3', { x: 100 }, '+=500')     // Relative: 500ms after el2 ends
+  .add('.el4', { x: 100 }, '<')         // At el3 end
+  .add('.el5', { x: 100 }, '<<')        // At el3 start
+  .add('.el6', { x: 100 }, '-=200')     // 200ms before el5 ends
+  .label('midpoint')
+  .add('.el7', { x: 100 }, 'midpoint'); // At label
+```
+
+## See Also
+
+- [Timeline Class](/api/timeline-class) - Timeline constructor and properties
+- [Timeline Parameters](/api/timeline-parameters) - Detailed parameter reference

@@ -1,0 +1,347 @@
+---
+title: Animation
+description: Core animation module for creating individual animations with tween-based property interpolation
+---
+
+## Overview
+
+The Animation module is the foundation of Anime.js, providing the `JSAnimation` class and `animate()` function for creating individual animations. It handles property interpolation, keyframes, easing, and composition.
+
+## Importing
+
+```javascript
+import { animate, JSAnimation } from 'animejs';
+```
+
+## Creating Animations
+
+### animate()
+
+The `animate()` function creates and initializes a new animation.
+
+```javascript
+animate(targets, parameters)
+```
+
+**Parameters:**
+- `targets` - DOM elements, objects, or CSS selector to animate
+- `parameters` - Animation configuration object
+
+### Basic Example
+
+```javascript
+import { animate } from 'animejs';
+
+// Animate a single element
+animate('.box', {
+  translateX: 250,
+  rotate: 360,
+  duration: 1000,
+  ease: 'outExpo'
+});
+```
+
+### Multiple Properties
+
+```javascript
+animate('.box', {
+  translateX: 250,
+  translateY: 100,
+  scale: 1.5,
+  opacity: 0.5,
+  backgroundColor: '#FF0000',
+  duration: 1500
+});
+```
+
+## Animation Parameters
+
+### Property Values
+
+<ParamField path="property" type="number | string | object | array">
+  The target value for any animatable property
+</ParamField>
+
+```javascript
+// Simple value
+animate('.box', { translateX: 100 });
+
+// From-to values
+animate('.box', { translateX: [0, 100] });
+
+// Object syntax with options
+animate('.box', {
+  translateX: {
+    from: 0,
+    to: 100,
+    duration: 500,
+    ease: 'linear'
+  }
+});
+```
+
+### Timing Parameters
+
+<ParamField path="duration" type="number" default="1000">
+  Animation duration in milliseconds
+</ParamField>
+
+<ParamField path="delay" type="number" default="0">
+  Delay before animation starts in milliseconds
+</ParamField>
+
+<ParamField path="ease" type="string | function" default="outQuad">
+  Easing function for the animation
+</ParamField>
+
+```javascript
+animate('.box', {
+  translateX: 250,
+  duration: 2000,
+  delay: 500,
+  ease: 'inOutQuad'
+});
+```
+
+### Keyframes
+
+<ParamField path="keyframes" type="array">
+  Array of keyframe objects for complex animations
+</ParamField>
+
+```javascript
+// Duration keyframes
+animate('.box', {
+  keyframes: [
+    { translateX: 100, duration: 500 },
+    { translateX: 200, duration: 500 },
+    { translateX: 0, duration: 500 }
+  ]
+});
+
+// Percentage keyframes
+animate('.box', {
+  duration: 2000,
+  keyframes: {
+    '0%': { translateX: 0 },
+    '50%': { translateX: 200 },
+    '100%': { translateX: 0 }
+  }
+});
+```
+
+## Animation Control
+
+The `animate()` function returns a `JSAnimation` instance with control methods:
+
+### Playback Methods
+
+```javascript
+const animation = animate('.box', {
+  translateX: 250,
+  duration: 1000
+});
+
+// Control playback
+animation.pause();    // Pause the animation
+animation.resume();   // Resume playback
+animation.play();     // Play forward
+animation.reverse();  // Play in reverse
+animation.restart();  // Restart from beginning
+```
+
+### Seeking
+
+```javascript
+// Seek to specific time
+animation.seek(500); // Jump to 500ms
+
+// Seek using progress (0-1)
+animation.progress = 0.5; // Jump to 50%
+
+// Seek to specific iteration
+animation.currentIteration = 2;
+```
+
+### State Methods
+
+```javascript
+// Cancel and remove animation
+animation.cancel();
+
+// Revert to original values
+animation.revert();
+
+// Complete immediately
+animation.complete();
+```
+
+## Advanced Features
+
+### Composition Modes
+
+<ParamField path="composition" type="string" default="replace">
+  How animations compose with existing animations: `replace`, `none`, or `blend`
+</ParamField>
+
+```javascript
+animate('.box', {
+  translateX: 100,
+  composition: 'blend' // Additive composition
+});
+```
+
+### Function-Based Values
+
+```javascript
+animate('.box', {
+  translateX: (el, index, total) => {
+    return index * 100; // Different value per element
+  },
+  duration: 1000
+});
+```
+
+### Modifiers
+
+<ParamField path="modifier" type="function">
+  Function to modify the animated value before rendering
+</ParamField>
+
+```javascript
+animate('.box', {
+  translateX: 100,
+  modifier: (value) => Math.round(value) // Round to integers
+});
+```
+
+### Looping
+
+<ParamField path="loop" type="boolean | number" default="false">
+  Number of times to loop, `true` for infinite
+</ParamField>
+
+<ParamField path="alternate" type="boolean" default="false">
+  Whether to alternate direction on each loop
+</ParamField>
+
+<ParamField path="loopDelay" type="number" default="0">
+  Delay between loops in milliseconds
+</ParamField>
+
+```javascript
+animate('.box', {
+  translateX: 250,
+  duration: 1000,
+  loop: 3,
+  alternate: true,
+  loopDelay: 500
+});
+```
+
+## Callbacks
+
+<ParamField path="onBegin" type="function">
+  Called when animation begins
+</ParamField>
+
+<ParamField path="onUpdate" type="function">
+  Called on each frame update
+</ParamField>
+
+<ParamField path="onLoop" type="function">
+  Called when animation loops
+</ParamField>
+
+<ParamField path="onComplete" type="function">
+  Called when animation completes
+</ParamField>
+
+```javascript
+animate('.box', {
+  translateX: 250,
+  duration: 1000,
+  onBegin: (anim) => console.log('Started'),
+  onUpdate: (anim) => console.log('Progress:', anim.progress),
+  onComplete: (anim) => console.log('Finished')
+});
+```
+
+## Promise Support
+
+Animations can be awaited using `.then()`:
+
+```javascript
+const animation = animate('.box', {
+  translateX: 250,
+  duration: 1000
+});
+
+await animation.then();
+console.log('Animation complete!');
+```
+
+## Animation Properties
+
+### Read-Only Properties
+
+<ResponseField name="targets" type="array">
+  Array of target elements/objects being animated
+</ResponseField>
+
+<ResponseField name="duration" type="number">
+  Total animation duration including loops
+</ResponseField>
+
+<ResponseField name="iterationDuration" type="number">
+  Duration of a single iteration
+</ResponseField>
+
+<ResponseField name="paused" type="boolean">
+  Whether animation is currently paused
+</ResponseField>
+
+<ResponseField name="completed" type="boolean">
+  Whether animation has completed
+</ResponseField>
+
+### Writable Properties
+
+```javascript
+const anim = animate('.box', { translateX: 250 });
+
+// Modify playback speed
+anim.speed = 2; // 2x speed
+
+// Change time unit
+anim.timeUnit = 's'; // Use seconds instead of ms
+
+// Control current time
+anim.currentTime = 500;
+anim.progress = 0.5;
+```
+
+## JSAnimation Class
+
+For advanced use cases, you can instantiate `JSAnimation` directly:
+
+```javascript
+import { JSAnimation } from 'animejs';
+
+const animation = new JSAnimation(
+  '.box',
+  { translateX: 250, duration: 1000 },
+  null, // parent timeline
+  0     // position in timeline
+).init();
+```
+
+<Note>
+  Most users should use the `animate()` function instead of instantiating `JSAnimation` directly.
+</Note>
+
+## Related
+
+- [Timeline](/modules/timeline) - Sequence multiple animations
+- [Timer](/modules/timer) - Base timing functionality
+- [Engine](/modules/engine) - Global animation engine

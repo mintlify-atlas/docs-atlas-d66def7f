@@ -1,0 +1,489 @@
+---
+title: Custom Easing Functions
+description: Write your own easing functions for complete control over animation timing
+---
+
+While Anime.js provides many built-in easings, you can create completely custom easing functions for unique animation effects that aren't possible with standard curves.
+
+## Easing Function Signature
+
+An easing function is simply a function that takes a time value and returns a progress value:
+
+```javascript
+type EasingFunction = (time: number) => number
+```
+
+- **Input**: `time` - Linear progress from 0 to 1
+- **Output**: Eased progress (typically 0 to 1, but can exceed for overshoot effects)
+
+## Basic Custom Easing
+
+```javascript
+import anime from 'animejs';
+
+// Custom easing function
+const myEasing = (t) => {
+  // Your custom math here
+  return t * t; // Simple quadratic
+};
+
+anime({
+  targets: '.element',
+  translateX: 250,
+  easing: myEasing // Pass function directly
+});
+```
+
+## Simple Examples
+
+### Reverse Linear
+
+Animates backwards then forwards:
+
+```javascript
+const reverseLinear = (t) => 1 - t;
+
+anime({
+  targets: '.box',
+  translateX: 250,
+  easing: reverseLinear
+});
+```
+
+### Quadratic In
+
+Acceleration (same as easeInQuad):
+
+```javascript
+const quadIn = (t) => t * t;
+
+anime({
+  targets: '.box',
+  translateX: 250,
+  easing: quadIn
+});
+```
+
+### Quadratic Out
+
+Deceleration:
+
+```javascript
+const quadOut = (t) => 1 - (1 - t) * (1 - t);
+
+anime({
+  targets: '.box',
+  translateX: 250,
+  easing: quadOut
+});
+```
+
+### Stepped Custom
+
+Create your own step pattern:
+
+```javascript
+const customSteps = (t) => {
+  if (t < 0.25) return 0;
+  if (t < 0.5) return 0.3;
+  if (t < 0.75) return 0.7;
+  return 1;
+};
+
+anime({
+  targets: '.box',
+  translateX: 250,
+  easing: customSteps
+});
+```
+
+## Advanced Examples
+
+### Parameterized Easing Factory
+
+Create easings with configurable parameters:
+
+```javascript
+// Factory function that returns an easing function
+const customPower = (exponent) => {
+  return (t) => Math.pow(t, exponent);
+};
+
+anime({
+  targets: '.box1',
+  translateX: 250,
+  easing: customPower(3) // Cubic
+});
+
+anime({
+  targets: '.box2',
+  translateX: 250,
+  easing: customPower(5) // Quintic
+});
+```
+
+### Wavey Motion
+
+Oscillating easing with sine waves:
+
+```javascript
+const wave = (frequency = 3, amplitude = 0.1) => {
+  return (t) => {
+    const wave = Math.sin(t * Math.PI * 2 * frequency) * amplitude;
+    return t + wave;
+  };
+};
+
+anime({
+  targets: '.snake',
+  translateX: 400,
+  easing: wave(4, 0.15), // 4 waves with 0.15 amplitude
+  duration: 2000
+});
+```
+
+### Bounce with Custom Physics
+
+Manual bounce implementation:
+
+```javascript
+const customBounce = (bounces = 3, decay = 0.6) => {
+  return (t) => {
+    let output = 0;
+    for (let i = 0; i < bounces; i++) {
+      const bounceSize = Math.pow(decay, i);
+      const bounceTime = Math.pow(0.5, i);
+      const localT = (t / bounceTime) % 1;
+      output += Math.abs(Math.sin(localT * Math.PI)) * bounceSize;
+    }
+    return Math.min(t + output, 1);
+  };
+};
+
+anime({
+  targets: '.ball',
+  translateY: 300,
+  easing: customBounce(4, 0.5),
+  duration: 1500
+});
+```
+
+### Sigmoid (S-Curve)
+
+Smooth S-shaped curve:
+
+```javascript
+const sigmoid = (steepness = 10) => {
+  return (t) => {
+    const x = (t - 0.5) * steepness;
+    return 1 / (1 + Math.exp(-x));
+  };
+};
+
+anime({
+  targets: '.element',
+  opacity: [0, 1],
+  easing: sigmoid(8),
+  duration: 1000
+});
+```
+
+### Random Jitter
+
+Add randomness to linear progression:
+
+```javascript
+const jitter = (amount = 0.1) => {
+  return (t) => {
+    const randomOffset = (Math.random() - 0.5) * 2 * amount;
+    return Math.max(0, Math.min(1, t + randomOffset));
+  };
+};
+
+anime({
+  targets: '.glitch',
+  translateX: 250,
+  easing: jitter(0.05),
+  duration: 1000
+});
+```
+
+<Warning>
+Random easings create different results on each frame. This can cause jittery animations if not used carefully.
+</Warning>
+
+### Snap Points
+
+Magnetically snap to specific values:
+
+```javascript
+const snapPoints = (points = [0, 0.5, 1], threshold = 0.1) => {
+  return (t) => {
+    for (let point of points) {
+      if (Math.abs(t - point) < threshold) {
+        return point; // Snap to this point
+      }
+    }
+    return t; // No snap, return original
+  };
+};
+
+anime({
+  targets: '.slider',
+  translateX: 400,
+  easing: snapPoints([0, 0.33, 0.66, 1], 0.08),
+  duration: 2000
+});
+```
+
+## Math Utilities
+
+Common math functions useful for custom easings:
+
+```javascript
+// Clamp value between min and max
+const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+// Linear interpolation
+const lerp = (start, end, t) => start + (end - start) * t;
+
+// Inverse lerp (find t for a value between start and end)
+const inverseLerp = (start, end, value) => (value - start) / (end - start);
+
+// Remap value from one range to another
+const remap = (value, inMin, inMax, outMin, outMax) => {
+  const t = inverseLerp(inMin, inMax, value);
+  return lerp(outMin, outMax, t);
+};
+
+// Smooth step (smoother than linear)
+const smoothstep = (t) => t * t * (3 - 2 * t);
+
+// Smoother step (even smoother)
+const smootherstep = (t) => t * t * t * (t * (t * 6 - 15) + 10);
+```
+
+### Using Math Utilities
+
+```javascript
+const smoothEasing = (t) => {
+  const clamped = clamp(t, 0, 1);
+  return smootherstep(clamped);
+};
+
+anime({
+  targets: '.element',
+  scale: [0.5, 1.5],
+  easing: smoothEasing,
+  duration: 800
+});
+```
+
+## Easing Transformations
+
+Transform existing easings:
+
+```javascript
+// Reverse any easing
+const reverse = (easingFn) => {
+  return (t) => 1 - easingFn(1 - t);
+};
+
+// Mirror easing (creates inOut variant)
+const mirror = (easingFn) => {
+  return (t) => {
+    return t < 0.5
+      ? easingFn(t * 2) / 2
+      : 1 - easingFn((1 - t) * 2) / 2;
+  };
+};
+
+// Scale easing output
+const scale = (easingFn, multiplier) => {
+  return (t) => easingFn(t) * multiplier;
+};
+
+// Chain two easings
+const chain = (easing1, easing2, splitPoint = 0.5) => {
+  return (t) => {
+    if (t < splitPoint) {
+      return easing1(t / splitPoint) * splitPoint;
+    } else {
+      const localT = (t - splitPoint) / (1 - splitPoint);
+      return splitPoint + easing2(localT) * (1 - splitPoint);
+    }
+  };
+};
+```
+
+### Using Transformations
+
+```javascript
+import { eases } from 'animejs';
+
+// Reverse an existing easing
+const reversedQuad = reverse(eases.inQuad);
+
+// Create inOut variant from any easing
+const customInOut = mirror((t) => t * t * t);
+
+// Chain two different easings
+const combo = chain(
+  eases.inQuad,  // First half
+  eases.outBounce // Second half
+);
+
+anime({
+  targets: '.element',
+  translateX: 300,
+  easing: combo,
+  duration: 1200
+});
+```
+
+## Validation and Safety
+
+Ensure your custom easings behave correctly:
+
+```javascript
+const safeEasing = (easingFn, allowOvershoot = false) => {
+  return (t) => {
+    // Clamp input
+    const clampedT = Math.max(0, Math.min(1, t));
+    
+    // Get eased value
+    const value = easingFn(clampedT);
+    
+    // Clamp output if overshoot not allowed
+    if (allowOvershoot) {
+      return value;
+    } else {
+      return Math.max(0, Math.min(1, value));
+    }
+  };
+};
+
+// Use it
+const myRiskyEasing = (t) => t * 2 - 0.5; // Can go negative!
+
+anime({
+  targets: '.element',
+  translateX: 250,
+  easing: safeEasing(myRiskyEasing, false) // Will clamp to 0-1
+});
+```
+
+## Performance Considerations
+
+<Tip>
+- Keep easing functions simple - they're called many times per second
+- Avoid heavy calculations like complex loops or recursive calls
+- Pre-calculate constants outside the easing function
+- Use lookup tables for expensive operations
+</Tip>
+
+```javascript
+// Bad - recalculates constant on every call
+const slowEasing = (t) => {
+  const expensiveConstant = Math.pow(2, 10); // Calculated every frame!
+  return Math.pow(t, expensiveConstant / 1000);
+};
+
+// Good - calculates constant once
+const fastEasing = (() => {
+  const exponent = Math.pow(2, 10) / 1000; // Calculated once
+  return (t) => Math.pow(t, exponent);
+})();
+```
+
+## Complete Example: Custom Easing Library
+
+```javascript
+import anime from 'animejs';
+
+// Reusable easing utilities
+const easings = {
+  // Smooth step family
+  smoothstep: (t) => t * t * (3 - 2 * t),
+  smootherstep: (t) => t * t * t * (t * (t * 6 - 15) + 10),
+  
+  // Overshoot
+  overshoot: (amount = 1.70158) => (t) => {
+    return t * t * ((amount + 1) * t - amount);
+  },
+  
+  // Anticipation (pulls back before going forward)
+  anticipate: (pullback = 0.2) => (t) => {
+    if (t < pullback) {
+      return -(t / pullback) * 0.1;
+    }
+    return ((t - pullback) / (1 - pullback)) * 1.1;
+  },
+  
+  // Wobble
+  wobble: (count = 3) => (t) => {
+    return t - Math.sin(t * Math.PI * 2 * count) / (count * 10);
+  },
+  
+  // Snap to grid
+  snap: (divisions = 4) => (t) => {
+    return Math.round(t * divisions) / divisions;
+  }
+};
+
+// Usage
+anime.timeline()
+  .add({
+    targets: '.box1',
+    translateX: 300,
+    easing: easings.smootherstep,
+    duration: 800
+  })
+  .add({
+    targets: '.box2',
+    translateX: 300,
+    easing: easings.overshoot(2),
+    duration: 800
+  }, '-=600')
+  .add({
+    targets: '.box3',
+    translateX: 300,
+    easing: easings.wobble(4),
+    duration: 1200
+  }, '-=600');
+```
+
+## Debugging Custom Easings
+
+Visualize your easing function:
+
+```javascript
+function visualizeEasing(easingFn, steps = 100) {
+  const points = [];
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    const value = easingFn(t);
+    points.push({ t, value });
+  }
+  console.table(points);
+  return points;
+}
+
+// Test your easing
+const myEasing = (t) => t * t;
+visualizeEasing(myEasing, 20);
+```
+
+## See Also
+
+<CardGroup cols={2}>
+  <Card title="Built-in Easings" href="/easings/built-in">
+    Explore pre-made easing functions for reference
+  </Card>
+  <Card title="Cubic Bezier" href="/easings/cubic-bezier">
+    Visual curve-based easing design
+  </Card>
+  <Card title="Spring" href="/easings/spring">
+    Physics-based timing reference
+  </Card>
+</CardGroup>

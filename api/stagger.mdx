@@ -1,0 +1,152 @@
+---
+title: stagger()
+description: Creates staggered animation values for distributing delays across multiple targets
+---
+
+Creates a function that returns staggered values for distributing animation timing across multiple targets. Supports grid-based positioning, custom start points, easing functions, and various distribution patterns.
+
+## Syntax
+
+```js
+stagger(value, params)
+```
+
+## Parameters
+
+<ParamField path="value" type="Number | String | [Number, Number] | [String, String]" required>
+  The staggered value or range to distribute across targets.
+  
+  - Single value: All targets receive the same stagger increment
+  - Range `[start, end]`: Values interpolate from start to end across targets
+  - Supports units (e.g., `'100px'`, `['0deg', '360deg']`)
+</ParamField>
+
+<ParamField path="params" type="Object">
+  Configuration options for the stagger behavior.
+  
+  <ParamField path="from" type="Number | 'first' | 'center' | 'last' | 'random'">
+    Starting point for stagger distribution. Default: `'first'`
+    
+    - `Number`: Index of the target to start from
+    - `'first'`: Start from the first target (index 0)
+    - `'center'`: Start from the middle target
+    - `'last'`: Start from the last target
+    - `'random'`: Randomize stagger order
+  </ParamField>
+  
+  <ParamField path="grid" type="[Number, Number]">
+    Grid dimensions `[columns, rows]` for 2D stagger distribution.
+  </ParamField>
+  
+  <ParamField path="axis" type="'x' | 'y'">
+    Axis to use for grid-based stagger calculation.
+  </ParamField>
+  
+  <ParamField path="ease" type="String | Function">
+    Easing function to apply to stagger distribution.
+  </ParamField>
+  
+  <ParamField path="reversed" type="Boolean">
+    Reverses the stagger order. Default: `false`
+  </ParamField>
+  
+  <ParamField path="start" type="Number | String">
+    Starting offset value. Default: `0`
+  </ParamField>
+  
+  <ParamField path="total" type="Number">
+    Override the total number of targets.
+  </ParamField>
+  
+  <ParamField path="use" type="String | Function">
+    Property name or function to determine custom stagger index.
+  </ParamField>
+  
+  <ParamField path="modifier" type="Function">
+    Function to modify the final stagger value.
+  </ParamField>
+</ParamField>
+
+## Returns
+
+<ResponseField type="Function">
+  A stagger function that generates values for each target:
+  
+  ```ts
+  (target, index, total, timeline) => Number | String
+  ```
+</ResponseField>
+
+## Examples
+
+### Basic Stagger
+
+```js
+import anime from 'animejs';
+
+anime({
+  targets: '.box',
+  translateX: 250,
+  delay: anime.stagger(100) // Delay increases by 100ms for each target
+});
+```
+
+### Stagger with Range
+
+```js
+anime({
+  targets: '.box',
+  rotate: anime.stagger([0, 360]), // First box 0deg, last box 360deg
+  delay: anime.stagger(100)
+});
+```
+
+### Grid-Based Stagger
+
+```js
+anime({
+  targets: '.grid-item',
+  scale: anime.stagger(1.2, {
+    grid: [4, 5], // 4 columns, 5 rows
+    from: 'center',
+    axis: 'x'
+  })
+});
+```
+
+### Stagger with Easing
+
+```js
+anime({
+  targets: '.box',
+  translateY: anime.stagger(100, {
+    ease: 'easeOutQuad',
+    from: 'last'
+  })
+});
+```
+
+### Random Stagger Order
+
+```js
+anime({
+  targets: '.box',
+  opacity: [0, 1],
+  delay: anime.stagger(50, { from: 'random' })
+});
+```
+
+### Custom Index with Property
+
+```js
+anime({
+  targets: '.box',
+  translateX: anime.stagger(20, {
+    use: 'data-index' // Use data-index attribute for stagger order
+  })
+});
+```
+
+## Source
+
+Defined in: `/home/daytona/workspace/source/src/utils/stagger.js:82`

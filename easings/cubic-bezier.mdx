@@ -1,0 +1,229 @@
+---
+title: Cubic Bezier
+description: Create custom easing curves using cubic bezier control points
+---
+
+Cubic Bezier easings allow you to define custom easing curves using four control points, giving you precise control over the acceleration profile of your animations.
+
+## Basic Usage
+
+```javascript
+import { cubicBezier } from 'animejs';
+
+anime({
+  targets: '.element',
+  translateX: 250,
+  easing: cubicBezier(0.42, 0, 0.58, 1)
+});
+```
+
+<Warning>
+The old string syntax `easing: 'cubicBezier(0.42, 0, 0.58, 1)'` has been removed. You must now import and call `cubicBezier()` as a function.
+</Warning>
+
+## Parameters
+
+The `cubicBezier()` function accepts four parameters that define two control points:
+
+```javascript
+cubicBezier(mX1, mY1, mX2, mY2)
+```
+
+- **mX1** (default: 0.5) - X coordinate of the first control point (0-1)
+- **mY1** (default: 0.0) - Y coordinate of the first control point (can exceed 0-1)
+- **mX2** (default: 0.5) - X coordinate of the second control point (0-1)
+- **mY2** (default: 1.0) - Y coordinate of the second control point (can exceed 0-1)
+
+<Info>
+The start point is always (0, 0) and the end point is always (1, 1). You control the curve by positioning the two middle control points.
+</Info>
+
+## Common CSS Timing Functions
+
+Many CSS timing functions are cubic bezier curves:
+
+```javascript
+import { cubicBezier } from 'animejs';
+
+// ease (CSS default)
+const ease = cubicBezier(0.25, 0.1, 0.25, 1);
+
+// ease-in
+const easeIn = cubicBezier(0.42, 0, 1, 1);
+
+// ease-out
+const easeOut = cubicBezier(0, 0, 0.58, 1);
+
+// ease-in-out
+const easeInOut = cubicBezier(0.42, 0, 0.58, 1);
+
+anime({
+  targets: '.box',
+  translateX: 250,
+  easing: ease
+});
+```
+
+## Material Design Curves
+
+Material Design defines standard motion curves:
+
+```javascript
+import { cubicBezier } from 'animejs';
+
+// Standard
+const standard = cubicBezier(0.4, 0.0, 0.2, 1);
+
+// Deceleration
+const deceleration = cubicBezier(0.0, 0.0, 0.2, 1);
+
+// Acceleration  
+const acceleration = cubicBezier(0.4, 0.0, 1, 1);
+
+// Sharp
+const sharp = cubicBezier(0.4, 0.0, 0.6, 1);
+
+anime({
+  targets: '.card',
+  scale: [0, 1],
+  opacity: [0, 1],
+  easing: deceleration,
+  duration: 300
+});
+```
+
+## Custom Curves
+
+Create unique easing effects by experimenting with control points:
+
+```javascript
+import { cubicBezier } from 'animejs';
+
+// Snap effect - overshoots slightly
+const snap = cubicBezier(0.34, 1.56, 0.64, 1);
+
+// Anticipation - pulls back before moving forward
+const anticipation = cubicBezier(0.6, -0.28, 0.735, 0.045);
+
+// Dramatic entrance
+const dramatic = cubicBezier(0.68, -0.55, 0.265, 1.55);
+
+anime({
+  targets: '.element',
+  translateY: [100, 0],
+  opacity: [0, 1],
+  easing: dramatic,
+  duration: 1200
+});
+```
+
+<Note>
+Y values can go below 0 or above 1 to create overshooting effects, but X values should stay within 0-1 for predictable behavior.
+</Note>
+
+## Linear Optimization
+
+If both control points create a linear curve, `cubicBezier()` optimizes by returning a linear easing:
+
+```javascript
+import { cubicBezier } from 'animejs';
+
+// These create linear easings (no curve)
+const linear1 = cubicBezier(0.5, 0, 0.5, 1); // Returns linear easing
+const linear2 = cubicBezier(0.33, 0, 0.33, 1); // Returns linear easing
+
+// This creates an actual curve
+const curved = cubicBezier(0.5, 0, 0.3, 1); // Returns bezier function
+```
+
+From source code (src/easings/cubic-bezier/index.js:56):
+```javascript
+export const cubicBezier = (mX1 = 0.5, mY1 = 0.0, mX2 = 0.5, mY2 = 1.0) => 
+  (mX1 === mY1 && mX2 === mY2) ? none : // Returns linear if points form a line
+  t => t === 0 || t === 1 ? t :
+  calcBezier(binarySubdivide(t, mX1, mX2), mY1, mY2);
+```
+
+## Implementation Details
+
+Anime.js uses a binary subdivision algorithm to solve the cubic bezier equation, adapted from [bezier-easing](https://github.com/gre/bezier-easing) by Gaëtan Renaudeau.
+
+The algorithm:
+1. Takes a time value (0-1)
+2. Uses binary search to find the corresponding point on the curve
+3. Returns the interpolated Y value
+4. Achieves precision of 0.0000001 within 100 iterations
+
+```javascript
+// Simplified solver (from src/easings/cubic-bezier/index.js)
+const binarySubdivide = (aX, mX1, mX2) => {
+  let aA = 0, aB = 1, currentX, currentT, i = 0;
+  do {
+    currentT = aA + (aB - aA) / 2;
+    currentX = calcBezier(currentT, mX1, mX2) - aX;
+    if (currentX > 0) {
+      aB = currentT;
+    } else {
+      aA = currentT;
+    }
+  } while (Math.abs(currentX) > 0.0000001 && ++i < 100);
+  return currentT;
+}
+```
+
+## Visualizing Bezier Curves
+
+To design custom bezier curves, use online tools:
+
+- [cubic-bezier.com](https://cubic-bezier.com) - Interactive bezier curve editor
+- [easings.net](https://easings.net) - Easing function visualizer
+- Chrome DevTools - Built-in cubic-bezier editor in the Styles panel
+
+## Complete Example
+
+```javascript
+import anime from 'animejs';
+import { cubicBezier } from 'animejs';
+
+// Define custom curves
+const smoothEntry = cubicBezier(0.25, 0.46, 0.45, 0.94);
+const bouncyExit = cubicBezier(0.68, -0.55, 0.265, 1.55);
+
+// Entrance animation
+anime({
+  targets: '.modal',
+  scale: [0.8, 1],
+  opacity: [0, 1],
+  easing: smoothEntry,
+  duration: 400
+});
+
+// Exit animation
+const exitAnimation = anime({
+  targets: '.modal',
+  scale: 0.8,
+  opacity: 0,
+  easing: bouncyExit,
+  duration: 300,
+  autoplay: false
+});
+
+// Trigger on button click
+document.querySelector('.close-btn').addEventListener('click', () => {
+  exitAnimation.play();
+});
+```
+
+## See Also
+
+<CardGroup cols={2}>
+  <Card title="Built-in Easings" href="/easings/built-in">
+    Pre-configured easing functions
+  </Card>
+  <Card title="Spring" href="/easings/spring">
+    Physics-based spring animations
+  </Card>
+  <Card title="Custom Functions" href="/easings/custom">
+    Write your own easing functions
+  </Card>
+</CardGroup>

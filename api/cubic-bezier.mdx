@@ -1,0 +1,199 @@
+---
+title: Cubic Bezier
+description: Create custom cubic bezier easing curves in Anime.js
+---
+
+The `cubicBezier()` function allows you to create custom easing curves using cubic bezier control points. It's adapted from [Gaëtan Renaudeau's bezier-easing](https://github.com/gre/bezier-easing).
+
+## Basic Usage
+
+```javascript
+import { cubicBezier } from 'animejs';
+
+animate({
+  targets: '.element',
+  translateX: 250,
+  ease: cubicBezier(0.42, 0, 0.58, 1)
+});
+```
+
+## Parameters
+
+<ParamField path="mX1" type="number" default="0.5">
+  The x coordinate of the first control point. Defines the horizontal position of the first bezier handle.
+</ParamField>
+
+<ParamField path="mY1" type="number" default="0">
+  The y coordinate of the first control point. Defines the vertical position of the first bezier handle.
+</ParamField>
+
+<ParamField path="mX2" type="number" default="0.5">
+  The x coordinate of the second control point. Defines the horizontal position of the second bezier handle.
+</ParamField>
+
+<ParamField path="mY2" type="number" default="1">
+  The y coordinate of the second control point. Defines the vertical position of the second bezier handle.
+</ParamField>
+
+## Common Presets
+
+### Ease
+
+```javascript
+import { cubicBezier } from 'animejs';
+
+animate({
+  targets: '.element',
+  translateX: 250,
+  ease: cubicBezier(0.25, 0.1, 0.25, 1)
+});
+```
+
+### Ease In
+
+```javascript
+import { cubicBezier } from 'animejs';
+
+animate({
+  targets: '.element',
+  translateX: 250,
+  ease: cubicBezier(0.42, 0, 1, 1)
+});
+```
+
+### Ease Out
+
+```javascript
+import { cubicBezier } from 'animejs';
+
+animate({
+  targets: '.element',
+  translateX: 250,
+  ease: cubicBezier(0, 0, 0.58, 1)
+});
+```
+
+### Ease In Out
+
+```javascript
+import { cubicBezier } from 'animejs';
+
+animate({
+  targets: '.element',
+  translateX: 250,
+  ease: cubicBezier(0.42, 0, 0.58, 1)
+});
+```
+
+## Custom Curves
+
+### Anticipation
+
+Creates an animation that pulls back slightly before moving forward:
+
+```javascript
+import { cubicBezier } from 'animejs';
+
+animate({
+  targets: '.element',
+  translateX: 250,
+  ease: cubicBezier(0.68, -0.55, 0.265, 1.55)
+});
+```
+
+### Fast Start, Slow End
+
+```javascript
+import { cubicBezier } from 'animejs';
+
+animate({
+  targets: '.element',
+  translateX: 250,
+  ease: cubicBezier(0.7, 0, 0.84, 0)
+});
+```
+
+### Slow Start, Fast End
+
+```javascript
+import { cubicBezier } from 'animejs';
+
+animate({
+  targets: '.element',
+  translateX: 250,
+  ease: cubicBezier(0.16, 1, 0.3, 1)
+});
+```
+
+## Understanding Cubic Bezier
+
+A cubic bezier curve is defined by four points:
+1. Start point: `(0, 0)` - always fixed
+2. First control point: `(mX1, mY1)` - controls the curve at the start
+3. Second control point: `(mX2, mY2)` - controls the curve at the end
+4. End point: `(1, 1)` - always fixed
+
+The x-axis represents time (0 to 1), and the y-axis represents the progression of the animation (0 to 1).
+
+### Tips
+
+- **X coordinates** control the timing distribution
+- **Y coordinates** control the value progression
+- Y values can go below 0 or above 1 to create overshoot effects
+- When `mX1 === mY1` and `mX2 === mY2`, the function returns a linear easing
+
+## Creating Bezier Curves
+
+You can use online tools to visualize and create cubic bezier curves:
+
+- [cubic-bezier.com](https://cubic-bezier.com/)
+- Chrome DevTools Animation Inspector
+
+## Algorithm Details
+
+The implementation uses:
+- **Binary subdivision** for high precision curve calculation
+- Iteration continues until precision reaches 0.0000001 or 100 iterations
+- Optimized for performance with minimal calculations
+
+## Reusable Curves
+
+```javascript
+import { cubicBezier } from 'animejs';
+
+// Create reusable easing curves
+const smoothEase = cubicBezier(0.4, 0, 0.2, 1);
+const snappyEase = cubicBezier(0.8, 0, 0.2, 1);
+const elasticEase = cubicBezier(0.68, -0.55, 0.265, 1.55);
+
+// Use in multiple animations
+animate({
+  targets: '.element1',
+  translateX: 250,
+  ease: smoothEase
+});
+
+animate({
+  targets: '.element2',
+  scale: 2,
+  ease: snappyEase
+});
+
+animate({
+  targets: '.element3',
+  rotate: 360,
+  ease: elasticEase
+});
+```
+
+## Performance
+
+The cubic bezier function is highly optimized:
+- Uses binary subdivision for accurate interpolation
+- Caches calculation results for `t === 0` and `t === 1`
+- Returns the linear function directly when control points form a straight line
+
+## See Also
+
+- [Easing Functions](/api/easing-functions) - Built-in easing presets
+- [Spring Easing](/api/spring-easing) - Physics-based spring animations

@@ -1,0 +1,382 @@
+---
+title: 'Scroll Events'
+description: 'Trigger and sync animations with scroll position'
+---
+
+Anime.js provides a powerful scroll observer system for creating scroll-based animations.
+
+## Scroll Observer
+
+The `onScroll()` function creates scroll-triggered animations.
+
+### Basic Usage
+
+```javascript
+import { onScroll } from 'animejs';
+
+const observer = onScroll({
+  target: '.box',
+  onEnter: (scroll) => {
+    console.log('Element entered viewport');
+  },
+  onLeave: (scroll) => {
+    console.log('Element left viewport');
+  }
+});
+```
+
+## Linking Animations
+
+Sync animations with scroll progress:
+
+```javascript
+import { animate, onScroll } from 'animejs';
+
+const animation = animate('.box', {
+  translateY: 200,
+  rotate: 360,
+  duration: 1000,
+  autoplay: false
+});
+
+onScroll({
+  target: '.box',
+  sync: true
+}).link(animation);
+```
+
+<Note>
+  When `sync` is enabled, the animation's progress is controlled by the scroll position.
+</Note>
+
+### Sync Modes
+
+```javascript
+// Play on enter, pause on leave
+onScroll({
+  target: '.element',
+  sync: 'play pause'
+}).link(animation);
+
+// Smooth interpolation
+onScroll({
+  target: '.element',
+  sync: true // or a number between 0-1
+}).link(animation);
+
+// With easing
+onScroll({
+  target: '.element',
+  sync: 'out(2)'
+}).link(animation);
+```
+
+<ParamField path="sync" type="boolean | number | string | EasingFunction">
+  - `true` or `1`: Linear sync (default smoothing)
+  - `0-1`: Custom smoothing factor
+  - `'linear'`: No smoothing
+  - `'play pause'`: Control playback
+  - Easing function: Apply easing to scroll progress
+</ParamField>
+
+## Scroll Thresholds
+
+### Enter & Leave Points
+
+```javascript
+onScroll({
+  target: '.box',
+  enter: 'top bottom',  // When top of element hits bottom of viewport
+  leave: 'bottom top',  // When bottom of element hits top of viewport
+  onEnter: (scroll) => console.log('Entered'),
+  onLeave: (scroll) => console.log('Left')
+});
+```
+
+### Threshold Syntax
+
+```javascript
+// Named positions
+enter: 'start end'    // target start, viewport end
+enter: 'center center' // target center, viewport center
+enter: 'end start'    // target end, viewport start
+
+// Percentage values
+enter: '20% 80%'      // 20% of target, 80% of viewport
+
+// Pixel offsets
+enter: '100px 500px'
+
+// Relative operators
+enter: 'start-100px end' // 100px before target start
+enter: 'center+50% bottom' // 50% after target center
+
+// Min/max clamping
+enter: 'min+100px end' // At least 100px
+enter: 'max-100px start' // At most 100px before max
+```
+
+### Object Syntax
+
+```javascript
+onScroll({
+  target: '.element',
+  enter: {
+    container: 'bottom',
+    target: 'top'
+  },
+  leave: {
+    container: 'top',
+    target: 'bottom'
+  }
+});
+```
+
+## Directional Callbacks
+
+```javascript
+onScroll({
+  target: '.box',
+  onEnterForward: (scroll) => {
+    console.log('Scrolling down, entered');
+  },
+  onEnterBackward: (scroll) => {
+    console.log('Scrolling up, entered');
+  },
+  onLeaveForward: (scroll) => {
+    console.log('Scrolling down, left');
+  },
+  onLeaveBackward: (scroll) => {
+    console.log('Scrolling up, left');
+  }
+});
+```
+
+## Scroll Container
+
+### Custom Container
+
+```javascript
+onScroll({
+  container: '.scroll-container',
+  target: '.box',
+  onEnter: (scroll) => {
+    console.log('Entered in custom container');
+  }
+});
+```
+
+### Window (Default)
+
+```javascript
+// Uses window as container by default
+onScroll({
+  target: '.box'
+});
+```
+
+## Scroll Progress
+
+Access scroll information in callbacks:
+
+```javascript
+onScroll({
+  target: '.element',
+  onUpdate: (scroll) => {
+    console.log('Progress:', scroll.progress);     // 0-1
+    console.log('Velocity:', scroll.velocity);     // Scroll speed
+    console.log('Backward:', scroll.backward);     // Scroll direction
+    console.log('Scroll position:', scroll.scroll);
+  }
+});
+```
+
+## Horizontal Scrolling
+
+```javascript
+onScroll({
+  target: '.box',
+  axis: 'x',
+  enter: 'start end',
+  leave: 'end start',
+  onEnter: (scroll) => {
+    console.log('Entered horizontally');
+  }
+});
+```
+
+## Repeat Behavior
+
+```javascript
+// Trigger every time (default)
+onScroll({
+  target: '.box',
+  repeat: true,
+  onEnter: () => console.log('Entered')
+});
+
+// Trigger only once
+onScroll({
+  target: '.box',
+  repeat: false,
+  onEnter: () => console.log('Entered first time only')
+});
+```
+
+## Dynamic Parameters
+
+Use functions for dynamic values:
+
+```javascript
+onScroll({
+  target: '.box',
+  enter: (scroll) => {
+    return window.innerWidth > 768 ? 'top bottom' : 'center center';
+  },
+  axis: (scroll) => {
+    return window.innerWidth > 768 ? 'y' : 'x';
+  }
+});
+```
+
+## Debug Mode
+
+Visualize scroll trigger points:
+
+```javascript
+onScroll({
+  target: '.box',
+  debug: true,
+  enter: 'top bottom',
+  leave: 'bottom top'
+});
+```
+
+<Note>
+  Debug mode displays colored overlays showing trigger points and scroll progress.
+</Note>
+
+## Complete Example
+
+```javascript
+import { animate, timeline, onScroll } from 'animejs';
+
+// Create animation
+const tl = timeline({ autoplay: false });
+
+tl.add('.box', {
+  translateY: [100, 0],
+  opacity: [0, 1],
+  duration: 1000
+});
+
+tl.add('.box', {
+  rotate: 360,
+  scale: [1, 1.5, 1],
+  duration: 1500
+}, '-=500');
+
+// Link to scroll
+const observer = onScroll({
+  target: '.box',
+  container: window,
+  axis: 'y',
+  enter: 'top bottom',
+  leave: 'bottom top',
+  sync: 0.1,
+  repeat: true,
+  onEnter: (scroll) => {
+    console.log('Started', scroll.progress);
+  },
+  onLeave: (scroll) => {
+    console.log('Finished');
+  },
+  onUpdate: (scroll) => {
+    // Update based on scroll
+    console.log('Progress:', scroll.progress);
+  },
+  onSyncComplete: (scroll) => {
+    console.log('Sync animation complete');
+  },
+  onResize: (scroll) => {
+    console.log('Container resized');
+  }
+}).link(tl);
+```
+
+## Cleanup
+
+```javascript
+const observer = onScroll({ target: '.box' });
+
+// Remove observer
+observer.revert();
+```
+
+<Warning>
+  Always call `revert()` when removing elements or cleaning up to prevent memory leaks.
+</Warning>
+
+## Advanced: Bi-Directional Sync
+
+```javascript
+// Four-way control
+onScroll({
+  target: '.element',
+  sync: 'play pause reverse restart',
+  // play: scroll down enter
+  // pause: scroll down leave  
+  // reverse: scroll up enter
+  // restart: scroll up leave
+}).link(animation);
+```
+
+## Performance Tips
+
+<AccordionGroup>
+  <Accordion title="Limit Observers">
+    Create one observer per section rather than per element:
+    ```javascript
+    onScroll({
+      target: '.section',
+      onEnter: () => {
+        // Animate multiple elements
+      }
+    });
+    ```
+  </Accordion>
+
+  <Accordion title="Use Appropriate Sync Values">
+    Lower sync values (0-0.3) provide smoother interpolation:
+    ```javascript
+    onScroll({
+      sync: 0.1 // Smooth but responsive
+    });
+    ```
+  </Accordion>
+
+  <Accordion title="Disable Repeat When Possible">
+    If animation should only trigger once:
+    ```javascript
+    onScroll({
+      repeat: false
+    });
+    ```
+  </Accordion>
+
+  <Accordion title="Cleanup Properly">
+    Remove observers when elements are destroyed:
+    ```javascript
+    const observer = onScroll({ target: '.box' });
+    
+    // Later...
+    observer.revert();
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Browser Support
+
+<Check>
+  Scroll observers use ResizeObserver and IntersectionObserver APIs, supported in all modern browsers.
+</Check>

@@ -1,0 +1,315 @@
+---
+title: Timelines
+description: Sequence and synchronize multiple animations with powerful timeline controls
+---
+
+Timelines allow you to sequence multiple animations with precise timing control. They provide a powerful way to create complex animation choreography.
+
+## Creating Timelines
+
+Create a timeline using the `createTimeline()` function:
+
+```javascript
+import { createTimeline } from 'animejs';
+
+const tl = createTimeline({
+  defaults: {
+    duration: 1000,
+    ease: 'inOutQuad'
+  }
+});
+```
+
+## Adding Animations
+
+### Basic Addition
+
+Use the `.add()` method to add animations to a timeline:
+
+```javascript
+const tl = createTimeline();
+
+tl.add('.box', {
+  x: 100,
+  duration: 1000
+})
+.add('.circle', {
+  scale: 1.5,
+  duration: 500
+});
+```
+
+### Positioning Animations
+
+Control when animations start using position parameters:
+
+```javascript
+tl.add('.box', { x: 100 }, 0)        // Start at 0ms
+  .add('.circle', { scale: 2 }, 500)  // Start at 500ms
+  .add('.square', { rotate: 180 }, '+=200'); // 200ms after previous
+```
+
+<ParamField path="position" type="number | string">
+  **Absolute positioning:**
+  - `0` - Timeline start
+  - `1000` - 1000ms from start
+  
+  **Relative positioning:**
+  - `'+=500'` - 500ms after previous animation ends
+  - `'-=200'` - 200ms before previous animation ends
+  - `'<'` - Same time as previous animation
+  - `'>'` - When previous animation ends
+  
+  **Label positioning:**
+  - `'myLabel'` - At a defined label
+  - `'myLabel+=500'` - 500ms after a label
+</ParamField>
+
+## Timeline Parameters
+
+<ParamField path="defaults" type="object">
+  Default animation parameters applied to all children.
+</ParamField>
+
+<ParamField path="playbackEase" type="string | function">
+  Easing applied to the entire timeline playback.
+</ParamField>
+
+<ParamField path="composition" type="boolean" default="true">
+  Enable composition for timeline animations.
+</ParamField>
+
+```javascript
+const tl = createTimeline({
+  defaults: {
+    ease: 'inOutSine',
+    duration: 2000
+  },
+  playbackEase: 'out(4)',
+  loop: true
+});
+```
+
+## Labels
+
+Create named points in your timeline:
+
+```javascript
+tl.add('.intro', { opacity: 1 })
+  .label('main')
+  .add('.content', { y: 0 }, 'main')
+  .add('.sidebar', { x: 0 }, 'main+=500')
+  .label('end');
+```
+
+### label(name, position)
+
+Adds a label at the specified position:
+
+```javascript
+tl.label('sceneStart', 2000)
+  .add('.element', { x: 100 }, 'sceneStart');
+```
+
+## Set Method
+
+Instantly set properties without animation:
+
+```javascript
+tl.set('.element', {
+  x: 100,
+  opacity: 0
+})
+.add('.element', {
+  opacity: 1,
+  duration: 500
+});
+```
+
+<Note>
+The `set()` method has zero duration and uses `replace` composition.
+</Note>
+
+## Seamless Looping Example
+
+Create perfect seamless loops with precise timing:
+
+```javascript
+import { createTimeline, stagger } from 'animejs';
+
+const numberOfElements = 500;
+const loopDuration = 6000;
+const animDuration = loopDuration * 0.2;
+const delay = loopDuration / numberOfElements;
+
+const tl = createTimeline({
+  defaults: {
+    ease: 'inOutSine',
+    loopDelay: (loopDuration * 0.2) - animDuration,
+    duration: animDuration
+  }
+});
+
+// Add seamlessly looping animations
+for (let i = 0; i < numberOfElements; i++) {
+  tl.add(elements[i], {
+    scale: [1, 1.25, 1],
+    rotate: [0, 10, 0],
+    loop: -1
+  }, delay * i);
+}
+```
+
+## Synchronizing External Animations
+
+Sync Web Animations API or other animation instances:
+
+```javascript
+const waapi = element.animate([...], { duration: 1000 });
+
+tl.sync(waapi, '+=500');
+```
+
+### sync(animation, position)
+
+Synchronizes an external animation with the timeline:
+
+```javascript
+const externalAnim = animate('.other', { x: 100 });
+
+tl.sync(externalAnim, 1000);
+```
+
+## Callbacks
+
+Add callback functions at specific timeline points:
+
+```javascript
+tl.add('.intro', { opacity: 1 })
+  .call(() => {
+    console.log('Intro complete');
+  })
+  .add('.main', { y: 0 });
+```
+
+### call(callback, position)
+
+Executes a callback at the specified position:
+
+```javascript
+tl.call(() => console.log('Checkpoint!'), 2000)
+  .call(() => console.log('End!'), 'end');
+```
+
+## Timeline Control Methods
+
+All standard animation methods work on timelines:
+
+```javascript
+tl.play();      // Play timeline
+tl.pause();     // Pause timeline
+tl.restart();   // Restart from beginning
+tl.reverse();   // Reverse playback
+tl.seek(1000);  // Seek to 1000ms
+```
+
+## Refresh Method
+
+Refresh function-based values in the timeline:
+
+```javascript
+let dynamicValue = 100;
+
+const tl = createTimeline();
+tl.add('.element', {
+  x: () => dynamicValue
+});
+
+dynamicValue = 200;
+tl.refresh(); // Updates to new value
+```
+
+## Stretch Method
+
+Scale the timeline duration:
+
+```javascript
+const tl = createTimeline();
+tl.add('.box', { x: 100, duration: 1000 })
+  .add('.circle', { y: 100, duration: 500 });
+
+// Make timeline twice as long
+tl.stretch(3000); // Original was 1500ms
+```
+
+## Remove Method
+
+Remove specific animations from the timeline:
+
+```javascript
+tl.remove('.element');           // Remove all animations
+tl.remove('.element', 'x');      // Remove only x property
+```
+
+## Nested Timelines
+
+Timelines can contain other timelines:
+
+```javascript
+const subTl = createTimeline();
+subTl.add('.child', { x: 100 });
+
+const mainTl = createTimeline();
+mainTl.add(subTl, 1000); // Add entire timeline at 1000ms
+```
+
+## Complex Choreography Example
+
+```javascript
+import { createTimeline, stagger } from 'animejs';
+
+const tl = createTimeline({
+  defaults: {
+    ease: 'inOutQuad',
+    duration: 1000
+  },
+  onComplete: () => console.log('Complete!')
+});
+
+tl.set('.stage', { opacity: 1 })
+  .add('.title', {
+    y: { from: -100 },
+    opacity: { from: 0 },
+    delay: stagger(50)
+  })
+  .label('content')
+  .add('.box', {
+    scale: { from: 0 },
+    rotate: { from: -180 },
+    delay: stagger(100, { from: 'center' })
+  }, 'content+=200')
+  .add('.footer', {
+    y: { from: 100 },
+    opacity: { from: 0 }
+  }, '-=500');
+```
+
+## API Reference
+
+### createTimeline(parameters)
+
+Creates a new timeline instance.
+
+**Parameters:**
+- `parameters` (Object) - Timeline configuration
+  - `defaults` (Object) - Default animation parameters
+  - `playbackEase` (string | function) - Timeline playback easing
+  - `composition` (boolean) - Enable composition
+  - `loop` (number | boolean) - Loop count
+  - All standard timer parameters
+
+**Returns:** `Timeline` - Timeline instance
+
+<Tip>
+Use timeline `defaults` to avoid repeating common parameters across animations.
+</Tip>

@@ -1,0 +1,397 @@
+---
+title: Irregular
+description: Create randomized, organic animations with irregular step-based easing
+---
+
+Irregular easings generate randomized, step-based timing curves that create organic, unpredictable animations. Each time you create an irregular easing, it produces a unique pattern.
+
+## Basic Usage
+
+```javascript
+import { irregular } from 'animejs';
+
+anime({
+  targets: '.element',
+  translateX: 250,
+  easing: irregular() // Random stepping pattern
+});
+```
+
+<Warning>
+The old string syntax `easing: 'irregular(...)'` has been removed. You must now import and call `irregular()` as a function.
+</Warning>
+
+## Parameters
+
+The `irregular()` function accepts two parameters:
+
+```javascript
+irregular(length, randomness)
+```
+
+- **length** (default: 10) - Number of steps/points in the curve
+- **randomness** (default: 1) - How random the steps are (0-1)
+  - `0`: Perfectly even spacing (equivalent to linear)
+  - `1`: Maximum randomness
+  - `0.5`: Blend of even and random
+
+## How It Works
+
+Irregular generates random intermediate values and uses them with the linear easing function:
+
+```javascript
+// From src/easings/irregular/index.js:22-36
+export const irregular = (length = 10, randomness = 1) => {
+  const values = [0];
+  const total = length - 1;
+  
+  for (let i = 1; i < total; i++) {
+    const previousValue = values[i - 1];
+    const spacing = i / total;  // Even spacing
+    const segmentEnd = (i + 1) / total;
+    const randomVariation = spacing + (segmentEnd - spacing) * Math.random();
+    
+    // Mix even spacing and random variation based on randomness parameter
+    const randomValue = spacing * (1 - randomness) + randomVariation * randomness;
+    values.push(clamp(randomValue, previousValue, 1));
+  }
+  
+  values.push(1);
+  return linear(...values); // Uses piecewise linear interpolation
+}
+```
+
+## Randomness Levels
+
+### Full Randomness (1.0)
+
+Maximum organic feel:
+
+```javascript
+import { irregular } from 'animejs';
+
+anime({
+  targets: '.glitch',
+  translateX: 300,
+  easing: irregular(10, 1), // Fully random
+  duration: 1000
+});
+```
+
+### Moderate Randomness (0.5)
+
+Balance between predictable and organic:
+
+```javascript
+import { irregular } from 'animejs';
+
+anime({
+  targets: '.leaf',
+  translateY: 200,
+  rotate: 360,
+  easing: irregular(15, 0.5), // Subtle randomness
+  duration: 2000
+});
+```
+
+### Minimal Randomness (0.1)
+
+Slight variation from linear:
+
+```javascript
+import { irregular } from 'animejs';
+
+anime({
+  targets: '.wave',
+  translateX: 400,
+  easing: irregular(20, 0.1), // Almost linear
+  duration: 1500
+});
+```
+
+### No Randomness (0)
+
+Equivalent to linear easing:
+
+```javascript
+import { irregular } from 'animejs';
+
+anime({
+  targets: '.element',
+  translateX: 250,
+  easing: irregular(10, 0) // Same as linear
+});
+```
+
+## Step Count Effects
+
+### Few Steps (Choppy)
+
+```javascript
+import { irregular } from 'animejs';
+
+// 4 steps - very choppy, noticeable jumps
+anime({
+  targets: '.robot',
+  translateX: 300,
+  easing: irregular(4, 1),
+  duration: 1000
+});
+```
+
+### Medium Steps (Balanced)
+
+```javascript
+import { irregular } from 'animejs';
+
+// 10 steps - good balance
+anime({
+  targets: '.particle',
+  translateY: 200,
+  easing: irregular(10, 0.8),
+  duration: 1200
+});
+```
+
+### Many Steps (Smooth)
+
+```javascript
+import { irregular } from 'animejs';
+
+// 30 steps - smoother appearance
+anime({
+  targets: '.cloud',
+  translateX: 500,
+  easing: irregular(30, 0.6),
+  duration: 3000
+});
+```
+
+## Common Use Cases
+
+### Glitch Effects
+
+Create digital glitch animations:
+
+```javascript
+import anime from 'animejs';
+import { irregular } from 'animejs';
+
+function glitch(element) {
+  anime({
+    targets: element,
+    translateX: [
+      { value: 10, duration: 50 },
+      { value: -10, duration: 50 },
+      { value: 0, duration: 50 }
+    ],
+    easing: irregular(5, 1),
+    loop: 3
+  });
+}
+
+glitch('.title');
+```
+
+### Organic Movement
+
+Simulate natural, unpredictable motion:
+
+```javascript
+import { irregular } from 'animejs';
+
+// Leaf falling with random sway
+anime({
+  targets: '.leaf',
+  translateY: 500,
+  translateX: {
+    value: [-50, 50],
+    easing: irregular(20, 0.8)
+  },
+  rotate: {
+    value: 720,
+    easing: irregular(15, 0.6)
+  },
+  duration: 3000
+});
+```
+
+### Particle Systems
+
+Varied timing for multiple particles:
+
+```javascript
+import anime from 'animejs';
+import { irregular } from 'animejs';
+
+document.querySelectorAll('.particle').forEach(particle => {
+  anime({
+    targets: particle,
+    translateX: anime.random(-200, 200),
+    translateY: anime.random(-200, 200),
+    opacity: [1, 0],
+    // Each particle gets a unique irregular easing
+    easing: irregular(12, 0.9),
+    duration: 2000
+  });
+});
+```
+
+### Loading Indicators
+
+Organic progress feel:
+
+```javascript
+import { irregular } from 'animejs';
+
+anime({
+  targets: '.progress-bar',
+  width: '100%',
+  easing: irregular(25, 0.3), // Slight irregularity
+  duration: 5000
+});
+```
+
+### Text Scramble
+
+Random character reveal:
+
+```javascript
+import anime from 'animejs';
+import { irregular } from 'animejs';
+
+const letters = document.querySelectorAll('.scramble .letter');
+
+anime({
+  targets: letters,
+  opacity: [0, 1],
+  translateY: [-20, 0],
+  easing: irregular(8, 1),
+  delay: anime.stagger(50),
+  duration: 600
+});
+```
+
+## Creating Unique Instances
+
+Each call to `irregular()` generates a new random pattern:
+
+```javascript
+import { irregular } from 'animejs';
+
+// Three different random patterns
+const pattern1 = irregular(10, 0.8);
+const pattern2 = irregular(10, 0.8);
+const pattern3 = irregular(10, 0.8);
+
+// All three will have different curves
+anime({ targets: '.box1', translateX: 250, easing: pattern1 });
+anime({ targets: '.box2', translateX: 250, easing: pattern2 });
+anime({ targets: '.box3', translateX: 250, easing: pattern3 });
+```
+
+<Note>
+If you need the same irregular pattern for multiple animations, create it once and reuse the function reference.
+</Note>
+
+## Combining with Other Animations
+
+```javascript
+import anime from 'animejs';
+import { irregular, spring } from 'animejs';
+
+// Irregular horizontal, spring vertical
+anime({
+  targets: '.butterfly',
+  translateX: {
+    value: 300,
+    easing: irregular(15, 0.7) // Random horizontal drift
+  },
+  translateY: {
+    value: -200,
+    easing: spring({ bounce: 0.4, duration: 800 }) // Bouncy upward
+  },
+  rotate: {
+    value: 180,
+    easing: irregular(10, 0.5) // Slight random rotation
+  },
+  duration: 2000
+});
+```
+
+## Implementation Details
+
+The irregular easing:
+
+1. **Generates random values** between evenly-spaced points
+2. **Ensures monotonicity** - values always increase (no backwards motion)
+3. **Blends** even spacing with randomness using the `randomness` parameter
+4. **Uses linear interpolation** via the `linear()` function
+
+Constraints:
+- First value is always 0
+- Last value is always 1
+- Each value must be ≥ previous value
+- Values are clamped between previous value and 1
+
+## Complete Example
+
+```javascript
+import anime from 'animejs';
+import { irregular } from 'animejs';
+
+// Glitchy hero text entrance
+class GlitchText {
+  constructor(element) {
+    this.element = element;
+    this.letters = element.textContent.split('').map(char => {
+      const span = document.createElement('span');
+      span.textContent = char;
+      span.style.display = 'inline-block';
+      return span;
+    });
+    element.textContent = '';
+    this.letters.forEach(span => element.appendChild(span));
+  }
+  
+  animate() {
+    // Each letter gets unique irregular timing
+    this.letters.forEach((letter, i) => {
+      anime({
+        targets: letter,
+        opacity: [0, 1],
+        translateY: [anime.random(-50, 50), 0],
+        translateX: [anime.random(-20, 20), 0],
+        rotate: [anime.random(-45, 45), 0],
+        easing: irregular(8, 0.9), // High randomness
+        duration: 800,
+        delay: i * 50
+      });
+    });
+  }
+}
+
+const title = new GlitchText(document.querySelector('.glitch-title'));
+title.animate();
+```
+
+## Performance Considerations
+
+- Irregular easings use `linear()` interpolation internally
+- More steps = more calculation points, but still efficient
+- Each irregular instance stores its own value array
+- Reuse easing functions when possible to save memory
+
+## See Also
+
+<CardGroup cols={2}>
+  <Card title="Steps" href="/easings/steps">
+    Uniform step-based animations
+  </Card>
+  <Card title="Linear" href="/easings/overview">
+    Custom piecewise linear easings
+  </Card>
+  <Card title="Custom Functions" href="/easings/custom">
+    Write your own random easing logic
+  </Card>
+</CardGroup>

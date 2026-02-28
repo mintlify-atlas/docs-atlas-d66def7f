@@ -1,0 +1,149 @@
+---
+title: Introduction to Anime.js
+description: A fast, multipurpose JavaScript animation library with a simple yet powerful API for CSS, SVG, DOM and JavaScript objects
+---
+
+Anime.js is a fast, multipurpose and lightweight JavaScript animation library with a simple, yet powerful API. It works with CSS properties, SVG, DOM attributes and JavaScript Objects.
+
+## What is Anime.js?
+
+Anime.js V4 is a modern animation engine that provides:
+
+<CardGroup cols={2}>
+  <Card title="Lightweight & Fast" icon="gauge-high">
+    Optimized performance with minimal overhead, capable of animating thousands of elements smoothly
+  </Card>
+  
+  <Card title="Flexible Targets" icon="bullseye">
+    Animate CSS properties, SVG attributes, DOM elements, and JavaScript objects with ease
+  </Card>
+  
+  <Card title="Powerful Easings" icon="wave-sine">
+    Built-in easings including cubic-bezier, spring physics, steps, and irregular timing functions
+  </Card>
+  
+  <Card title="Timeline System" icon="timeline">
+    Create complex animation sequences with precise timing control and synchronization
+  </Card>
+</CardGroup>
+
+## Key Features
+
+### Modular Architecture
+
+Anime.js V4 works with ES modules, allowing you to import only what you need:
+
+```javascript
+import { animate, createTimeline, stagger } from 'animejs';
+```
+
+You can also import specialized modules:
+
+```javascript
+import { spring } from 'animejs/easings/spring';
+import { createDrawable } from 'animejs/svg';
+import { createDraggable } from 'animejs/draggable';
+```
+
+### Animation Types
+
+<CardGroup cols={3}>
+  <Card title="Animations" icon="sparkles" href="/concepts/animations">
+    Simple one-off animations with rich property support
+  </Card>
+  
+  <Card title="Timelines" icon="timeline" href="/concepts/timelines">
+    Sequence multiple animations with precise timing
+  </Card>
+  
+  <Card title="Animatables" icon="hand-pointer" href="/modules/animatable">
+    Create interactive, controllable animation instances
+  </Card>
+</CardGroup>
+
+### Advanced Capabilities
+
+<CardGroup cols={2}>
+  <Card title="Stagger Effects" icon="grip-vertical">
+    Animate multiple elements with cascading delays and grid-based patterns
+  </Card>
+  
+  <Card title="SVG Support" icon="draw-polygon">
+    Path morphing, line drawing, and motion path animations
+  </Card>
+  
+  <Card title="Spring Physics" icon="arrows-spin">
+    Natural motion with realistic spring-based animations
+  </Card>
+  
+  <Card title="Scroll Animations" icon="arrow-down-up-across-line">
+    Sync animations to scroll position with precision
+  </Card>
+</CardGroup>
+
+## Browser Support
+
+Anime.js V4 works in all modern browsers:
+
+- Chrome/Edge (latest)
+- Firefox (latest)
+- Safari (latest)
+- Opera (latest)
+
+<Info>
+  Anime.js uses ES modules and modern JavaScript features. For older browser support, you may need to transpile your code.
+</Info>
+
+## Community & Support
+
+<CardGroup cols={2}>
+  <Card title="GitHub Repository" icon="github" href="https://github.com/juliangarnier/anime">
+    View source code, report issues, and contribute
+  </Card>
+  
+  <Card title="GitHub Sponsors" icon="heart" href="https://github.com/sponsors/juliangarnier">
+    Support the project's development
+  </Card>
+</CardGroup>
+
+## Version 4 Highlights
+
+Anime.js V4 introduces major improvements:
+
+- **Modular imports** - Tree-shakeable ES modules for smaller bundle sizes
+- **TypeScript support** - Full type definitions included
+- **Better performance** - Optimized rendering and memory usage
+- **New features** - Draggables, scope management, and layout utilities
+- **Enhanced composition** - Improved animation layering and blending
+
+<Warning>
+  If you're upgrading from V3, check the [migration guide](https://github.com/juliangarnier/anime/wiki/Migrating-from-v3-to-v4) for breaking changes.
+</Warning>
+
+## Next Steps
+
+<Steps>
+  <Step title="Install Anime.js">
+    Get started by installing the library via npm, yarn, pnpm, or CDN
+    
+    [Go to Installation →](/installation)
+  </Step>
+  
+  <Step title="Quick Start">
+    Create your first animation in minutes with a simple example
+    
+    [Go to Quick Start →](/quickstart)
+  </Step>
+  
+  <Step title="Explore Examples">
+    Learn from real-world examples and advanced techniques
+    
+    [View Examples →](/examples/basic-animations)
+  </Step>
+</Steps>
+
+## License
+
+Anime.js is released under the [MIT License](https://github.com/juliangarnier/anime/blob/master/LICENSE.md).
+
+Created by [Julian Garnier](http://juliangarnier.com)

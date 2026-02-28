@@ -1,0 +1,381 @@
+---
+title: Text Animations
+description: Create stunning text effects using Anime.js text splitting and character-by-character animations
+---
+
+## Text Splitting
+
+The `splitText()` function breaks text into animatable parts:
+
+```javascript
+import { splitText, animate, stagger } from 'animejs';
+
+// Split into characters
+const split = splitText('h1', {
+  chars: true
+});
+
+// Animate each character
+animate(split.chars, {
+  y: [-20, 0],
+  opacity: [0, 1],
+  duration: 800,
+  delay: stagger(50)
+});
+```
+
+## Split Options
+
+Control how text is split:
+
+```javascript
+import { splitText } from 'animejs';
+
+// Split into lines, words, and chars
+const split = splitText('p', {
+  lines: true,
+  words: true,
+  chars: true
+});
+
+// Access split elements
+console.log(split.lines);  // Array of line elements
+console.log(split.words);  // Array of word elements
+console.log(split.chars);  // Array of character elements
+```
+
+## Custom HTML Wrapping
+
+Wrap split elements with custom HTML:
+
+```javascript
+const split = splitText('h2', {
+  chars: {
+    class: 'char',
+    wrap: 'clip', // Wraps in overflow hidden container
+  }
+});
+
+// Custom template
+const split = splitText('h2', {
+  words: `<span class="word-{i}">{value}</span>`
+});
+```
+
+## Character Cloning
+
+Create layered text effects:
+
+```javascript
+import { splitText, animate, stagger, createTimeline } from 'animejs';
+
+const split = splitText('h2', {
+  chars: {
+    class: 'char',
+    clone: 'left',  // Clone character to the left
+    wrap: 'clip'
+  }
+});
+
+// Animate original and clone
+const tl = createTimeline({
+  defaults: {
+    ease: 'inOutQuad',
+    duration: 400
+  }
+});
+
+tl.add('.char > span', {
+  x: '100%'  // Slide cloned characters
+}, stagger(5, { use: 'data-char' }));
+```
+
+## Wavy Text Effect
+
+Create wave animations across text:
+
+```javascript
+import { splitText, animate, createTimeline, stagger } from 'animejs';
+
+const params = {
+  split: splitText('h2', { chars: true }),
+  strength: 0
+};
+
+const waveAnim = createTimeline()
+  .add(params.split.chars, {
+    y: ['-50%', '50%'],
+    duration: 500,
+    loop: true,
+    alternate: true,
+    ease: 'inOut(2)',
+    modifier: v => v * params.strength  // Control effect strength
+  }, stagger(50))
+  .seek(1000);
+
+// On hover
+element.addEventListener('pointerenter', () => {
+  animate(params, {
+    strength: 1,
+    onBegin: () => waveAnim.play()
+  });
+});
+
+element.addEventListener('pointerleave', () => {
+  animate(params, {
+    strength: 0,
+    onComplete: () => waveAnim.pause()
+  });
+});
+```
+
+## Raining Letters
+
+Letters fall into place:
+
+```javascript
+import { splitText, createTimeline, createSpring, stagger } from 'animejs';
+
+const split = splitText('h2', {
+  chars: {
+    class: 'char',
+    clone: 'top',  // Clone above
+    wrap: 'clip'
+  }
+});
+
+const ease = createSpring({
+  stiffness: 90,
+  damping: 11
+});
+
+createTi meline()
+  .add('.char > span', {
+    y: '100%',  // Drop down
+    composition: 'blend',
+    ease
+  }, stagger(10, { 
+    use: 'data-char',
+    from: 'random' 
+  }));
+```
+
+## Subtle Highlight Effect
+
+```javascript
+import { splitText, createTimeline, stagger, utils } from 'animejs';
+
+const { chars } = splitText('h2', { chars: true });
+
+// Set initial opacity
+utils.set(chars, { opacity: 0.25 });
+
+// Highlight on hover
+element.addEventListener('pointerenter', () => {
+  createTimeline()
+    .add(chars, {
+      opacity: 1,
+      textShadow: '0 0 30px rgba(255,255,255,.9)',
+      ease: 'out(3)',
+      duration: 350,
+      composition: 'blend'
+    }, stagger(12));
+});
+
+element.addEventListener('pointerleave', () => {
+  createTimeline()
+    .add(chars, {
+      opacity: 0.25,
+      textShadow: '0 0 0px rgba(255,255,255,0)',
+      ease: 'out(3)',
+      duration: 350,
+      composition: 'blend'
+    }, stagger(12));
+});
+```
+
+## 3D Word Flip
+
+Create 3D rotating word effects:
+
+```javascript
+import { splitText, createTimeline, stagger, animate } from 'animejs';
+
+splitText('h2', {
+  words: `<span class="word-3d word-{i}">
+    <em class="face face-top">{value}</em>
+    <em class="face-front">{value}</em>
+    <em class="face-bottom">{value}</em>
+    <em class="face-back">{value}</em>
+  </span>`
+});
+
+const wordStagger = stagger(50, { use: 'data-word', start: 0 });
+
+const rotateAnim = createTimeline({
+  autoplay: false,
+  defaults: { 
+    ease: 'inOut(2)',
+    duration: 750 
+  }
+})
+.add('.word-3d', { rotateX: -180 }, wordStagger)
+.add('.word-3d .face-top', { opacity: [0, 0, 0] }, wordStagger)
+.add('.word-3d .face-front', { opacity: [1, 0, 0] }, wordStagger)
+.add('.word-3d .face-bottom', { opacity: [0, 1, 0] }, wordStagger)
+.add('.word-3d .face-back', { opacity: [0, 0, 1] }, wordStagger);
+
+// Trigger animation
+element.addEventListener('pointerenter', () => {
+  animate(rotateAnim, { progress: 1 });
+});
+```
+
+## Exploding Characters
+
+```javascript
+import { splitText, createTimeline, utils, stagger } from 'animejs';
+
+const { chars } = splitText('h2', { chars: true });
+
+element.addEventListener('pointerenter', () => {
+  createTimeline()
+    .add(chars, {
+      x: {
+        to: () => utils.random(-3, 3) + 'rem',
+        duration: () => utils.random(150, 500)
+      },
+      y: () => utils.random(-5, 5) + 'rem',
+      rotate: () => utils.random(-180, 180),
+      duration: () => utils.random(200, 750),
+      ease: 'outCirc',
+      composition: 'blend'
+    }, stagger(5, { from: 'random' }));
+});
+
+element.addEventListener('pointerleave', () => {
+  createTimeline()
+    .add(chars, {
+      x: { to: 0, delay: 75 },
+      y: 0,
+      rotate: { to: 0, delay: 150 },
+      duration: () => utils.random(200, 400),
+      ease: 'inOut(2)',
+      composition: 'blend'
+    }, stagger(10, { from: 'random' }));
+});
+```
+
+## Revert Split Text
+
+Restore original text structure:
+
+```javascript
+import { splitText } from 'animejs';
+
+const split = splitText('p', {
+  lines: true,
+  words: true
+});
+
+// Later, restore original text
+button.addEventListener('click', () => {
+  split.revert();
+});
+```
+
+## Split Text Effects
+
+Add custom effects during or after splitting:
+
+```javascript
+import { splitText, createTimeline, stagger } from 'animejs';
+
+const split = splitText('p', {
+  lines: true
+});
+
+split.addEffect(split => {
+  // Return a timeline to sync with the split
+  return createTimeline({
+    defaults: {
+      alternate: true,
+      loop: true,
+      loopDelay: 75,
+      duration: 1500,
+      ease: 'inOutQuad'
+    }
+  })
+  .add(split.lines, {
+    color: { from: '#61C3FF' },
+    y: -10,
+    scale: 1.1
+  }, stagger(100, { start: 0 }))
+  .add(split.words, {
+    scale: [0.98, 1.04]
+  }, stagger(100, { use: 'data-line', start: 0 }))
+  .init();
+});
+```
+
+## Debug Mode
+
+Visualize split boundaries:
+
+```javascript
+const split = splitText('p', {
+  lines: true,
+  words: true,
+  chars: true
+});
+
+// Toggle debug visualization
+button.addEventListener('click', () => {
+  split.debug = !split.debug;
+  split.refresh();
+});
+```
+
+## Stagger by Line
+
+Stagger animations based on line position:
+
+```javascript
+import { splitText, animate, stagger } from 'animejs';
+
+const split = splitText('p', {
+  lines: true,
+  words: true
+});
+
+// Stagger words by their line
+animate(split.words, {
+  y: [20, 0],
+  opacity: [0, 1],
+  duration: 600,
+  delay: stagger(100, { 
+    use: 'data-line'  // Use line index for stagger
+  })
+});
+```
+
+## Performance Considerations
+
+<Warning>
+  Text splitting creates many DOM elements. For long text:
+  - Limit splitting to visible text
+  - Use `will-change: transform` sparingly
+  - Consider using `composition: 'replace'` for better performance
+  - Clean up with `split.revert()` when done
+</Warning>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Timelines" icon="clock" href="/examples/timelines">
+    Sequence text animations
+  </Card>
+  <Card title="Scroll Animations" icon="scroll" href="/examples/scroll-animations">
+    Trigger text effects on scroll
+  </Card>
+</CardGroup>

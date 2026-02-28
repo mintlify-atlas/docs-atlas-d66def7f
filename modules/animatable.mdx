@@ -1,0 +1,460 @@
+---
+title: Animatable
+description: Create reactive animation controllers that can be updated in real-time with smooth transitions
+---
+
+## Overview
+
+The Animatable module creates reactive animation controllers that allow you to dynamically update animated values with automatic smooth transitions. Perfect for interactive animations, game development, and UI that responds to user input.
+
+## Importing
+
+```javascript
+import { createAnimatable, Animatable } from 'animejs';
+```
+
+## Creating Animatables
+
+### createAnimatable()
+
+Create a reactive animation controller:
+
+```javascript
+const animatable = createAnimatable(targets, parameters);
+```
+
+**Parameters:**
+- `targets` - DOM elements or objects to animate
+- `parameters` - Configuration object defining animatable properties
+
+### Basic Example
+
+```javascript
+import { createAnimatable } from 'animejs';
+
+const box = createAnimatable('.box', {
+  translateX: 0,
+  translateY: 0,
+  scale: 1
+});
+
+// Later, smoothly transition to new values
+box.translateX(250);
+box.scale(1.5);
+```
+
+## Configuration
+
+### Property Definitions
+
+Define animatable properties with durations:
+
+```javascript
+const element = createAnimatable('.element', {
+  translateX: 500,   // Default duration (500ms)
+  translateY: 800,   // Another duration
+  rotate: 1000,      // 1 second duration
+  opacity: 300       // 300ms duration
+});
+```
+
+### Advanced Property Configuration
+
+Use object syntax for more control:
+
+```javascript
+const element = createAnimatable('.element', {
+  translateX: {
+    duration: 600,
+    unit: 'px',
+    modifier: (value) => Math.round(value)
+  },
+  scale: {
+    duration: 400,
+    composition: 'blend'
+  }
+});
+```
+
+<ParamField path="duration" type="number">
+  Transition duration in milliseconds
+</ParamField>
+
+<ParamField path="unit" type="string">
+  Unit to append to values (e.g., 'px', '%', 'deg')
+</ParamField>
+
+<ParamField path="modifier" type="function">
+  Function to modify values before rendering
+</ParamField>
+
+<ParamField path="composition" type="string">
+  Composition mode: 'replace', 'blend', or 'none'
+</ParamField>
+
+## Updating Values
+
+### Simple Updates
+
+Call property methods to animate to new values:
+
+```javascript
+const box = createAnimatable('.box', {
+  translateX: 500,
+  translateY: 500,
+  rotate: 800
+});
+
+// Animate to new values
+box.translateX(300);  // Animate to 300 over 500ms
+box.translateY(150);  // Animate to 150 over 500ms
+box.rotate(180);      // Animate to 180 over 800ms
+```
+
+### Chaining Updates
+
+Property methods return the animatable instance:
+
+```javascript
+const box = createAnimatable('.box', {
+  x: 500,
+  y: 500,
+  scale: 500
+});
+
+box.x(100)
+   .y(200)
+   .scale(1.5);
+```
+
+### Custom Duration and Easing
+
+Override duration and easing per update:
+
+```javascript
+const box = createAnimatable('.box', {
+  translateX: 500
+});
+
+// Update with custom duration
+box.translateX(300, 1000);
+
+// Update with custom duration and easing
+box.translateX(200, 800, 'inOutQuad');
+box.translateX(100, 600, 'spring');
+```
+
+## Reading Values
+
+### Get Current Value
+
+Call property method with no arguments:
+
+```javascript
+const box = createAnimatable('.box', {
+  translateX: 500,
+  scale: 500
+});
+
+box.translateX(200);
+
+// Get current value
+const currentX = box.translateX(); // Returns current animated value
+const currentScale = box.scale();
+```
+
+### Array Values
+
+For complex properties that return arrays:
+
+```javascript
+const element = createAnimatable('.element', {
+  transform: 500
+});
+
+// Set array of values
+element.transform([1, 0, 0, 1, 100, 200]);
+
+// Get current array
+const current = element.transform(); // Returns array
+```
+
+## Interactive Examples
+
+### Mouse Tracking
+
+```javascript
+const cursor = createAnimatable('.cursor', {
+  translateX: 300,
+  translateY: 300
+});
+
+document.addEventListener('mousemove', (e) => {
+  cursor.translateX(e.clientX);
+  cursor.translateY(e.clientY);
+});
+```
+
+### Scroll-Based Animation
+
+```javascript
+const parallax = createAnimatable('.parallax', {
+  translateY: 800
+});
+
+window.addEventListener('scroll', () => {
+  const scrollY = window.scrollY;
+  parallax.translateY(scrollY * 0.5); // Parallax effect
+});
+```
+
+### Gamepad/Joystick Input
+
+```javascript
+const player = createAnimatable('.player', {
+  translateX: 200,
+  translateY: 200,
+  rotate: 400
+});
+
+function updatePlayer(joystickX, joystickY, angle) {
+  player.translateX(joystickX * 500)
+        .translateY(joystickY * 500)
+        .rotate(angle);
+}
+```
+
+### Smooth Value Following
+
+```javascript
+const follower = createAnimatable('.follower', {
+  x: 800,
+  y: 800,
+  scale: 400
+});
+
+let targetX = 0;
+let targetY = 0;
+
+setInterval(() => {
+  // Smooth follow behavior
+  follower.x(targetX)
+          .y(targetY);
+}, 16);
+
+// Update target on interaction
+document.addEventListener('click', (e) => {
+  targetX = e.clientX;
+  targetY = e.clientY;
+});
+```
+
+## Global Callbacks
+
+Animatables support global callbacks:
+
+<ParamField path="onBegin" type="function">
+  Called when first property starts animating
+</ParamField>
+
+<ParamField path="onUpdate" type="function">
+  Called on every frame update
+</ParamField>
+
+<ParamField path="onComplete" type="function">
+  Called when all properties finish animating
+</ParamField>
+
+```javascript
+const box = createAnimatable('.box', {
+  translateX: 500,
+  translateY: 500,
+  
+  onBegin: () => {
+    console.log('Animation started');
+  },
+  
+  onUpdate: () => {
+    console.log('Updating...');
+  },
+  
+  onComplete: () => {
+    console.log('All animations complete');
+  }
+});
+
+box.translateX(200).translateY(300);
+```
+
+## Animatable Properties
+
+<ResponseField name="targets" type="array">
+  Array of target elements/objects
+</ResponseField>
+
+<ResponseField name="animations" type="object">
+  Object containing animation instances for each property
+</ResponseField>
+
+<ResponseField name="callbacks" type="object">
+  Animation instance managing global callbacks
+</ResponseField>
+
+```javascript
+const box = createAnimatable('.box', {
+  x: 500,
+  y: 500
+});
+
+console.log(box.targets);     // [HTMLElement]
+console.log(box.animations);  // { x: Animation, y: Animation }
+```
+
+## Revert and Cleanup
+
+### .revert()
+
+Cleanup animatable and revert all animations:
+
+```javascript
+const box = createAnimatable('.box', {
+  translateX: 500,
+  translateY: 500
+});
+
+box.translateX(200).translateY(100);
+
+// Later, cleanup
+box.revert();
+
+// Properties are now noop functions
+box.translateX(300); // Does nothing
+```
+
+## Advanced Usage
+
+### Multiple Targets
+
+```javascript
+const boxes = createAnimatable('.box', {
+  scale: 400,
+  rotate: 600
+});
+
+// All .box elements animate together
+boxes.scale(1.5).rotate(90);
+```
+
+### Custom Modifiers
+
+```javascript
+const counter = createAnimatable('.counter', {
+  textContent: {
+    duration: 2000,
+    modifier: (value) => Math.floor(value)
+  }
+});
+
+counter.textContent(100); // Counts from 0 to 100
+```
+
+### Mixed Units
+
+```javascript
+const element = createAnimatable('.element', {
+  width: { duration: 500, unit: 'px' },
+  height: { duration: 500, unit: '%' },
+  rotate: { duration: 800, unit: 'deg' }
+});
+
+element.width(300)    // 300px
+       .height(50)    // 50%
+       .rotate(180);  // 180deg
+```
+
+## Performance Tips
+
+<Tip>
+  Animatables are optimized for frequent updates. Each property has its own animation instance, allowing independent timing.
+</Tip>
+
+<Warning>
+  Avoid creating animatables in loops or on every frame. Create once and reuse.
+</Warning>
+
+```javascript
+// Good: Create once
+const player = createAnimatable('.player', {
+  x: 200,
+  y: 200
+});
+
+function update(newX, newY) {
+  player.x(newX).y(newY);
+}
+
+// Bad: Creating every frame
+function update(newX, newY) {
+  // Don't do this!
+  const player = createAnimatable('.player', { x: 200, y: 200 });
+  player.x(newX).y(newY);
+}
+```
+
+## Complete Example
+
+```javascript
+import { createAnimatable } from 'animejs';
+
+// Create animatable with multiple properties
+const spaceship = createAnimatable('.spaceship', {
+  translateX: { duration: 200, unit: 'px' },
+  translateY: { duration: 200, unit: 'px' },
+  rotate: { duration: 400, unit: 'deg' },
+  scale: { duration: 300 },
+  
+  onUpdate: () => {
+    // Update game state
+  },
+  
+  onComplete: () => {
+    console.log('Movement complete');
+  }
+});
+
+// Keyboard controls
+document.addEventListener('keydown', (e) => {
+  const current = {
+    x: spaceship.translateX(),
+    y: spaceship.translateY(),
+    angle: spaceship.rotate()
+  };
+  
+  switch(e.key) {
+    case 'ArrowUp':
+      spaceship.translateY(current.y - 50);
+      break;
+    case 'ArrowDown':
+      spaceship.translateY(current.y + 50);
+      break;
+    case 'ArrowLeft':
+      spaceship.translateX(current.x - 50)
+               .rotate(current.angle - 15);
+      break;
+    case 'ArrowRight':
+      spaceship.translateX(current.x + 50)
+               .rotate(current.angle + 15);
+      break;
+    case ' ':
+      spaceship.scale(1.2, 100, 'outQuad');
+      setTimeout(() => spaceship.scale(1, 100), 100);
+      break;
+  }
+});
+```
+
+## Related
+
+- [Animation](/modules/animation) - Core animation functionality
+- [Draggable](/modules/draggable) - Drag and drop interactions
+- [Timeline](/modules/timeline) - Sequencing animations

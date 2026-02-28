@@ -1,0 +1,386 @@
+---
+title: SVG Utilities
+description: Utilities for animating SVG paths, drawing effects, and morphing
+---
+
+Anime.js provides powerful utilities for working with SVG elements, including motion path animation, drawable stroke effects, and shape morphing.
+
+## createMotionPath()
+
+Creates properties for animating an element along an SVG path with automatic rotation.
+
+### Syntax
+
+```js
+createMotionPath(path, offset)
+```
+
+### Parameters
+
+<ParamField path="path" type="String | SVGGeometryElement" required>
+  CSS selector, SVG path element, or any SVG geometry element to follow
+</ParamField>
+
+<ParamField path="offset" type="Number" default="0">
+  Offset along the path (normalized 0-1). Use negative values to start before the path beginning.
+</ParamField>
+
+### Returns
+
+<ResponseField type="Object">
+  An object with properties for motion path animation:
+  
+  ```ts
+  {
+    translateX: FunctionValue,
+    translateY: FunctionValue,
+    rotate: FunctionValue
+  }
+  ```
+  
+  - `translateX`: X position along the path
+  - `translateY`: Y position along the path
+  - `rotate`: Rotation angle tangent to the path (in degrees)
+</ResponseField>
+
+### Examples
+
+#### Basic Motion Path
+
+```js
+import anime, { createMotionPath } from 'animejs';
+
+const path = createMotionPath('#motion-path');
+
+anime({
+  targets: '.ball',
+  ...path,
+  duration: 3000,
+  easing: 'linear'
+});
+```
+
+#### Motion Path Without Rotation
+
+```js
+const path = createMotionPath('#motion-path');
+
+anime({
+  targets: '.ball',
+  translateX: path.translateX,
+  translateY: path.translateY,
+  // Omit rotate to keep element upright
+  duration: 3000
+});
+```
+
+#### Motion Path with Offset
+
+```js
+// Start 25% along the path
+const path = createMotionPath('#motion-path', 0.25);
+
+anime({
+  targets: '.ball',
+  ...path,
+  duration: 2000
+});
+```
+
+#### Staggered Motion Path
+
+```js
+const path = createMotionPath('#motion-path');
+
+anime({
+  targets: '.ball',
+  ...path,
+  delay: anime.stagger(200),
+  duration: 3000
+});
+```
+
+### Notes
+
+- Works with any SVG geometry element: `<path>`, `<circle>`, `<rect>`, `<ellipse>`, `<line>`, `<polyline>`, `<polygon>`
+- Automatically handles coordinate transformation for both SVG and HTML elements
+- The `rotate` property aligns the element tangent to the path direction
+- Uses `getPointAtLength()` and `getTotalLength()` SVG APIs internally
+
+### Source
+
+Defined in: `/home/daytona/workspace/source/src/svg/motionpath.js:80`
+
+---
+
+## createDrawable()
+
+Creates drawable proxies for SVG elements with animated stroke drawing effects.
+
+### Syntax
+
+```js
+createDrawable(selector, start, end)
+```
+
+### Parameters
+
+<ParamField path="selector" type="String | SVGGeometryElement | Array" required>
+  CSS selector, SVG element(s), or array of elements to make drawable
+</ParamField>
+
+<ParamField path="start" type="Number" default="0">
+  Starting position of the stroke (0-1 range)
+</ParamField>
+
+<ParamField path="end" type="Number" default="0">
+  Ending position of the stroke (0-1 range)
+</ParamField>
+
+### Returns
+
+<ResponseField type="Array<DrawableSVGGeometry>">
+  Array of proxied SVG elements with a special `draw` attribute for animation.
+  
+  The `draw` attribute accepts space-separated values: `"start end"`
+  - `0 0`: Nothing drawn
+  - `0 1`: Fully drawn
+  - `0 0.5`: Half drawn from start
+  - `0.5 1`: Half drawn from middle to end
+</ResponseField>
+
+### Examples
+
+#### Basic Draw Animation
+
+```js
+import anime, { createDrawable } from 'animejs';
+
+const drawable = createDrawable('#path');
+
+anime({
+  targets: drawable,
+  draw: '0 1', // Draw from 0% to 100%
+  duration: 2000,
+  easing: 'easeInOutQuad'
+});
+```
+
+#### Reveal Effect
+
+```js
+const paths = createDrawable('.signature path', 0, 0);
+
+anime({
+  targets: paths,
+  draw: ['0 0', '0 1'], // From nothing to fully drawn
+  delay: anime.stagger(300),
+  duration: 1500,
+  easing: 'easeOutCubic'
+});
+```
+
+#### Write and Erase Effect
+
+```js
+const drawable = createDrawable('#text-path');
+
+const timeline = anime.timeline();
+
+timeline
+  .add({
+    targets: drawable,
+    draw: '0 1', // Draw
+    duration: 1500,
+    easing: 'easeInOutQuad'
+  })
+  .add({
+    targets: drawable,
+    draw: '1 1', // Erase from start
+    duration: 1500,
+    easing: 'easeInOutQuad'
+  });
+```
+
+#### Partial Draw Animation
+
+```js
+const drawable = createDrawable('.line');
+
+anime({
+  targets: drawable,
+  draw: [
+    '0 0',     // Start: nothing
+    '0 0.5',   // First half appears
+    '0.5 1',   // Move to second half
+    '1 1'      // End: nothing (erased from start)
+  ],
+  duration: 4000,
+  easing: 'linear'
+});
+```
+
+### How It Works
+
+The `createDrawable()` function:
+
+1. Sets `pathLength="1000"` on the SVG element for normalized calculations
+2. Returns a proxy that intercepts `setAttribute('draw', value)` calls
+3. Converts the `draw` value to `stroke-dashoffset` and `stroke-dasharray`
+4. Handles `stroke-linecap` automatically (switches to `butt` when start equals end)
+5. Accounts for `vector-effect="non-scaling-stroke"` and CTM transforms
+
+### Notes
+
+- Works with any SVG geometry element with a stroke
+- Does not modify the original SVG structure, only CSS properties
+- Compatible with responsive/scaled SVG elements
+- Automatically handles stroke linecap for smooth animations
+
+### Source
+
+Defined in: `/home/daytona/workspace/source/src/svg/drawable.js:111`
+
+---
+
+## morphTo()
+
+Creates a morph animation value that transforms one SVG shape into another.
+
+### Syntax
+
+```js
+morphTo(targetPath, precision)
+```
+
+### Parameters
+
+<ParamField path="targetPath" type="String | SVGGeometryElement" required>
+  CSS selector or SVG element to morph into. Supports `<path>`, `<polygon>`, and `<polyline>` elements.
+</ParamField>
+
+<ParamField path="precision" type="Number" default="0.33">
+  Controls the number of interpolation points based on path length.
+  
+  - Higher values = smoother morph but more points
+  - `0` = Use raw path data (no interpolation)
+  - Typical range: `0.1` to `1`
+</ParamField>
+
+### Returns
+
+<ResponseField type="Function">
+  A function value that generates morph data for the animation:
+  
+  ```ts
+  (sourceElement) => [fromPath, toPath]
+  ```
+</ResponseField>
+
+### Examples
+
+#### Basic Morph
+
+```js
+import anime, { morphTo } from 'animejs';
+
+anime({
+  targets: '#shape1',
+  d: morphTo('#shape2'),
+  duration: 1500,
+  easing: 'easeInOutQuad'
+});
+```
+
+#### Morph with Custom Precision
+
+```js
+// Higher precision for smoother morph
+anime({
+  targets: '#circle',
+  d: morphTo('#star', 0.8),
+  duration: 2000
+});
+
+// Lower precision for performance
+anime({
+  targets: '#simple-shape',
+  d: morphTo('#other-shape', 0.2),
+  duration: 1000
+});
+```
+
+#### Polygon Morph
+
+```js
+anime({
+  targets: '#polygon1',
+  points: morphTo('#polygon2'),
+  duration: 1500,
+  easing: 'easeInOutCubic'
+});
+```
+
+#### Morph with Timeline
+
+```js
+const tl = anime.timeline({
+  easing: 'easeInOutQuad',
+  duration: 1000
+});
+
+tl
+  .add({
+    targets: '#morphing-shape',
+    d: morphTo('#shape-a')
+  })
+  .add({
+    targets: '#morphing-shape',
+    d: morphTo('#shape-b')
+  })
+  .add({
+    targets: '#morphing-shape',
+    d: morphTo('#shape-c')
+  });
+```
+
+#### Bidirectional Morph
+
+```js
+anime({
+  targets: '#shape',
+  d: [
+    morphTo('#target1'),
+    morphTo('#target2'),
+    morphTo('#target1')
+  ],
+  duration: 4000,
+  loop: true
+});
+```
+
+### How It Works
+
+1. Calculates the total length of both source and target paths
+2. Generates interpolation points along both paths based on `precision`
+3. Creates matching point arrays for smooth morphing
+4. Returns path data as `[fromPath, toPath]` for animation
+5. Caches morph data on the element for consistent animations
+
+### Supported Elements
+
+- `<path>` (animates `d` attribute)
+- `<polygon>` (animates `points` attribute)
+- `<polyline>` (animates `points` attribute)
+
+### Notes
+
+- Both shapes must be the same element type
+- The function interpolates points to ensure smooth morphing
+- Higher precision values improve visual quality but increase computation
+- Morph data is cached to maintain consistency across multiple animations
+- For best results, use shapes with similar complexity
+
+### Source
+
+Defined in: `/home/daytona/workspace/source/src/svg/morphto.js:25`

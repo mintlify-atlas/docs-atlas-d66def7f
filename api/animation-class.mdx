@@ -1,0 +1,483 @@
+---
+title: Animation Class
+description: The JSAnimation class for creating and controlling animations
+---
+
+The `JSAnimation` class (exported as part of Anime.js) represents an animation instance. It extends the `Timer` class and provides methods for controlling animation playback, modifying properties, and responding to animation events.
+
+## Constructor
+
+```typescript
+class JSAnimation extends Timer {
+  constructor(
+    targets: TargetsParam,
+    parameters: AnimationParams,
+    parent?: Timeline,
+    parentPosition?: number,
+    fastSet?: boolean,
+    index?: number,
+    length?: number
+  )
+}
+```
+
+<Note>
+  In most cases, you should use the [`animate()`](/api/animate) function instead of instantiating `JSAnimation` directly.
+</Note>
+
+## Properties
+
+### targets
+
+```typescript
+targets: TargetsArray
+```
+
+Array of all targets being animated by this animation instance.
+
+### id
+
+```typescript
+id: string | number
+```
+
+Unique identifier for the animation. Can be set via parameters or auto-generated.
+
+### duration
+
+```typescript
+duration: number
+```
+
+Total duration of the animation in milliseconds, including all loops.
+
+### iterationDuration
+
+```typescript
+iterationDuration: number
+```
+
+Duration of a single iteration (one loop) of the animation in milliseconds.
+
+### iterationCount
+
+```typescript
+iterationCount: number
+```
+
+Number of times the animation will loop. `Infinity` for infinite loops.
+
+### paused
+
+```typescript
+paused: boolean
+```
+
+Whether the animation is currently paused.
+
+### completed
+
+```typescript
+completed: boolean
+```
+
+Whether the animation has completed.
+
+### began
+
+```typescript
+began: boolean
+```
+
+Whether the animation has begun playing.
+
+### reversed
+
+```typescript
+reversed: boolean
+```
+
+Whether the animation is playing in reverse.
+
+### currentTime
+
+```typescript
+currentTime: number
+```
+
+Current time position of the animation in milliseconds. Can be set to seek to a specific time.
+
+### progress
+
+```typescript
+progress: number
+```
+
+Current progress of the animation as a value between 0 and 1. Can be set to seek to a specific progress point.
+
+### iterationProgress
+
+```typescript
+iterationProgress: number
+```
+
+Progress of the current iteration as a value between 0 and 1.
+
+### currentIteration
+
+```typescript
+currentIteration: number
+```
+
+The current iteration (loop) index, starting from 0.
+
+## Methods
+
+### play()
+
+Starts or resumes the animation.
+
+```typescript
+play(): this
+```
+
+**Returns:** The animation instance for chaining.
+
+**Example:**
+```javascript
+const anim = animate('.box', {
+  translateX: 250,
+  autoplay: false
+});
+
+anim.play();
+```
+
+### pause()
+
+Pauses the animation.
+
+```typescript
+pause(): this
+```
+
+**Returns:** The animation instance for chaining.
+
+**Example:**
+```javascript
+const anim = animate('.box', { translateX: 250 });
+
+setTimeout(() => {
+  anim.pause();
+}, 500);
+```
+
+### restart()
+
+Restarts the animation from the beginning.
+
+```typescript
+restart(): this
+```
+
+**Returns:** The animation instance for chaining.
+
+**Example:**
+```javascript
+const anim = animate('.box', { translateX: 250 });
+
+button.addEventListener('click', () => {
+  anim.restart();
+});
+```
+
+### reverse()
+
+Reverses the animation direction and plays.
+
+```typescript
+reverse(): this
+```
+
+**Returns:** The animation instance for chaining.
+
+**Example:**
+```javascript
+const anim = animate('.box', { translateX: 250 });
+
+anim.reverse();
+```
+
+### seek()
+
+Seeks to a specific time in the animation.
+
+```typescript
+seek(
+  time: number,
+  muteCallbacks?: boolean | number,
+  internalRender?: boolean | number
+): this
+```
+
+<ParamField path="time" type="number" required>
+  The time position to seek to in milliseconds
+</ParamField>
+
+<ParamField path="muteCallbacks" type="boolean | number" default="false">
+  Whether to suppress callback execution during seek
+</ParamField>
+
+<ParamField path="internalRender" type="boolean | number" default="false">
+  Internal rendering flag
+</ParamField>
+
+**Returns:** The animation instance for chaining.
+
+**Example:**
+```javascript
+const anim = animate('.box', {
+  translateX: 250,
+  duration: 1000,
+  autoplay: false
+});
+
+anim.seek(500); // Seek to 50% complete
+```
+
+### cancel()
+
+Cancels the animation and removes it from the animation engine.
+
+```typescript
+cancel(): this
+```
+
+**Returns:** The animation instance for chaining.
+
+**Example:**
+```javascript
+const anim = animate('.box', { translateX: 250 });
+
+anim.cancel();
+```
+
+### revert()
+
+Cancels the animation and reverts all animated properties to their original values.
+
+```typescript
+revert(): this
+```
+
+**Returns:** The animation instance for chaining.
+
+**Example:**
+```javascript
+const anim = animate('.box', {
+  translateX: 250,
+  scale: 2
+});
+
+// Later, revert back to original state
+anim.revert();
+```
+
+### complete()
+
+Immediately completes the animation, jumping to the end state.
+
+```typescript
+complete(muteCallbacks?: boolean | number): this
+```
+
+<ParamField path="muteCallbacks" type="boolean | number" default="false">
+  Whether to suppress the onComplete callback
+</ParamField>
+
+**Returns:** The animation instance for chaining.
+
+**Example:**
+```javascript
+const anim = animate('.box', { translateX: 250, duration: 2000 });
+
+anim.complete(); // Jump to end immediately
+```
+
+### stretch()
+
+Stretches or compresses the animation duration.
+
+```typescript
+stretch(newDuration: number): this
+```
+
+<ParamField path="newDuration" type="number" required>
+  The new duration in milliseconds
+</ParamField>
+
+**Returns:** The animation instance for chaining.
+
+**Example:**
+```javascript
+const anim = animate('.box', {
+  translateX: 250,
+  duration: 1000
+});
+
+// Make it twice as slow
+anim.stretch(2000);
+```
+
+### refresh()
+
+Refreshes function-based values in the animation. Useful when you need to recalculate values based on changed conditions.
+
+```typescript
+refresh(): this
+```
+
+**Returns:** The animation instance for chaining.
+
+**Example:**
+```javascript
+let endValue = 250;
+
+const anim = animate('.box', {
+  translateX: () => endValue,
+  duration: 1000,
+  loop: true
+});
+
+// Change the end value and refresh
+endValue = 500;
+anim.refresh();
+```
+
+### reset()
+
+Resets the animation to its initial state.
+
+```typescript
+reset(softReset?: boolean): this
+```
+
+<ParamField path="softReset" type="boolean" default="false">
+  Whether to perform a soft reset (internal use)
+</ParamField>
+
+**Returns:** The animation instance for chaining.
+
+### then()
+
+Returns a Promise that resolves when the animation completes. Enables async/await syntax.
+
+```typescript
+then(callback?: (anim: JSAnimation) => void): Promise<JSAnimation>
+```
+
+<ParamField path="callback" type="(anim: JSAnimation) => void">
+  Optional callback to execute when the animation completes
+</ParamField>
+
+**Returns:** A Promise that resolves with the animation instance.
+
+**Example:**
+```javascript
+// Using .then()
+animate('.box', { translateX: 250 })
+  .then(anim => {
+    console.log('Animation completed!');
+    return animate('.box', { translateY: 250 });
+  })
+  .then(anim => {
+    console.log('Second animation completed!');
+  });
+
+// Using async/await
+async function animateSequence() {
+  await animate('.box', { translateX: 250 });
+  console.log('First animation done');
+  
+  await animate('.box', { translateY: 250 });
+  console.log('Second animation done');
+}
+```
+
+## Callback Properties
+
+### onBegin
+
+```typescript
+onBegin: (anim: JSAnimation) => void
+```
+
+Called when the animation begins.
+
+### onUpdate
+
+```typescript
+onUpdate: (anim: JSAnimation) => void
+```
+
+Called on every animation frame.
+
+### onComplete
+
+```typescript
+onComplete: (anim: JSAnimation) => void
+```
+
+Called when the animation completes.
+
+### onLoop
+
+```typescript
+onLoop: (anim: JSAnimation) => void
+```
+
+Called when the animation loops.
+
+### onRender
+
+```typescript
+onRender: (anim: JSAnimation) => void
+```
+
+Called when the animation renders to the DOM.
+
+## Example: Full Control
+
+```javascript
+import { animate } from 'animejs';
+
+const anim = animate('.box', {
+  translateX: 250,
+  duration: 1000,
+  autoplay: false,
+  onBegin: (anim) => console.log('Started'),
+  onUpdate: (anim) => console.log('Progress:', anim.progress),
+  onComplete: (anim) => console.log('Completed')
+});
+
+// Control buttons
+document.querySelector('#play').onclick = () => anim.play();
+document.querySelector('#pause').onclick = () => anim.pause();
+document.querySelector('#restart').onclick = () => anim.restart();
+document.querySelector('#reverse').onclick = () => anim.reverse();
+
+// Seek slider
+document.querySelector('#slider').oninput = (e) => {
+  anim.seek(anim.duration * (e.target.value / 100));
+};
+
+// Check state
+console.log('Is paused:', anim.paused);
+console.log('Current time:', anim.currentTime);
+console.log('Progress:', anim.progress);
+```
+
+## Related
+
+- [animate()](/api/animate) - Function to create animations
+- [Animation Parameters](/api/animation-parameters) - Parameter reference

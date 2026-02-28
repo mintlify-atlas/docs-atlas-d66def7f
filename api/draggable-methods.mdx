@@ -1,0 +1,413 @@
+---
+title: Draggable Methods
+description: Methods for controlling and managing draggable instances, including position updates, state management, and lifecycle control.
+---
+
+## Position Methods
+
+### setX()
+
+Set the x position of the draggable element.
+
+```javascript
+draggable.setX(x, muteUpdateCallback?)
+```
+
+<ParamField path="x" type="number" required>
+  Target x position in pixels.
+</ParamField>
+
+<ParamField path="muteUpdateCallback" type="boolean" default="false">
+  If `true`, prevents the `onUpdate` callback from firing.
+</ParamField>
+
+**Returns:** `this` - The Draggable instance for method chaining.
+
+#### Example
+
+```javascript
+draggable.setX(100); // Set x to 100px, triggers onUpdate
+draggable.setX(200, true); // Set x to 200px, silent update
+```
+
+### setY()
+
+Set the y position of the draggable element.
+
+```javascript
+draggable.setY(y, muteUpdateCallback?)
+```
+
+<ParamField path="y" type="number" required>
+  Target y position in pixels.
+</ParamField>
+
+<ParamField path="muteUpdateCallback" type="boolean" default="false">
+  If `true`, prevents the `onUpdate` callback from firing.
+</ParamField>
+
+**Returns:** `this` - The Draggable instance for method chaining.
+
+#### Example
+
+```javascript
+draggable.setY(150); // Set y to 150px, triggers onUpdate
+draggable.setY(300, true); // Set y to 300px, silent update
+```
+
+## Scroll Methods
+
+### scrollInView()
+
+Scrolls the container to bring the draggable element into view.
+
+```javascript
+draggable.scrollInView(duration?, gap?, ease?)
+```
+
+<ParamField path="duration" type="number" default="350">
+  Duration of the scroll animation in milliseconds.
+</ParamField>
+
+<ParamField path="gap" type="number" default="0">
+  Gap in pixels between the element and the scroll boundary.
+</ParamField>
+
+<ParamField path="ease" type="EasingParam" default="eases.inOutQuad">
+  Easing function for the scroll animation.
+</ParamField>
+
+**Returns:** `this` - The Draggable instance for method chaining.
+
+#### Example
+
+```javascript
+// Scroll element into view with defaults
+draggable.scrollInView();
+
+// Custom duration and gap
+draggable.scrollInView(500, 20);
+
+// With custom easing
+draggable.scrollInView(600, 10, 'outQuad');
+```
+
+### animateInView()
+
+Animates the draggable element back into the container bounds if it's out of view.
+
+```javascript
+draggable.animateInView(duration?, gap?, ease?)
+```
+
+<ParamField path="duration" type="number" default="350">
+  Duration of the animation in milliseconds.
+</ParamField>
+
+<ParamField path="gap" type="number" default="0">
+  Gap in pixels from the container edges.
+</ParamField>
+
+<ParamField path="ease" type="EasingParam" default="eases.inOutQuad">
+  Easing function for the animation.
+</ParamField>
+
+**Returns:** `this` - The Draggable instance for method chaining.
+
+#### Example
+
+```javascript
+// Animate back into view
+draggable.animateInView();
+
+// With custom settings
+draggable.animateInView(800, 15, 'outElastic');
+```
+
+## State Management
+
+### enable()
+
+Enables the draggable functionality and event listeners.
+
+```javascript
+draggable.enable()
+```
+
+**Returns:** `this` - The Draggable instance for method chaining.
+
+#### Example
+
+```javascript
+const draggable = new Draggable('.box');
+draggable.enable(); // Dragging is now active
+```
+
+### disable()
+
+Disables the draggable functionality and removes event listeners. The element can no longer be dragged.
+
+```javascript
+draggable.disable()
+```
+
+**Returns:** `this` - The Draggable instance for method chaining.
+
+#### Example
+
+```javascript
+draggable.disable(); // Dragging is now disabled
+```
+
+### stop()
+
+Stops all active animations and momentum scrolling.
+
+```javascript
+draggable.stop()
+```
+
+**Returns:** `this` - The Draggable instance for method chaining.
+
+#### Example
+
+```javascript
+// Stop all movement immediately
+draggable.stop();
+```
+
+### reset()
+
+Resets the draggable to its initial state (position 0, 0) and clears all state.
+
+```javascript
+draggable.reset()
+```
+
+**Returns:** `this` - The Draggable instance for method chaining.
+
+#### Example
+
+```javascript
+// Reset to origin
+draggable.reset();
+```
+
+### revert()
+
+Completely reverts the draggable instance:
+- Resets position and state
+- Disables dragging
+- Removes all event listeners
+- Disconnects resize observer
+- Cleans up internal animations
+
+```javascript
+draggable.revert()
+```
+
+**Returns:** `this` - The Draggable instance for method chaining.
+
+#### Example
+
+```javascript
+// Clean up draggable completely
+draggable.revert();
+```
+
+## Update Methods
+
+### refresh()
+
+Refreshes all internal calculations and parameters. Call this if:
+- Container size changes
+- Parameters need to be recalculated
+- Element position is modified externally
+
+```javascript
+draggable.refresh()
+```
+
+This method recalculates:
+- Container and target bounds
+- Scroll boundaries
+- Snap points
+- All dynamic parameters (functions are re-evaluated)
+
+#### Example
+
+```javascript
+// Window resize handler
+window.addEventListener('resize', () => {
+  draggable.refresh();
+});
+
+// After changing container
+draggable.parameters.container = '.new-container';
+draggable.refresh();
+```
+
+### updateBoundingValues()
+
+Updates all bounding boxes and dimensions. This is called automatically by `refresh()` but can be called manually for performance-critical updates.
+
+```javascript
+draggable.updateBoundingValues()
+```
+
+## Factory Function
+
+### createDraggable()
+
+Factory function to create a Draggable instance. This is a convenience wrapper around the Draggable constructor.
+
+```javascript
+createDraggable(target, parameters?)
+```
+
+<ParamField path="target" type="TargetsParam" required>
+  Element to make draggable. Can be:
+  - CSS selector string
+  - DOM element
+  - JavaScript object
+</ParamField>
+
+<ParamField path="parameters" type="DraggableParams">
+  Configuration object for draggable behavior.
+</ParamField>
+
+**Returns:** `Draggable` - A new Draggable instance.
+
+#### Example
+
+```javascript
+import { createDraggable } from 'anime';
+
+const draggable = createDraggable('.box', {
+  container: '.container',
+  snap: 50,
+  onDrag: (self) => {
+    console.log('Dragging:', self.x, self.y);
+  }
+});
+```
+
+## Advanced Examples
+
+### Programmatic Control
+
+```javascript
+const draggable = createDraggable('.box', {
+  container: '.container',
+  snap: 100
+});
+
+// Move to specific position
+draggable.setX(200);
+draggable.setY(150);
+
+// Or use direct assignment
+draggable.x = 200;
+draggable.y = 150;
+
+// Get current position
+console.log('Position:', draggable.x, draggable.y);
+
+// Get progress (0-1 within container)
+console.log('Progress:', draggable.progressX, draggable.progressY);
+```
+
+### Conditional Dragging
+
+```javascript
+const draggable = createDraggable('.box');
+
+// Disable/enable based on condition
+const checkbox = document.querySelector('#enable-drag');
+checkbox.addEventListener('change', (e) => {
+  if (e.target.checked) {
+    draggable.enable();
+  } else {
+    draggable.disable();
+  }
+});
+```
+
+### Sync Multiple Draggables
+
+```javascript
+const draggable1 = createDraggable('.box1', {
+  y: false, // Only horizontal
+  onDrag: (self) => {
+    // Sync position to another element
+    draggable2.setX(self.x, true);
+  }
+});
+
+const draggable2 = createDraggable('.box2', {
+  y: false
+});
+```
+
+### Bounds and Constraints
+
+```javascript
+const draggable = createDraggable('.box', {
+  container: [0, 400, 300, 0], // [top, right, bottom, left]
+  containerPadding: [10, 10, 10, 10],
+  onUpdate: (self) => {
+    // Check if out of bounds
+    const ob = self.isOutOfBounds(
+      self.containerBounds,
+      self.x,
+      self.y
+    );
+    
+    if (ob) {
+      console.log('Out of bounds!');
+      // Animate back in
+      self.animateInView(400);
+    }
+  }
+});
+```
+
+### Dynamic Snap Points
+
+```javascript
+const draggable = createDraggable('.slider', {
+  y: false,
+  snap: (self) => {
+    // Generate snap points dynamically
+    const points = [];
+    for (let i = 0; i <= 400; i += 50) {
+      points.push(i);
+    }
+    return points;
+  },
+  onSnap: (self) => {
+    console.log('Snapped to:', self.x);
+  }
+});
+```
+
+### Cleanup
+
+```javascript
+const draggable = createDraggable('.box');
+
+// Later, clean up completely
+function cleanup() {
+  draggable.revert();
+}
+
+// Or just reset without removing
+function resetPosition() {
+  draggable.reset();
+}
+```
+
+## See Also
+
+- [Draggable Class](/api/draggable-class)
+- [Animatable Class](/api/animatable-class)

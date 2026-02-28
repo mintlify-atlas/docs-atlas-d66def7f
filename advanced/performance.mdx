@@ -1,0 +1,470 @@
+---
+title: 'Performance Optimization'
+description: 'Optimize animations for smooth 60fps performance'
+---
+
+Learn how to create high-performance animations with Anime.js.
+
+## Engine Architecture
+
+Anime.js uses a single, shared animation engine that manages all active animations.
+
+### Request Animation Frame
+
+The engine uses `requestAnimationFrame` for optimal timing:
+
+```javascript
+import { engine } from 'animejs';
+
+// Engine automatically starts when needed
+console.log('Engine running:', !engine.paused);
+
+// Manually control engine
+engine.pause();
+engine.resume();
+```
+
+### Frame Rate Control
+
+```javascript
+import { animate } from 'animejs';
+
+// Limit to 30fps for non-critical animations
+animate('.background', {
+  translateY: 100,
+  duration: 2000,
+  frameRate: 30
+});
+```
+
+<Note>
+  Lower frame rates reduce CPU usage but may appear less smooth. Use for background or ambient animations.
+</Note>
+
+## Transform Performance
+
+Transforms are GPU-accelerated and perform best.
+
+### Prefer Transforms
+
+```javascript
+// ❌ Avoid (triggers layout)
+animate('.box', {
+  left: 200,
+  top: 100,
+  duration: 1000
+});
+
+// ✅ Better (GPU accelerated)
+animate('.box', {
+  translateX: 200,
+  translateY: 100,
+  duration: 1000
+});
+```
+
+### Transform Priority
+
+<Steps>
+  <Step title="Use translate instead of left/top">
+    ```javascript
+    translateX: 100  // GPU
+    left: 100        // CPU + layout
+    ```
+  </Step>
+  
+  <Step title="Use scale instead of width/height">
+    ```javascript
+    scale: 1.5       // GPU
+    width: 200       // CPU + layout
+    ```
+  </Step>
+  
+  <Step title="Use opacity for fading">
+    ```javascript
+    opacity: 0.5     // GPU (composited)
+    ```
+  </Step>
+</Steps>
+
+## GPU Acceleration
+
+### Force GPU Acceleration
+
+Use `will-change` or 3D transforms:
+
+```css
+.animated-element {
+  will-change: transform, opacity;
+}
+```
+
+```javascript
+// Or use translate3d
+animate('.box', {
+  translateZ: 0, // Forces GPU layer
+  translateX: 100,
+  duration: 1000
+});
+```
+
+<Warning>
+  Don't overuse `will-change`. Too many GPU layers consume memory. Remove it after animation completes.
+</Warning>
+
+### Optimal Properties for GPU
+
+- `transform` (all transform functions)
+- `opacity`
+- `filter` (some filters)
+
+## Batching & Reflow
+
+### Batch DOM Reads and Writes
+
+```javascript
+// ❌ Causes layout thrashing
+elements.forEach(el => {
+  const width = el.offsetWidth; // Read
+  el.style.width = width * 2 + 'px'; // Write
+});
+
+// ✅ Batch reads, then writes
+const widths = elements.map(el => el.offsetWidth);
+widths.forEach((width, i) => {
+  elements[i].style.width = width * 2 + 'px';
+});
+```
+
+### Anime.js Auto-Batching
+
+The engine automatically batches property updates:
+
+```javascript
+// These are batched in a single frame
+animate('.box1', { translateX: 100, duration: 1000 });
+animate('.box2', { translateY: 100, duration: 1000 });
+animate('.box3', { scale: 1.5, duration: 1000 });
+```
+
+## Memory Management
+
+### Clean Up Completed Animations
+
+```javascript
+const animation = animate('.box', {
+  translateX: 200,
+  duration: 1000,
+  onComplete: (anim) => {
+    anim.cancel(); // Release memory
+  }
+});
+```
+
+### Reuse Timelines
+
+```javascript
+import { timeline } from 'animejs';
+
+const tl = timeline({
+  loop: true,
+  autoplay: false
+});
+
+tl.add('.box', { translateX: 100, duration: 500 });
+tl.add('.box', { translateY: 100, duration: 500 });
+
+// Reuse timeline
+button.addEventListener('click', () => {
+  tl.restart();
+});
+```
+
+### Avoid Memory Leaks
+
+```javascript
+// ❌ Creates new timeline on each call
+function animate Box() {
+  return timeline()
+    .add('.box', { translateX: 100 });
+}
+
+// ✅ Reuse timeline
+const boxTimeline = timeline({ autoplay: false });
+boxTimeline.add('.box', { translateX: 100 });
+
+function animateBox() {
+  boxTimeline.restart();
+}
+```
+
+## WAAPI for Performance
+
+Use WAAPI for simple, high-performance animations:
+
+```javascript
+import { waapi } from 'animejs';
+
+// Runs on compositor thread
+waapi.animate('.box', {
+  translateX: 200,
+  opacity: 0.5,
+  duration: 1000
+});
+```
+
+<Check>
+  WAAPI animations can run independently of the main thread, providing better performance during heavy JavaScript execution.
+</Check>
+
+## Optimizing Large Sets
+
+### Limit Concurrent Animations
+
+```javascript
+import { animate, stagger } from 'animejs';
+
+// ❌ 1000 elements at once
+animate('.item', {
+  translateY: 100,
+  duration: 1000
+});
+
+// ✅ Stagger for better performance
+animate('.item', {
+  translateY: 100,
+  duration: 1000,
+  delay: stagger(50, { limit: 100 }) // Only 100 active at once
+});
+```
+
+### Virtual Scrolling
+
+For very large lists:
+
+```javascript
+// Only animate visible elements
+const visibleItems = items.filter(item => {
+  const rect = item.getBoundingClientRect();
+  return rect.top < window.innerHeight && rect.bottom > 0;
+});
+
+animate(visibleItems, {
+  opacity: [0, 1],
+  duration: 600
+});
+```
+
+## Easing Performance
+
+### Spring vs Bezier
+
+```javascript
+// Springs are computationally expensive
+animate('.box', {
+  translateX: 100,
+  ease: spring({ mass: 1, stiffness: 100, damping: 10 }),
+  duration: 1000
+});
+
+// Bezier curves are faster
+animate('.box', {
+  translateX: 100,
+  ease: 'out(3)', // Bezier approximation
+  duration: 1000
+});
+```
+
+<Note>
+  Use springs for special effects, bezier curves for general animations.
+</Note>
+
+## Composition Optimization
+
+### Replace vs Blend
+
+```javascript
+// ✅ Replace is more efficient
+animate('.box', {
+  translateX: 100,
+  composition: 'replace', // Cancels previous
+  duration: 1000
+});
+
+// ⚠️ Blend adds overhead
+animate('.box', {
+  translateX: 100,
+  composition: 'blend', // Adds layer
+  duration: 1000
+});
+```
+
+## Monitoring Performance
+
+### Frame Timing
+
+```javascript
+import { engine } from 'animejs';
+
+let frameCount = 0;
+let lastTime = performance.now();
+
+setInterval(() => {
+  const now = performance.now();
+  const fps = frameCount / ((now - lastTime) / 1000);
+  console.log('FPS:', fps.toFixed(2));
+  frameCount = 0;
+  lastTime = now;
+}, 1000);
+
+engine.addEventListener('update', () => {
+  frameCount++;
+});
+```
+
+### Chrome DevTools
+
+1. Open Performance tab
+2. Start recording
+3. Trigger animation
+4. Stop and analyze:
+   - Frame rate graph
+   - Paint events
+   - Layout shifts
+   - JavaScript execution
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use Transform and Opacity">
+    Stick to GPU-accelerated properties:
+    ```javascript
+    animate('.box', {
+      translateX: 100,
+      translateY: 50,
+      rotate: 45,
+      scale: 1.5,
+      opacity: 0.8,
+      duration: 1000
+    });
+    ```
+  </Accordion>
+
+  <Accordion title="Avoid Layout Properties">
+    Properties that trigger layout are slow:
+    ```javascript
+    // Avoid
+    width, height, top, left, padding, margin, border
+    
+    // Prefer
+    transform, opacity
+    ```
+  </Accordion>
+
+  <Accordion title="Debounce Expensive Operations">
+    Delay expensive recalculations:
+    ```javascript
+    import { debounce } from 'lodash';
+    
+    const handleResize = debounce(() => {
+      // Expensive calculation
+      animate('.box', { /* ... */ });
+    }, 150);
+    
+    window.addEventListener('resize', handleResize);
+    ```
+  </Accordion>
+
+  <Accordion title="Profile Your Animations">
+    Always test on lower-end devices:
+    ```javascript
+    // Throttle CPU in Chrome DevTools
+    // Performance > CPU: 4x/6x slowdown
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Performance Checklist
+
+<Steps>
+  <Step title="Use transforms over position">
+    ✅ `translateX/Y` instead of `left/top`
+  </Step>
+  
+  <Step title="Add will-change strategically">
+    ✅ Only on elements being animated
+    
+    ❌ Don't apply globally
+  </Step>
+  
+  <Step title="Limit concurrent animations">
+    ✅ Use stagger with limits
+    
+    ✅ Consider frame rate reduction
+  </Step>
+  
+  <Step title="Clean up when done">
+    ✅ Cancel completed animations
+    
+    ✅ Remove event listeners
+  </Step>
+  
+  <Step title="Test on real devices">
+    ✅ Test on mobile/tablet
+    
+    ✅ Use Chrome DevTools throttling
+  </Step>
+</Steps>
+
+## Advanced: Precision Control
+
+```javascript
+import { engine } from 'animejs';
+
+// Reduce precision for better performance
+engine.precision = 2; // Default is 4
+
+// Values rounded to 2 decimal places
+animate('.box', {
+  translateX: 100.12345, // Becomes 100.12
+  duration: 1000
+});
+```
+
+<Warning>
+  Lower precision may cause jittery animations on very slow movements. Only reduce if needed.
+</Warning>
+
+## Time Unit
+
+Use seconds for easier debugging:
+
+```javascript
+import { engine } from 'animejs';
+
+// Switch to seconds
+engine.timeUnit = 's';
+
+animate('.box', {
+  translateX: 100,
+  duration: 1,  // 1 second
+  delay: 0.5    // 500ms
+});
+```
+
+## Benchmarks
+
+Typical performance on modern hardware:
+
+| Animation Type | Elements | FPS |
+|---------------|----------|-----|
+| Transform only | 100 | 60 |
+| Transform only | 500 | 60 |
+| Mixed properties | 100 | 55-60 |
+| Mixed properties | 500 | 45-55 |
+| Complex paths | 50 | 60 |
+| SVG morphing | 20 | 55-60 |
+
+<Check>
+  Aim for consistent 60fps. Drop below 30fps becomes noticeably choppy.
+</Check>

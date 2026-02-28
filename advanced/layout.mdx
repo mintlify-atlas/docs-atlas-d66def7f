@@ -1,0 +1,445 @@
+---
+title: 'Layout Animations'
+description: 'Animate layout changes and element transitions with FLIP technique'
+---
+
+Anime.js provides automatic layout transition animations using the FLIP (First, Last, Invert, Play) technique.
+
+## Auto Layout
+
+The `AutoLayout` class animates layout changes automatically.
+
+### Basic Usage
+
+```javascript
+import { AutoLayout } from 'animejs';
+
+const layout = new AutoLayout('.container', {
+  children: '.item',
+  duration: 600,
+  ease: 'out(3)'
+});
+
+// Make DOM changes
+document.querySelector('.item').remove();
+
+// Animate the layout change
+layout.animate();
+```
+
+## How It Works
+
+1. **Record** - Capture element positions before change
+2. **Modify** - Make your DOM changes
+3. **Animate** - Smoothly transition to new positions
+
+```javascript
+const layout = new AutoLayout('.grid');
+
+// Record current state
+layout.record();
+
+// Make changes (add, remove, reorder elements)
+container.appendChild(newElement);
+
+// Animate to new state
+layout.animate();
+```
+
+## Configuration
+
+### Children Selector
+
+```javascript
+// Animate specific children
+const layout = new AutoLayout('.container', {
+  children: '.card'
+});
+
+// Animate all children
+const layout = new AutoLayout('.container', {
+  children: '*'
+});
+
+// Multiple selectors
+const layout = new AutoLayout('.container', {
+  children: ['.card', '.item', '.box']
+});
+```
+
+### Custom Properties
+
+Animate additional CSS properties during transitions:
+
+```javascript
+const layout = new AutoLayout('.container', {
+  children: '.item',
+  properties: [
+    'backgroundColor',
+    'borderRadius',
+    'color',
+    'fontSize',
+    'boxShadow'
+  ],
+  duration: 800
+});
+```
+
+<Note>
+  By default, position, size, opacity, and basic visual properties are animated.
+</Note>
+
+## State Transitions
+
+### Enter Animation
+
+Define how new elements appear:
+
+```javascript
+const layout = new AutoLayout('.container', {
+  children: '.item',
+  enterFrom: {
+    opacity: 0,
+    scale: 0.8,
+    translateY: 20,
+    duration: 600,
+    ease: 'out(3)'
+  }
+});
+```
+
+### Leave Animation
+
+Define how removed elements exit:
+
+```javascript
+const layout = new AutoLayout('.container', {
+  children: '.item',
+  leaveTo: {
+    opacity: 0,
+    scale: 0.5,
+    translateY: -50,
+    duration: 400,
+    ease: 'in(2)'
+  }
+});
+```
+
+### Swap Animation
+
+Transition state for elements changing size:
+
+```javascript
+const layout = new AutoLayout('.container', {
+  children: '.item',
+  swapAt: {
+    opacity: 0.5,
+    scale: 0.95,
+    duration: 300,
+    ease: 'inOut(2)'
+  }
+});
+```
+
+<ParamField path="swapAt" type="object">
+  Intermediate state when elements change dimensions. Animation goes: current → swapAt → new
+</ParamField>
+
+## Complete Example
+
+```javascript
+import { AutoLayout } from 'animejs';
+
+const layout = new AutoLayout('.grid', {
+  children: '.card',
+  duration: 600,
+  ease: 'out(3)',
+  
+  // New elements fade and slide in
+  enterFrom: {
+    opacity: 0,
+    translateY: 30,
+    scale: 0.9
+  },
+  
+  // Removed elements shrink out
+  leaveTo: {
+    opacity: 0,
+    scale: 0.8,
+    translateY: -20
+  },
+  
+  // Elements briefly dim during resize
+  swapAt: {
+    opacity: 0.6
+  },
+  
+  // Track additional properties
+  properties: ['backgroundColor', 'borderRadius'],
+  
+  // Callbacks
+  onComplete: (timeline) => {
+    console.log('Layout animation complete');
+  }
+});
+
+// Usage
+function addCard() {
+  layout.record();
+  container.appendChild(createCard());
+  layout.animate();
+}
+
+function removeCard(card) {
+  layout.record();
+  card.remove();
+  layout.animate();
+}
+
+function reorderCards() {
+  layout.record();
+  // ... reorder logic
+  layout.animate();
+}
+```
+
+## Timing Functions
+
+### Staggered Delays
+
+```javascript
+const layout = new AutoLayout('.container', {
+  children: '.item',
+  delay: (el, i) => i * 50,
+  duration: (el, i) => 400 + (i * 20),
+  ease: (el, i) => i % 2 ? 'out(2)' : 'out(3)'
+});
+```
+
+### Per-State Timing
+
+```javascript
+const layout = new AutoLayout('.container', {
+  children: '.item',
+  duration: 600,
+  
+  enterFrom: {
+    opacity: 0,
+    duration: 800,  // Slower enter
+    delay: (el, i) => i * 100
+  },
+  
+  leaveTo: {
+    opacity: 0,
+    duration: 300,  // Faster leave
+    ease: 'in(2)'
+  }
+});
+```
+
+## Animation Control
+
+Layout animations return timelines:
+
+```javascript
+const layout = new AutoLayout('.container');
+
+layout.record();
+// ... make changes
+const timeline = layout.animate();
+
+// Control the timeline
+timeline.pause();
+timeline.seek(500);
+timeline.reverse();
+```
+
+## Custom Animation
+
+Provide animation parameters when calling `animate()`:
+
+```javascript
+const layout = new AutoLayout('.container');
+
+layout.record();
+// ... changes
+
+layout.animate({
+  duration: 1000,
+  ease: 'inOut(4)',
+  delay: (el, i) => i * 50,
+  onComplete: () => {
+    console.log('Done');
+  }
+});
+```
+
+## Scroll Integration
+
+```javascript
+import { AutoLayout, onScroll } from 'animejs';
+
+const layout = new AutoLayout('.container');
+
+layout.record();
+// ... make changes
+
+const timeline = layout.animate({
+  autoplay: onScroll({
+    target: '.container',
+    sync: true
+  })
+});
+```
+
+## Cleanup
+
+```javascript
+const layout = new AutoLayout('.container');
+
+// Later...
+layout.revert();
+```
+
+<Warning>
+  Call `revert()` before destroying the container element to clean up internal references and prevent memory leaks.
+</Warning>
+
+## Common Patterns
+
+### List Reordering
+
+```javascript
+const listLayout = new AutoLayout('.todo-list', {
+  children: '.todo-item',
+  duration: 400,
+  ease: 'out(3)'
+});
+
+function reorder(oldIndex, newIndex) {
+  listLayout.record();
+  const item = list.children[oldIndex];
+  list.insertBefore(item, list.children[newIndex]);
+  listLayout.animate();
+}
+```
+
+### Grid Filtering
+
+```javascript
+const gridLayout = new AutoLayout('.grid', {
+  children: '.card',
+  leaveTo: {
+    opacity: 0,
+    scale: 0.5
+  }
+});
+
+function filter(category) {
+  gridLayout.record();
+  
+  cards.forEach(card => {
+    if (card.dataset.category === category) {
+      card.style.display = '';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+  
+  gridLayout.animate();
+}
+```
+
+### Accordion
+
+```javascript
+const accordion = new AutoLayout('.accordion', {
+  children: '.panel',
+  swapAt: {
+    opacity: 0.5
+  },
+  duration: 500
+});
+
+function toggle(panel) {
+  accordion.record();
+  panel.classList.toggle('expanded');
+  accordion.animate();
+}
+```
+
+### Modal Transitions
+
+```javascript
+const modalLayout = new AutoLayout('body', {
+  children: '.modal',
+  enterFrom: {
+    opacity: 0,
+    scale: 0.9,
+    translateY: -50
+  },
+  leaveTo: {
+    opacity: 0,
+    scale: 0.95,
+    translateY: 50
+  }
+});
+
+function openModal() {
+  modalLayout.record();
+  document.body.appendChild(modal);
+  modalLayout.animate();
+}
+```
+
+## Performance Tips
+
+<AccordionGroup>
+  <Accordion title="Limit Property Tracking">
+    Only track properties you need to animate:
+    ```javascript
+    new AutoLayout('.container', {
+      properties: ['opacity'] // Minimal tracking
+    });
+    ```
+  </Accordion>
+
+  <Accordion title="Use Will-Change">
+    Add `will-change` to elements that will be animated:
+    ```css
+    .item {
+      will-change: transform, opacity;
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Batch Changes">
+    Make all DOM changes before calling `animate()`:
+    ```javascript
+    layout.record();
+    // Batch all changes here
+    element1.remove();
+    element2.appendChild(newChild);
+    element3.classList.add('active');
+    // Then animate once
+    layout.animate();
+    ```
+  </Accordion>
+
+  <Accordion title="Avoid Layout Thrashing">
+    The library handles this automatically, but avoid reading layout properties between `record()` and `animate()`.
+  </Accordion>
+</AccordionGroup>
+
+## Browser Support
+
+<Check>
+  Layout animations work in all modern browsers with ResizeObserver support.
+</Check>
+
+## Limitations
+
+- SVG elements are not supported
+- Fixed and absolute positioning may require `absoluteCoords` option
+- Nested layouts need separate instances
+- CSS transitions on tracked elements should be disabled during animations

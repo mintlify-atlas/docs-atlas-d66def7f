@@ -1,0 +1,265 @@
+---
+title: random
+description: Generate random numbers and select random items for unpredictable animations
+---
+
+Anime.js provides utility functions for generating random values, useful for creating varied and organic animation effects.
+
+## random
+
+Generates a random number between min and max (inclusive) with optional decimal precision.
+
+### Syntax
+
+```javascript
+random(min, max, decimalLength)
+```
+
+### Parameters
+
+<ParamField path="min" type="number" default={0}>
+  The minimum value (inclusive).
+</ParamField>
+
+<ParamField path="max" type="number" default={1}>
+  The maximum value (inclusive).
+</ParamField>
+
+<ParamField path="decimalLength" type="number" default={0}>
+  Number of decimal places to round to. Use `0` for integers.
+</ParamField>
+
+### Returns
+
+<ResponseField type="number">
+  A random number between min and max with specified decimal precision.
+</ResponseField>
+
+### Examples
+
+```javascript
+// Random integer between 0 and 100
+const value = anime.random(0, 100);
+
+// Random decimal between 0 and 1 with 2 decimal places
+const opacity = anime.random(0, 1, 2);
+
+// Use in animation properties
+anime({
+  targets: '.box',
+  translateX: () => anime.random(-250, 250),
+  rotate: () => anime.random(-180, 180),
+  scale: () => anime.random(0.5, 1.5, 2)
+});
+```
+
+## createSeededRandom
+
+Creates a seeded pseudorandom number generator function for reproducible random sequences.
+
+### Syntax
+
+```javascript
+createSeededRandom(seed, seededMin, seededMax, seededDecimalLength)
+```
+
+### Parameters
+
+<ParamField path="seed" type="number">
+  The seed value for the random number generator. Same seed produces same sequence.
+</ParamField>
+
+<ParamField path="seededMin" type="number" default={0}>
+  Default minimum value for the returned function.
+</ParamField>
+
+<ParamField path="seededMax" type="number" default={1}>
+  Default maximum value for the returned function.
+</ParamField>
+
+<ParamField path="seededDecimalLength" type="number" default={0}>
+  Default number of decimal places for the returned function.
+</ParamField>
+
+### Returns
+
+<ResponseField type="function">
+  A random number generator function with signature `(min, max, decimalLength)`.
+</ResponseField>
+
+### Examples
+
+```javascript
+// Create a seeded random generator
+const seededRandom = anime.createSeededRandom(42);
+
+// Will always produce the same sequence
+const val1 = seededRandom(0, 100); // Always same for seed 42
+const val2 = seededRandom(0, 100); // Always same for seed 42
+
+// Use in animations for reproducible random effects
+const myRandom = anime.createSeededRandom(12345, 0, 100);
+
+anime({
+  targets: '.box',
+  translateX: () => myRandom(),
+  translateY: () => myRandom()
+});
+```
+
+## randomPick
+
+Picks a random element from an array or a random character from a string.
+
+### Syntax
+
+```javascript
+randomPick(items)
+```
+
+### Parameters
+
+<ParamField path="items" type="string | array" required>
+  The array or string to pick a random element from.
+</ParamField>
+
+### Returns
+
+<ResponseField type="any">
+  A random element from the array or a random character from the string.
+</ResponseField>
+
+### Examples
+
+```javascript
+// Random element from array
+const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A'];
+const randomColor = anime.randomPick(colors);
+
+// Random character from string
+const randomLetter = anime.randomPick('ABCDEFGH');
+
+// Use in animations
+anime({
+  targets: '.box',
+  backgroundColor: () => anime.randomPick(colors),
+  duration: 1000
+});
+```
+
+## shuffle
+
+Shuffles an array in-place using the Fisher-Yates algorithm.
+
+### Syntax
+
+```javascript
+shuffle(items)
+```
+
+### Parameters
+
+<ParamField path="items" type="array" required>
+  The array to shuffle. The array is modified in-place.
+</ParamField>
+
+### Returns
+
+<ResponseField type="array">
+  The same array reference, now shuffled.
+</ResponseField>
+
+### Examples
+
+```javascript
+// Shuffle an array of elements
+const elements = document.querySelectorAll('.box');
+const shuffled = anime.shuffle([...elements]);
+
+// Animate shuffled elements
+anime({
+  targets: shuffled,
+  translateY: -50,
+  delay: anime.stagger(100)
+});
+
+// Shuffle animation order
+const colors = ['red', 'blue', 'green', 'yellow'];
+anime.shuffle(colors);
+```
+
+## Practical Examples
+
+### Random Particle System
+
+```javascript
+anime({
+  targets: '.particle',
+  translateX: () => anime.random(-500, 500),
+  translateY: () => anime.random(-500, 500),
+  scale: () => anime.random(0.2, 1, 2),
+  rotate: () => anime.random(-360, 360),
+  duration: () => anime.random(1000, 3000),
+  delay: anime.stagger(50)
+});
+```
+
+### Randomized Color Transitions
+
+```javascript
+const palette = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#96CEB4'];
+
+anime({
+  targets: '.box',
+  backgroundColor: () => anime.randomPick(palette),
+  duration: 2000,
+  easing: 'easeInOutQuad',
+  loop: true
+});
+```
+
+### Seeded Animation Playback
+
+```javascript
+// Same animation every time with seed
+const seededRandom = anime.createSeededRandom(99999);
+
+anime({
+  targets: '.element',
+  translateX: () => seededRandom(-200, 200),
+  translateY: () => seededRandom(-200, 200),
+  rotate: () => seededRandom(-180, 180),
+  duration: 2000
+});
+```
+
+## Use Cases
+
+<CardGroup cols={2}>
+  <Card title="Organic Motion" icon="seedling">
+    Add natural variation to animations for more lifelike movement
+  </Card>
+  <Card title="Particle Effects" icon="sparkles">
+    Create dynamic particle systems with random velocities and sizes
+  </Card>
+  <Card title="Testing" icon="flask">
+    Use seeded random for reproducible animation tests
+  </Card>
+  <Card title="Generative Art" icon="palette">
+    Build procedural animations with controlled randomness
+  </Card>
+</CardGroup>
+
+## Notes
+
+<Note>
+  The `random()` function uses `Math.random()` internally and produces different values each time.
+</Note>
+
+<Tip>
+  Use `createSeededRandom()` when you need consistent "random" behavior for testing or reproducible animations.
+</Tip>
+
+<Warning>
+  The `shuffle()` function modifies the original array. Create a copy with `[...array]` if you need to preserve the original order.
+</Warning>

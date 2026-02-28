@@ -1,0 +1,322 @@
+---
+title: Timer Class
+description: Base class used to create Timers, Animations and Timelines in Anime.js
+---
+
+The `Timer` class is the foundation for all time-based animations in Anime.js. It extends the `Clock` class and provides core timing functionality including playback control, looping, callbacks, and time manipulation.
+
+## Constructor
+
+```javascript
+new Timer(parameters, parent, parentPosition)
+```
+
+### Parameters
+
+<ParamField path="parameters" type="TimerParams" default="{}">
+  Configuration object for the timer
+  
+  <Expandable title="properties">
+    <ParamField path="id" type="String | Number">
+      Unique identifier for the timer
+    </ParamField>
+    
+    <ParamField path="delay" type="Number">
+      Delay before the timer starts in milliseconds
+    </ParamField>
+    
+    <ParamField path="duration" type="Number" default="Infinity">
+      Duration of one iteration in milliseconds
+    </ParamField>
+    
+    <ParamField path="reversed" type="Boolean" default="false">
+      Whether the timer should play in reverse
+    </ParamField>
+    
+    <ParamField path="alternate" type="Boolean" default="false">
+      Whether the timer should alternate direction on each loop
+    </ParamField>
+    
+    <ParamField path="loop" type="Boolean | Number" default="false">
+      Number of times to loop. `true` or `Infinity` for infinite loops
+    </ParamField>
+    
+    <ParamField path="loopDelay" type="Number" default="0">
+      Delay between loops in milliseconds
+    </ParamField>
+    
+    <ParamField path="autoplay" type="Boolean | ScrollObserver" default="true">
+      Whether the timer should start automatically, or a ScrollObserver to link
+    </ParamField>
+    
+    <ParamField path="frameRate" type="Number" default="60">
+      Target frame rate for the timer
+    </ParamField>
+    
+    <ParamField path="playbackRate" type="Number" default="1">
+      Speed multiplier for playback
+    </ParamField>
+    
+    <ParamField path="onBegin" type="Callback<Timer>">
+      Called when the timer begins (first time only)
+    </ParamField>
+    
+    <ParamField path="onBeforeUpdate" type="Callback<Timer>">
+      Called before each update
+    </ParamField>
+    
+    <ParamField path="onUpdate" type="Callback<Timer>">
+      Called on each update
+    </ParamField>
+    
+    <ParamField path="onLoop" type="Callback<Timer>">
+      Called when a loop iteration completes
+    </ParamField>
+    
+    <ParamField path="onPause" type="Callback<Timer>">
+      Called when the timer is paused
+    </ParamField>
+    
+    <ParamField path="onComplete" type="Callback<Timer>">
+      Called when the timer completes all iterations
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="parent" type="Timeline | null" default="null">
+  Parent timeline if this timer is a child
+</ParamField>
+
+<ParamField path="parentPosition" type="Number" default="0">
+  Position within the parent timeline in milliseconds
+</ParamField>
+
+## Properties
+
+### id
+
+```javascript
+timer.id
+```
+
+**Type:** `String | Number`
+
+Unique identifier for the timer instance.
+
+### duration
+
+```javascript
+timer.duration
+```
+
+**Type:** `Number`
+
+Total duration of the timer including all loops and loop delays in milliseconds.
+
+### iterationDuration
+
+```javascript
+timer.iterationDuration
+```
+
+**Type:** `Number`
+
+Duration of a single loop iteration in milliseconds.
+
+### iterationCount
+
+```javascript
+timer.iterationCount
+```
+
+**Type:** `Number`
+
+Total number of loop iterations. `Infinity` for infinite loops.
+
+### paused
+
+```javascript
+timer.paused
+```
+
+**Type:** `Boolean`
+
+Indicates whether the timer is currently paused.
+
+### began
+
+```javascript
+timer.began
+```
+
+**Type:** `Boolean`
+
+Indicates whether the timer has begun playing.
+
+### completed
+
+```javascript
+timer.completed
+```
+
+**Type:** `Boolean`
+
+Indicates whether the timer has completed all iterations.
+
+### cancelled
+
+```javascript
+timer.cancelled
+```
+
+**Type:** `Boolean`
+
+Indicates whether the timer has been cancelled. Setting to `true` cancels the timer, setting to `false` resets and plays it.
+
+### backwards
+
+```javascript
+timer.backwards
+```
+
+**Type:** `Boolean`
+
+Indicates the current playback direction.
+
+### parent
+
+```javascript
+timer.parent
+```
+
+**Type:** `Timeline | null`
+
+Reference to the parent timeline, if any.
+
+### currentTime
+
+```javascript
+timer.currentTime
+```
+
+**Type:** `Number`
+
+Current playback time in milliseconds. Can be set to seek the timer.
+
+### iterationCurrentTime
+
+```javascript
+timer.iterationCurrentTime
+```
+
+**Type:** `Number`
+
+Current time within the current iteration in milliseconds. Can be set to seek within the iteration.
+
+### progress
+
+```javascript
+timer.progress
+```
+
+**Type:** `Number` (0-1)
+
+Overall progress from 0 to 1. Can be set to seek by percentage.
+
+### iterationProgress
+
+```javascript
+timer.iterationProgress
+```
+
+**Type:** `Number` (0-1)
+
+Progress within the current iteration from 0 to 1. Can be set to seek within the iteration by percentage.
+
+### currentIteration
+
+```javascript
+timer.currentIteration
+```
+
+**Type:** `Number`
+
+Index of the current loop iteration (0-based). Can be set to jump to a specific iteration.
+
+### reversed
+
+```javascript
+timer.reversed
+```
+
+**Type:** `Boolean`
+
+Indicates whether the timer is playing in reverse. Setting to `true` reverses playback, `false` plays forward.
+
+### speed
+
+```javascript
+timer.speed
+```
+
+**Type:** `Number`
+
+Playback rate multiplier. Values > 1 speed up, < 1 slow down. Inherited from Clock class.
+
+### fps
+
+```javascript
+timer.fps
+```
+
+**Type:** `Number`
+
+Target frame rate for the timer. Inherited from Clock class.
+
+### deltaTime
+
+```javascript
+timer.deltaTime
+```
+
+**Type:** `Number`
+
+Time elapsed since the last tick in milliseconds. Inherited from Clock class.
+
+## Callback Properties
+
+These properties store the callback functions and can be accessed or modified at runtime:
+
+- `timer.onBegin` - Called when timer begins
+- `timer.onBeforeUpdate` - Called before each update
+- `timer.onUpdate` - Called on each update  
+- `timer.onLoop` - Called on loop completion
+- `timer.onPause` - Called when paused
+- `timer.onComplete` - Called when all iterations complete
+
+All callbacks receive the timer instance as the first argument:
+
+```javascript
+timer.onUpdate = (timer) => {
+  console.log('Progress:', timer.progress);
+};
+```
+
+## Example
+
+```javascript
+import { Timer } from 'animejs';
+
+const timer = new Timer({
+  duration: 2000,
+  loop: 3,
+  onUpdate: (timer) => {
+    console.log('Time:', timer.currentTime);
+  },
+  onComplete: (timer) => {
+    console.log('Done!');
+  }
+});
+
+timer.init(); // Initialize and start the timer
+```

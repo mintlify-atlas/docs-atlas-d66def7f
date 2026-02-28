@@ -1,0 +1,141 @@
+---
+title: Easings Overview
+description: Control the pacing and timing of your animations with Anime.js easing functions
+---
+
+Easing functions control the rate of change during an animation, making movements feel more natural and dynamic. Anime.js provides a comprehensive set of easing options to give you precise control over your animation timing.
+
+## What are Easings?
+
+An easing function takes a linear progression value (0 to 1) and transforms it into a different progression curve. This allows you to create animations that accelerate, decelerate, bounce, or follow custom patterns.
+
+```javascript
+import anime from 'animejs';
+
+anime({
+  targets: '.box',
+  translateX: 250,
+  easing: 'easeInOutQuad' // Starts slow, speeds up, then slows down
+});
+```
+
+## Easing Categories
+
+Anime.js organizes easings into several categories:
+
+<CardGroup cols={2}>
+  <Card title="Built-in Easings" icon="wave-pulse" href="/easings/built-in">
+    Pre-configured easing functions including Quad, Cubic, Sine, Expo, and more
+  </Card>
+  <Card title="Cubic Bezier" icon="bezier-curve" href="/easings/cubic-bezier">
+    Create custom easing curves using control points
+  </Card>
+  <Card title="Spring" icon="spring" href="/easings/spring">
+    Physics-based spring animations with natural bouncing motion
+  </Card>
+  <Card title="Steps" icon="stairs" href="/easings/steps">
+    Discrete step-based animations for frame-by-frame effects
+  </Card>
+  <Card title="Irregular" icon="waveform-lines" href="/easings/irregular">
+    Randomized easing for organic, unpredictable movement
+  </Card>
+  <Card title="Custom Functions" icon="code" href="/easings/custom">
+    Write your own easing functions for complete control
+  </Card>
+</CardGroup>
+
+## Easing Types
+
+Most built-in easings support four timing variations:
+
+- **in**: Acceleration from zero velocity (slow start, fast end)
+- **out**: Deceleration to zero velocity (fast start, slow end)  
+- **inOut**: Acceleration then deceleration (slow start and end, fast middle)
+- **outIn**: Deceleration then acceleration (fast start and end, slow middle)
+
+```javascript
+// Different timing variations of the same easing
+anime({ targets: '.box1', translateX: 250, easing: 'easeInQuad' });
+anime({ targets: '.box2', translateX: 250, easing: 'easeOutQuad' });
+anime({ targets: '.box3', translateX: 250, easing: 'easeInOutQuad' });
+anime({ targets: '.box4', translateX: 250, easing: 'easeOutInQuad' });
+```
+
+## Linear Easing
+
+The simplest easing is linear, which provides no easing at all - the animation progresses at a constant rate:
+
+```javascript
+anime({
+  targets: '.box',
+  translateX: 250,
+  easing: 'linear' // Constant speed throughout
+});
+```
+
+<Note>
+You can also use `'none'` as an alias for linear easing.
+</Note>
+
+## Parameterized Easings
+
+Some easings accept parameters to customize their behavior:
+
+```javascript
+// Power easing with custom exponent
+import { eases } from 'animejs';
+
+anime({
+  targets: '.box',
+  translateX: 250,
+  easing: eases.in(3) // Cubic power curve
+});
+
+// Back easing with custom overshoot
+anime({
+  targets: '.box',
+  translateX: 250,
+  easing: eases.outBack(2.5) // More pronounced overshoot
+});
+```
+
+## Using Easing Functions
+
+There are two ways to specify easings in Anime.js:
+
+### String Syntax (Built-in only)
+
+```javascript
+anime({
+  targets: '.box',
+  translateX: 250,
+  easing: 'easeOutElastic' // String reference
+});
+```
+
+### Function Import (All types)
+
+```javascript
+import { cubicBezier, spring } from 'animejs';
+
+anime({
+  targets: '.box',
+  translateX: 250,
+  easing: cubicBezier(0.42, 0, 0.58, 1) // Function call
+});
+```
+
+<Warning>
+The old string syntax for `cubicBezier()`, `spring()`, `steps()`, `linear()`, and `irregular()` has been removed. You must now import and use these as functions.
+</Warning>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Explore Built-in Easings" href="/easings/built-in">
+    See all available pre-configured easing functions
+  </Card>
+  <Card title="Try Spring Physics" href="/easings/spring">
+    Create natural, physics-based animations
+  </Card>
+</CardGroup>

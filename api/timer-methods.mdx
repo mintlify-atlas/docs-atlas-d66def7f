@@ -1,0 +1,380 @@
+---
+title: Timer Methods
+description: Methods for controlling timer playback and state in Anime.js
+---
+
+The `Timer` class provides a comprehensive set of methods for controlling playback, seeking, and managing the timer's lifecycle.
+
+## Playback Control
+
+### play()
+
+Starts or resumes playback in the forward direction. If the timer is reversed, it will alternate to forward playback.
+
+```javascript
+timer.play()
+```
+
+**Returns:** `Timer` - The timer instance for chaining
+
+**Example:**
+
+```javascript
+const timer = new Timer({ duration: 2000 });
+timer.init();
+timer.pause();
+timer.play(); // Resume playback
+```
+
+### pause()
+
+Pauses the timer. Triggers the `onPause` callback.
+
+```javascript
+timer.pause()
+```
+
+**Returns:** `Timer` - The timer instance for chaining
+
+**Example:**
+
+```javascript
+timer.pause();
+console.log(timer.paused); // true
+```
+
+### resume()
+
+Resumes playback without changing the direction. Does nothing if already playing.
+
+```javascript
+timer.resume()
+```
+
+**Returns:** `Timer` - The timer instance for chaining
+
+**Example:**
+
+```javascript
+timer.pause();
+// ... later
+timer.resume(); // Continue from where it paused
+```
+
+### restart()
+
+Resets the timer to the beginning and resumes playback.
+
+```javascript
+timer.restart()
+```
+
+**Returns:** `Timer` - The timer instance for chaining
+
+**Example:**
+
+```javascript
+timer.restart(); // Start from the beginning
+```
+
+### reverse()
+
+Starts or resumes playback in reverse. If not already reversed, it will alternate to reverse playback.
+
+```javascript
+timer.reverse()
+```
+
+**Returns:** `Timer` - The timer instance for chaining
+
+**Example:**
+
+```javascript
+timer.reverse(); // Play backwards
+```
+
+### alternate()
+
+Alternates the playback direction based on the current state and `alternate` parameter.
+
+```javascript
+timer.alternate()
+```
+
+**Returns:** `Timer` - The timer instance for chaining
+
+**Example:**
+
+```javascript
+// Manually alternate direction
+timer.alternate();
+```
+
+## Seeking
+
+### seek()
+
+Seeks the timer to a specific time position.
+
+```javascript
+timer.seek(time, muteCallbacks, internalRender)
+```
+
+<ParamField path="time" type="Number" required>
+  Target time position in milliseconds
+</ParamField>
+
+<ParamField path="muteCallbacks" type="Boolean | Number" default="0">
+  Whether to suppress callbacks during the seek (0 = false, 1 = true)
+</ParamField>
+
+<ParamField path="internalRender" type="Boolean | Number" default="0">
+  Internal flag for rendering behavior (0 = false, 1 = true)
+</ParamField>
+
+**Returns:** `Timer` - The timer instance for chaining
+
+**Example:**
+
+```javascript
+// Seek to 1 second
+timer.seek(1000);
+
+// Seek without triggering callbacks
+timer.seek(1500, 1);
+
+// Seek using progress property
+timer.progress = 0.5; // Seek to halfway
+
+// Seek using currentTime property
+timer.currentTime = 2000;
+```
+
+## State Management
+
+### reset()
+
+Resets the timer to its initial state without playing.
+
+```javascript
+timer.reset(softReset)
+```
+
+<ParamField path="softReset" type="Boolean" default="false">
+  If true, performs a soft reset preserving certain internal states
+</ParamField>
+
+**Returns:** `Timer` - The timer instance for chaining
+
+**Example:**
+
+```javascript
+timer.reset(); // Reset to beginning, timer is paused
+timer.reset(true); // Soft reset
+```
+
+### init()
+
+Initializes the timer and optionally starts autoplay. This should be called after creating a timer.
+
+```javascript
+timer.init(internalRender)
+```
+
+<ParamField path="internalRender" type="Boolean" default="false">
+  Internal flag for rendering behavior
+</ParamField>
+
+**Returns:** `Timer` - The timer instance for chaining
+
+**Example:**
+
+```javascript
+const timer = new Timer({ duration: 2000, autoplay: true });
+timer.init(); // Initialize and auto-start
+```
+
+### cancel()
+
+Cancels the timer and pauses it. For timers with children, cancels all children. For animations, removes tween siblings.
+
+```javascript
+timer.cancel()
+```
+
+**Returns:** `Timer` - The timer instance for chaining
+
+**Example:**
+
+```javascript
+timer.cancel();
+console.log(timer.cancelled); // true
+```
+
+### revert()
+
+Seeks back to time 0, reverts any attached scroll observer, and cancels the timer.
+
+```javascript
+timer.revert()
+```
+
+**Returns:** `Timer` - The timer instance for chaining
+
+**Example:**
+
+```javascript
+timer.revert(); // Reset to start and cancel
+```
+
+### complete()
+
+Immediately completes the timer by seeking to its duration, triggering the `onComplete` callback, and cancelling it.
+
+```javascript
+timer.complete(muteCallbacks)
+```
+
+<ParamField path="muteCallbacks" type="Boolean | Number" default="0">
+  Whether to suppress the onComplete callback (0 = false, 1 = true)
+</ParamField>
+
+**Returns:** `Timer` - The timer instance for chaining
+
+**Example:**
+
+```javascript
+timer.complete(); // Jump to end and complete
+timer.complete(1); // Complete without triggering onComplete
+```
+
+## Timing
+
+### resetTime()
+
+Resets the internal timing calculations. Automatically called when changing speed.
+
+```javascript
+timer.resetTime()
+```
+
+**Returns:** `Timer` - The timer instance for chaining
+
+**Example:**
+
+```javascript
+timer.resetTime(); // Recalculate timing
+```
+
+### stretch()
+
+Changes the duration of the timer and scales all time-related properties proportionally.
+
+```javascript
+timer.stretch(newDuration)
+```
+
+<ParamField path="newDuration" type="Number" required>
+  New total duration in milliseconds
+</ParamField>
+
+**Returns:** `Timer` - The timer instance for chaining
+
+**Example:**
+
+```javascript
+const timer = new Timer({ duration: 1000, delay: 500 });
+timer.stretch(2000); // Duration becomes 2000ms, delay becomes 1000ms
+```
+
+## Promises
+
+### then()
+
+Returns a Promise that resolves when the timer completes. Useful for sequencing operations.
+
+```javascript
+timer.then(callback)
+```
+
+<ParamField path="callback" type="Callback<Timer>">
+  Optional callback function to execute when the promise resolves
+</ParamField>
+
+**Returns:** `Promise<Timer>` - Promise that resolves with the timer instance
+
+**Example:**
+
+```javascript
+// Using async/await
+async function animate() {
+  const timer = new Timer({ duration: 1000 }).init();
+  await timer;
+  console.log('Timer completed!');
+}
+
+// Using .then()
+timer.then((timer) => {
+  console.log('Done!');
+  return new Timer({ duration: 500 }).init();
+}).then((timer2) => {
+  console.log('Second timer done!');
+});
+
+// Chaining animations
+await timer1;
+await timer2;
+console.log('All done!');
+```
+
+## Factory Function
+
+### createTimer()
+
+Helper function to create and initialize a timer in one step.
+
+```javascript
+import { createTimer } from 'animejs';
+
+const timer = createTimer(parameters)
+```
+
+<ParamField path="parameters" type="TimerParams">
+  Same parameters as the Timer constructor
+</ParamField>
+
+**Returns:** `Timer` - An initialized timer instance
+
+**Example:**
+
+```javascript
+import { createTimer } from 'animejs';
+
+const timer = createTimer({
+  duration: 2000,
+  onComplete: () => console.log('Done!')
+});
+
+// Equivalent to:
+const timer2 = new Timer({
+  duration: 2000,
+  onComplete: () => console.log('Done!')
+}).init();
+```
+
+## Method Chaining
+
+Most methods return the timer instance, enabling method chaining:
+
+```javascript
+timer
+  .pause()
+  .seek(1000)
+  .play();
+
+// Reset and restart with new speed
+timer
+  .reset()
+  .stretch(2000)
+  .play();
+```

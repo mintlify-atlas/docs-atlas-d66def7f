@@ -1,0 +1,425 @@
+---
+title: 'Web Animations API'
+description: 'Use native browser animations with WAAPI integration'
+---
+
+Anime.js includes a Web Animations API (WAAPI) module that leverages the browser's native animation engine for optimal performance.
+
+## Why WAAPI?
+
+The Web Animations API provides:
+- Better performance through browser optimization
+- Reduced memory usage
+- Automatic GPU acceleration
+- Runs independently of JavaScript main thread
+
+## Basic Usage
+
+```javascript
+import { waapi } from 'animejs';
+
+const animation = waapi.animate('.box', {
+  translateX: 200,
+  scale: 1.5,
+  duration: 1000,
+  ease: 'out(3)'
+});
+```
+
+## Animation Properties
+
+### Transform Properties
+
+```javascript
+waapi.animate('.element', {
+  translateX: 100,
+  translateY: 50,
+  translateZ: 0,
+  rotate: 360,
+  rotateX: 180,
+  rotateY: 90,
+  scale: 1.5,
+  scaleX: 2,
+  scaleY: 0.5,
+  skewX: 10,
+  skewY: 5,
+  duration: 1500
+});
+```
+
+<Note>
+  Transform properties are registered as CSS custom properties, allowing smooth animations of individual transform values.
+</Note>
+
+### CSS Properties
+
+```javascript
+waapi.animate('.box', {
+  opacity: [0, 1],
+  backgroundColor: '#FF6B6B',
+  borderRadius: '50%',
+  width: 200,
+  height: 200,
+  duration: 1000
+});
+```
+
+### Property Units
+
+Numeric values automatically get appropriate units:
+
+```javascript
+waapi.animate('.element', {
+  translateX: 100,        // → '100px'
+  rotate: 45,             // → '45deg'
+  fontSize: 24,           // → '24px'
+  width: 200,             // → '200px'
+  perspective: 1000,      // → '1000px'
+  duration: 800
+});
+```
+
+## Tween Options
+
+### From-To Values
+
+```javascript
+waapi.animate('.box', {
+  translateX: {
+    from: -100,
+    to: 100,
+    duration: 1200,
+    ease: 'inOut(2)'
+  },
+  opacity: {
+    from: 0,
+    to: 1,
+    duration: 800
+  }
+});
+```
+
+### Individual Timing
+
+```javascript
+waapi.animate('.element', {
+  translateY: {
+    to: 200,
+    duration: 1500,
+    delay: 200,
+    ease: 'out(3)'
+  },
+  rotate: {
+    to: 360,
+    duration: 2000,
+    ease: 'linear'
+  }
+});
+```
+
+### Keyframes
+
+```javascript
+waapi.animate('.box', {
+  translateX: [0, 100, 50, 150],
+  opacity: [0, 1, 0.8, 1],
+  duration: 2000,
+  ease: 'inOut(2)'
+});
+```
+
+## Composition
+
+Control how animations combine:
+
+```javascript
+// Replace previous animations (default)
+waapi.animate('.box', {
+  translateX: 100,
+  composition: 'replace',
+  duration: 1000
+});
+
+// Accumulate with existing animations
+waapi.animate('.box', {
+  translateX: 50,
+  composition: 'accumulate',
+  duration: 1000
+});
+
+// Add to existing animations
+waapi.animate('.box', {
+  translateX: 50,
+  composition: 'add',
+  duration: 1000
+});
+```
+
+<ParamField path="composition" type="'replace' | 'add' | 'accumulate'">
+  - `replace`: Cancel previous animations of the same properties
+  - `add`: Add to the current animated value
+  - `accumulate`: Combine with underlying value
+</ParamField>
+
+## Playback Control
+
+### Play / Pause
+
+```javascript
+const animation = waapi.animate('.box', {
+  rotate: 360,
+  duration: 2000,
+  autoplay: false
+});
+
+animation.play();
+animation.pause();
+animation.resume();
+```
+
+### Seeking
+
+```javascript
+// Seek to specific time
+animation.seek(1000);
+
+// Seek by progress (0-1)
+animation.progress = 0.5;
+
+// Get current time
+const time = animation.currentTime;
+const progress = animation.progress;
+```
+
+### Speed Control
+
+```javascript
+const animation = waapi.animate('.box', {
+  translateX: 300,
+  duration: 2000
+});
+
+// Double speed
+animation.speed = 2;
+
+// Half speed
+animation.speed = 0.5;
+
+// Reverse
+animation.speed = -1;
+```
+
+## Direction & Looping
+
+### Reverse
+
+```javascript
+const animation = waapi.animate('.box', {
+  translateX: 200,
+  duration: 1000,
+  reversed: true
+});
+
+// Or toggle direction
+animation.reverse();
+```
+
+### Alternate
+
+```javascript
+waapi.animate('.box', {
+  translateY: 100,
+  duration: 1000,
+  alternate: true,
+  loop: 3
+});
+```
+
+### Loop
+
+```javascript
+// Loop 5 times
+waapi.animate('.box', {
+  rotate: 360,
+  duration: 1000,
+  loop: 5
+});
+
+// Loop infinitely
+waapi.animate('.box', {
+  scale: [1, 1.2, 1],
+  duration: 1500,
+  loop: true
+});
+```
+
+## Easing
+
+Anime.js easing functions are automatically converted to CSS equivalents:
+
+```javascript
+waapi.animate('.box', {
+  translateX: 200,
+  duration: 1000,
+  ease: 'out(3)' // Converted to CSS linear() easing
+});
+```
+
+### Supported Easing
+
+- Penner equations: `'inOut(2)'`, `'out(3)'`, etc.
+- Spring physics: `spring()` functions
+- Cubic bezier: `'cubicBezier(0.25, 0.1, 0.25, 1)'`
+- CSS natives: `'ease'`, `'ease-in'`, `'ease-out'`, `'ease-in-out'`
+- Steps: `'steps(5)'`
+
+### Convert Easing
+
+Use the converter directly:
+
+```javascript
+import { waapi } from 'animejs';
+
+const cssEasing = waapi.convertEase((t) => t * t, 50);
+// Returns: 'linear(0, 0.04, 0.16, 0.36, ...)'
+```
+
+## Callbacks
+
+```javascript
+const animation = waapi.animate('.box', {
+  translateX: 200,
+  duration: 1000,
+  onComplete: (anim) => {
+    console.log('Animation complete!');
+  }
+});
+```
+
+## Promises
+
+```javascript
+const animation = waapi.animate('.box', {
+  translateX: 200,
+  duration: 1000
+});
+
+animation.then((anim) => {
+  console.log('Animation finished');
+  // Chain another animation
+  return waapi.animate('.box', {
+    translateY: 100,
+    duration: 500
+  });
+});
+```
+
+## Cleanup
+
+### Commit Styles
+
+Apply current animated values as inline styles:
+
+```javascript
+animation.commitStyles();
+animation.cancel();
+```
+
+### Revert
+
+Restore original styles:
+
+```javascript
+animation.revert();
+```
+
+<Warning>
+  `revert()` removes all inline styles applied by the animation. Use `commitStyles()` if you want to preserve the final state.
+</Warning>
+
+## Persist Mode
+
+Keep animations active after completion:
+
+```javascript
+const animation = waapi.animate('.box', {
+  translateX: 200,
+  duration: 1000,
+  persist: true // Animation stays at end state
+});
+```
+
+## Multiple Targets
+
+```javascript
+waapi.animate(['.box1', '.box2', '.box3'], {
+  translateY: 100,
+  rotate: 180,
+  duration: 1000,
+  delay: (el, i) => i * 100
+});
+```
+
+## Browser Support
+
+<Check>
+  WAAPI animations require browsers with CSS.registerProperty support:
+  - Chrome 78+
+  - Edge 79+
+  - Safari 16.4+
+  - Firefox 128+
+</Check>
+
+<Note>
+  If `CSS.registerProperty` is not available, the module will gracefully degrade and not create animations.
+</Note>
+
+## Performance Comparison
+
+| Feature | WAAPI | JavaScript Engine |
+|---------|-------|------------------|
+| Transform animations | Excellent | Good |
+| Opacity | Excellent | Good |
+| Layout properties | Good | Fair |
+| Memory usage | Low | Medium |
+| GPU acceleration | Automatic | Manual |
+| Timeline integration | No | Yes |
+| Complex easing | Converted | Native |
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use for Simple Animations">
+    WAAPI excels at simple transform and opacity animations:
+    ```javascript
+    waapi.animate('.box', {
+      translateX: 200,
+      opacity: 0.5,
+      duration: 1000
+    });
+    ```
+  </Accordion>
+
+  <Accordion title="Combine with JavaScript Engine">
+    Use WAAPI for performance-critical animations and the JavaScript engine for complex sequences:
+    ```javascript
+    import { animate, waapi } from 'animejs';
+    
+    // Use WAAPI for transforms
+    waapi.animate('.box', { rotate: 360, duration: 1000 });
+    
+    // Use JS engine for complex properties
+    animate('.box', { backgroundColor: '#FF6B6B', duration: 1000 });
+    ```
+  </Accordion>
+
+  <Accordion title="Cleanup Properly">
+    Always clean up completed animations:
+    ```javascript
+    animation.then((anim) => {
+      anim.commitStyles();
+      anim.cancel();
+    });
+    ```
+  </Accordion>
+</AccordionGroup>

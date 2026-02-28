@@ -1,0 +1,214 @@
+---
+title: animate()
+description: Create and initialize a new animation instance
+---
+
+The `animate()` function is the primary way to create animations in Anime.js. It accepts targets and animation parameters, returning a new animation instance that automatically initializes and starts playing.
+
+## Signature
+
+```typescript
+function animate(
+  targets: TargetsParam,
+  parameters: AnimationParams
+): JSAnimation
+```
+
+## Parameters
+
+<ParamField path="targets" type="TargetsParam" required>
+  The element(s) to animate. Can be:
+  - CSS selector string (e.g., `'.my-element'`)
+  - DOM element (e.g., `document.querySelector('.my-element')`)
+  - NodeList or array of elements
+  - Plain JavaScript object
+  - Array of any combination of the above
+</ParamField>
+
+<ParamField path="parameters" type="AnimationParams" required>
+  Animation configuration object containing properties to animate and animation settings.
+  
+  <Expandable title="Common Animation Properties">
+    <ParamField path="duration" type="number | FunctionValue" default="1000">
+      Animation duration in milliseconds
+    </ParamField>
+    
+    <ParamField path="delay" type="number | FunctionValue" default="0">
+      Delay before animation starts in milliseconds
+    </ParamField>
+    
+    <ParamField path="ease" type="EasingParam" default="'outQuad'">
+      Easing function name or custom easing function
+    </ParamField>
+    
+    <ParamField path="loop" type="number | boolean" default="false">
+      Number of times to loop the animation, or `true` for infinite loop
+    </ParamField>
+    
+    <ParamField path="alternate" type="boolean" default="false">
+      Whether to alternate direction on each loop
+    </ParamField>
+    
+    <ParamField path="autoplay" type="boolean" default="true">
+      Whether to automatically start the animation
+    </ParamField>
+    
+    <ParamField path="composition" type="'none' | 'replace' | 'blend'" default="'replace'">
+      How to compose with other animations on the same property
+    </ParamField>
+  </Expandable>
+  
+  <Expandable title="Callbacks">
+    <ParamField path="onBegin" type="(anim: JSAnimation) => void">
+      Called when the animation begins
+    </ParamField>
+    
+    <ParamField path="onUpdate" type="(anim: JSAnimation) => void">
+      Called on every frame during animation
+    </ParamField>
+    
+    <ParamField path="onComplete" type="(anim: JSAnimation) => void">
+      Called when the animation completes
+    </ParamField>
+    
+    <ParamField path="onLoop" type="(anim: JSAnimation) => void">
+      Called when the animation loops
+    </ParamField>
+    
+    <ParamField path="onRender" type="(anim: JSAnimation) => void">
+      Called when the animation renders
+    </ParamField>
+  </Expandable>
+  
+  <Expandable title="Keyframes">
+    <ParamField path="keyframes" type="DurationKeyframes | PercentageKeyframes">
+      Keyframe-based animation definition. Can be an array of keyframe objects or a percentage-based object.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+## Return Value
+
+Returns a `JSAnimation` instance with the following characteristics:
+- Automatically initialized via `.init()`
+- Starts playing immediately if `autoplay` is `true` (default)
+- Provides control methods (play, pause, restart, etc.)
+- Extends the `Timer` class, inheriting all timer functionality
+
+## Examples
+
+### Basic Animation
+
+```javascript
+import { animate } from 'animejs';
+
+// Animate a single element
+animate('.box', {
+  translateX: 250,
+  duration: 1000,
+  ease: 'outQuad'
+});
+```
+
+### Multiple Properties
+
+```javascript
+animate('.box', {
+  translateX: 250,
+  scale: 2,
+  rotate: '1turn',
+  duration: 2000,
+  ease: 'inOutQuad'
+});
+```
+
+### Array Values (From-To)
+
+```javascript
+animate('.box', {
+  translateX: [0, 250],  // From 0 to 250
+  opacity: [1, 0],       // From 1 to 0
+  duration: 1500
+});
+```
+
+### Function-Based Values
+
+```javascript
+animate('.box', {
+  translateX: (target, index, total) => {
+    return index * 100;  // Stagger based on index
+  },
+  duration: 1000
+});
+```
+
+### With Callbacks
+
+```javascript
+const anim = animate('.box', {
+  translateX: 250,
+  duration: 1000,
+  onBegin: (animation) => {
+    console.log('Animation started');
+  },
+  onUpdate: (animation) => {
+    console.log('Progress:', animation.progress);
+  },
+  onComplete: (animation) => {
+    console.log('Animation completed');
+  }
+});
+```
+
+### Keyframe Animation
+
+```javascript
+// Duration-based keyframes
+animate('.box', {
+  keyframes: [
+    { translateX: 100, duration: 500 },
+    { translateY: 100, duration: 500 },
+    { translateX: 0, duration: 500 },
+    { translateY: 0, duration: 500 }
+  ]
+});
+
+// Percentage-based keyframes
+animate('.box', {
+  duration: 2000,
+  keyframes: {
+    '0%': { translateX: 0, scale: 1 },
+    '50%': { translateX: 250, scale: 1.5 },
+    '100%': { translateX: 0, scale: 1 }
+  }
+});
+```
+
+### Controlling the Animation
+
+```javascript
+const anim = animate('.box', {
+  translateX: 250,
+  duration: 1000,
+  autoplay: false  // Don't start automatically
+});
+
+// Control methods
+anim.play();      // Start playing
+anim.pause();     // Pause
+anim.restart();   // Restart from beginning
+anim.reverse();   // Play in reverse
+```
+
+## Notes
+
+- The `animate()` function is equivalent to `new JSAnimation(targets, parameters).init()`
+- All animations are automatically added to the global animation engine
+- Properties can use various value formats: numbers, strings with units, arrays, objects, or functions
+- The returned animation instance is chainable and can be used with Promises via `.then()`
+
+## Related
+
+- [Animation Class](/api/animation-class) - Full Animation class documentation
+- [Animation Parameters](/api/animation-parameters) - Detailed parameter reference

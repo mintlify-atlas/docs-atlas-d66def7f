@@ -1,0 +1,534 @@
+---
+title: Scope
+description: Create isolated animation contexts with scoped defaults, lifecycle management, and reactive updates
+---
+
+## Overview
+
+The Scope module creates isolated animation contexts with their own defaults, lifecycle management, and automatic cleanup. Perfect for component-based architectures, SPAs, and managing animations across different UI sections.
+
+## Importing
+
+```javascript
+import { createScope, Scope } from 'animejs';
+```
+
+## Creating Scopes
+
+### createScope()
+
+Create an isolated animation scope:
+
+```javascript
+const scope = createScope(parameters);
+```
+
+**Parameters:**
+- `parameters` - Scope configuration object (optional)
+
+### Basic Example
+
+```javascript
+import { createScope } from 'animejs';
+
+const scope = createScope({
+  defaults: {
+    duration: 800,
+    ease: 'outExpo'
+  }
+});
+```
+
+## Scope Parameters
+
+<ParamField path="root" type="string | element | ref" default="document">
+  Root element for scoped selector queries
+</ParamField>
+
+<ParamField path="defaults" type="object">
+  Default animation parameters for all animations in this scope
+</ParamField>
+
+<ParamField path="mediaQueries" type="object">
+  Named media queries for responsive behavior
+</ParamField>
+
+```javascript
+const scope = createScope({
+  root: '.app',
+  defaults: {
+    duration: 600,
+    ease: 'outQuad'
+  },
+  mediaQueries: {
+    mobile: '(max-width: 768px)',
+    desktop: '(min-width: 769px)',
+    prefersReducedMotion: '(prefers-reduced-motion: reduce)'
+  }
+});
+```
+
+## Framework Integration
+
+### React
+
+```javascript
+import { useRef, useEffect } from 'react';
+import { createScope } from 'animejs';
+
+function Component() {
+  const rootRef = useRef(null);
+  const scopeRef = useRef(null);
+  
+  useEffect(() => {
+    scopeRef.current = createScope({
+      root: rootRef, // React ref
+      defaults: { duration: 800 }
+    });
+    
+    return () => scopeRef.current.revert();
+  }, []);
+  
+  return <div ref={rootRef}>...</div>;
+}
+```
+
+### Angular
+
+```typescript
+import { Component, ElementRef, ViewChild } from '@angular/core';
+import { createScope } from 'animejs';
+
+@Component({...})
+export class MyComponent {
+  @ViewChild('root') rootRef: ElementRef;
+  scope: any;
+  
+  ngAfterViewInit() {
+    this.scope = createScope({
+      root: this.rootRef, // Angular ref
+      defaults: { duration: 800 }
+    });
+  }
+  
+  ngOnDestroy() {
+    this.scope.revert();
+  }
+}
+```
+
+### Vue
+
+```javascript
+import { ref, onMounted, onUnmounted } from 'vue';
+import { createScope } from 'animejs';
+
+export default {
+  setup() {
+    const root = ref(null);
+    let scope;
+    
+    onMounted(() => {
+      scope = createScope({
+        root: root.value,
+        defaults: { duration: 800 }
+      });
+    });
+    
+    onUnmounted(() => {
+      scope.revert();
+    });
+    
+    return { root };
+  }
+}
+```
+
+## Adding Constructors
+
+### .add()
+
+Add animation constructors that execute within the scope:
+
+```javascript
+scope.add(constructor)
+```
+
+```javascript
+const scope = createScope({
+  root: '.section',
+  defaults: { duration: 1000 }
+});
+
+scope.add((scope) => {
+  // Animations automatically use scope defaults
+  const anim = animate('.box', {
+    translateX: 250
+    // duration: 1000 inherited from scope
+  });
+  
+  // Return cleanup function
+  return () => {
+    anim.revert();
+  };
+});
+```
+
+### Named Methods
+
+Create named methods on the scope:
+
+```javascript
+scope.add(name, method)
+```
+
+```javascript
+scope.add('slideIn', (element) => {
+  return animate(element, {
+    translateX: [100, 0],
+    opacity: [0, 1]
+  });
+});
+
+// Call the method
+scope.methods.slideIn('.card');
+```
+
+## Reactive Updates
+
+### .refresh()
+
+Refresh all animations in the scope:
+
+```javascript
+scope.refresh()
+```
+
+```javascript
+let offset = 100;
+
+scope.add(() => {
+  animate('.box', {
+    translateX: () => offset // Function-based value
+  });
+});
+
+offset = 200;
+scope.refresh(); // Re-evaluates function
+```
+
+### Auto-Refresh with Media Queries
+
+Scope automatically refreshes when media queries change:
+
+```javascript
+const scope = createScope({
+  mediaQueries: {
+    mobile: '(max-width: 768px)'
+  }
+});
+
+scope.add((scope) => {
+  const isMobile = scope.matches.mobile;
+  
+  animate('.menu', {
+    translateX: isMobile ? 0 : 250
+  });
+});
+
+// Automatically refreshes when viewport changes
+```
+
+## Single Execution
+
+### .addOnce()
+
+Execute constructor only once, even after refresh:
+
+```javascript
+scope.addOnce(constructor)
+```
+
+```javascript
+scope.add(() => {
+  console.log('Runs on every refresh');
+});
+
+scope.addOnce(() => {
+  console.log('Runs only once');
+  // Good for initialization
+});
+
+scope.refresh(); // First constructor runs again, second doesn't
+```
+
+## Time Preservation
+
+### .keepTime()
+
+Preserve animation state across refreshes:
+
+```javascript
+scope.keepTime(constructor)
+```
+
+```javascript
+let isActive = false;
+
+const animation = scope.keepTime(() => {
+  return animate('.box', {
+    rotate: isActive ? 360 : 0,
+    duration: 1000
+  });
+});
+
+isActive = true;
+scope.refresh();
+// Animation preserves current time instead of restarting
+```
+
+## Executing Code in Scope
+
+### .execute()
+
+Run code within the scope context:
+
+```javascript
+scope.execute(callback)
+```
+
+```javascript
+const scope = createScope({
+  root: '.section',
+  defaults: { duration: 1200 }
+});
+
+scope.execute(() => {
+  // Queries scoped to .section
+  // Uses scope defaults
+  const animation = animate('.box', {
+    scale: 2
+  });
+  
+  return animation;
+});
+```
+
+## Scope Properties
+
+<ResponseField name="root" type="element">
+  Root element for scoped queries
+</ResponseField>
+
+<ResponseField name="defaults" type="object">
+  Default animation parameters
+</ResponseField>
+
+<ResponseField name="methods" type="object">
+  Named methods added with .add(name, method)
+</ResponseField>
+
+<ResponseField name="matches" type="object">
+  Current media query match states
+</ResponseField>
+
+<ResponseField name="mediaQueryLists" type="object">
+  MediaQueryList objects for each media query
+</ResponseField>
+
+<ResponseField name="data" type="object">
+  Custom data storage
+</ResponseField>
+
+```javascript
+const scope = createScope({
+  defaults: { duration: 800 },
+  mediaQueries: {
+    mobile: '(max-width: 768px)'
+  }
+});
+
+console.log(scope.defaults.duration); // 800
+console.log(scope.matches.mobile);    // true/false
+
+// Store custom data
+scope.data.theme = 'dark';
+scope.data.count = 0;
+```
+
+## Cleanup
+
+### .revert()
+
+Cleanup all animations and remove event listeners:
+
+```javascript
+scope.revert()
+```
+
+```javascript
+const scope = createScope();
+
+scope.add(() => {
+  return animate('.box', { scale: 2 });
+});
+
+// Later, cleanup everything
+scope.revert();
+```
+
+## Advanced Examples
+
+### Component Scope
+
+```javascript
+class AnimatedComponent {
+  constructor(element) {
+    this.scope = createScope({
+      root: element,
+      defaults: {
+        duration: 600,
+        ease: 'outQuad'
+      }
+    });
+    
+    this.scope.add(() => {
+      this.timeline = createTimeline();
+      this.timeline.add('.title', { opacity: [0, 1] })
+                   .add('.content', { translateY: [20, 0] });
+      
+      return () => this.timeline.revert();
+    });
+  }
+  
+  destroy() {
+    this.scope.revert();
+  }
+}
+```
+
+### Responsive Animations
+
+```javascript
+const scope = createScope({
+  mediaQueries: {
+    mobile: '(max-width: 768px)',
+    tablet: '(min-width: 769px) and (max-width: 1024px)',
+    desktop: '(min-width: 1025px)'
+  }
+});
+
+scope.add((s) => {
+  const { mobile, tablet, desktop } = s.matches;
+  
+  const duration = mobile ? 400 : tablet ? 600 : 800;
+  const offset = mobile ? 50 : tablet ? 100 : 150;
+  
+  return animate('.card', {
+    translateX: offset,
+    duration: duration
+  });
+});
+
+// Auto-refreshes on viewport change
+```
+
+### Shared Scope Configuration
+
+```javascript
+// Shared across components
+const appScope = createScope({
+  defaults: {
+    duration: 800,
+    ease: 'outExpo'
+  },
+  mediaQueries: {
+    mobile: '(max-width: 768px)',
+    prefersReducedMotion: '(prefers-reduced-motion: reduce)'
+  }
+});
+
+// Method library
+appScope.add('fadeIn', (element, options = {}) => {
+  const shouldAnimate = !appScope.matches.prefersReducedMotion;
+  
+  return animate(element, {
+    opacity: [0, 1],
+    duration: shouldAnimate ? undefined : 0,
+    ...options
+  });
+});
+
+appScope.add('slideUp', (element) => {
+  return animate(element, {
+    translateY: [30, 0],
+    opacity: [0, 1]
+  });
+});
+
+// Use anywhere
+appScope.methods.fadeIn('.modal');
+appScope.methods.slideUp('.notification');
+```
+
+### Dynamic Scope Data
+
+```javascript
+const scope = createScope();
+
+scope.data.theme = 'light';
+scope.data.animationSpeed = 1;
+
+scope.add((s) => {
+  const speed = s.data.animationSpeed;
+  const color = s.data.theme === 'dark' ? '#fff' : '#000';
+  
+  return animate('.element', {
+    color: color,
+    duration: 1000 / speed
+  });
+});
+
+// Update and refresh
+scope.data.theme = 'dark';
+scope.data.animationSpeed = 2;
+scope.refresh();
+```
+
+## Best Practices
+
+<Tip>
+  Always call `.revert()` when components unmount to prevent memory leaks.
+</Tip>
+
+<Tip>
+  Use scopes to isolate animation contexts in component-based applications.
+</Tip>
+
+<Warning>
+  Avoid creating scopes in loops or on every render. Create once per component instance.
+</Warning>
+
+```javascript
+// Good: One scope per component
+class Component {
+  constructor() {
+    this.scope = createScope({ root: this.element });
+  }
+  
+  destroy() {
+    this.scope.revert();
+  }
+}
+
+// Bad: Creating scope on every update
+function update() {
+  const scope = createScope(); // Don't do this!
+}
+```
+
+## Related
+
+- [Animation](/modules/animation) - Core animations
+- [Timeline](/modules/timeline) - Animation sequencing
+- [Engine](/modules/engine) - Global animation engine

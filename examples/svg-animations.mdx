@@ -1,0 +1,306 @@
+---
+title: SVG Animations
+description: Animate SVG elements, paths, and create stunning line drawing effects with Anime.js
+---
+
+## SVG Line Drawing
+
+Create elegant line drawing animations using the `svg.createDrawable()` function:
+
+```javascript
+import { svg, createTimeline, stagger } from 'animejs';
+
+// Generate SVG lines
+function generateLines(numberOfLines) {
+  const svgWidth = 1100;
+  const svgHeight = 1100;
+  const margin = 50;
+  const spacing = (svgWidth - margin * 2) / (numberOfLines - 1);
+
+  let svgContent = `<svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}">
+    <g id="lines" fill="none">`;
+  
+  for (let i = 0; i < numberOfLines; i++) {
+    const x = margin + i * spacing;
+    svgContent += `<line x1="${x}" y1="${margin}" x2="${x}" y2="${svgHeight - margin}" class="line" stroke="#A4FF4F"></line>`;
+  }
+  
+  svgContent += `</g></svg>`;
+  return svgContent;
+}
+
+document.body.innerHTML += generateLines(50);
+
+// Animate line drawing
+createTi timeline({
+  defaults: {
+    ease: 'inOut(4)',
+    duration: 10000,
+    loop: true
+  }
+})
+.add(svg.createDrawable('.line'), {
+  draw: [
+    '0.5 0.5',  // Start from center
+    '0 1',       // Draw full line
+    '0.5 0.5'   // Return to center
+  ],
+  stroke: '#FF4B4B'
+}, stagger(100, { from: 'first' }));
+```
+
+## The Draw Property
+
+The `draw` property controls how much of an SVG path is visible:
+
+```javascript
+import { animate, svg } from 'animejs';
+
+// Draw from 0% to 100%
+animate(svg.createDrawable('.path'), {
+  draw: '0 1', // start end (0 to 1)
+  duration: 2000
+});
+
+// Draw from center
+animate(svg.createDrawable('.path'), {
+  draw: ['0.5 0.5', '0 1'],
+  duration: 1500
+});
+
+// Multiple steps with keyframes
+animate(svg.createDrawable('.path'), {
+  draw: [
+    '0 0',      // Hidden
+    '0 0.5',    // Draw first half
+    '0.5 1',    // Draw second half
+    '0 1'       // Full path visible
+  ],
+  duration: 3000
+});
+```
+
+## Animating Circles
+
+Create radial drawing effects:
+
+```javascript
+import { svg, createTimeline, stagger, utils } from 'animejs';
+
+function generateCircles(numberOfCircles) {
+  const svgWidth = 1100;
+  const centerX = svgWidth / 2;
+  const centerY = svgWidth / 2;
+  const maxRadius = 500;
+  const step = maxRadius / numberOfCircles;
+
+  let svgContent = `<svg width="${svgWidth}" height="${svgWidth}" viewBox="0 0 ${svgWidth} ${svgWidth}">
+    <g id="circles" fill="none">`;
+  
+  for (let i = 0; i < numberOfCircles; i++) {
+    const radius = (i + 1) * step;
+    svgContent += `<circle class="circle" stroke="#A4FF4F" cx="${centerX}" cy="${centerY}" r="${radius}"></circle>`;
+  }
+  
+  svgContent += `</g></svg>`;
+  return svgContent;
+}
+
+document.body.innerHTML += generateCircles(50);
+
+creatTimeline({
+  defaults: {
+    ease: 'inOut(4)',
+    duration: 8000,
+    loop: true
+  }
+})
+.add(svg.createDrawable('.circle'), {
+  draw: [
+    () => { 
+      const v = utils.random(-1, -0.5, 2); 
+      return `${v} ${v}`;
+    },
+    () => `${utils.random(0, 0.25, 2)} ${utils.random(0.5, 0.75, 2)}`,
+    () => { 
+      const v = utils.random(1, 1.5, 2); 
+      return `${v} ${v}`;
+    }
+  ],
+  stroke: '#FF4B4B'
+}, stagger(100));
+```
+
+## SVG Transform Animations
+
+Animate standard SVG transforms:
+
+```javascript
+import { animate } from 'animejs';
+
+// Rotate SVG element
+animate('svg .shape', {
+  rotate: 360,
+  duration: 2000,
+  loop: true,
+  ease: 'linear'
+});
+
+// Scale and move
+animate('svg .icon', {
+  scale: [1, 1.5, 1],
+  x: [0, 50, 0],
+  y: [0, -30, 0],
+  duration: 1500,
+  loop: true
+});
+```
+
+## SVG Attributes
+
+Animate native SVG attributes:
+
+```javascript
+import { animate } from 'animejs';
+
+// Animate stroke properties
+animate('.path', {
+  strokeDashoffset: [1000, 0],
+  strokeWidth: [1, 10, 1],
+  stroke: ['#FF4B4B', '#A4FF4F'],
+  duration: 2000
+});
+
+// Animate circle radius
+animate('circle', {
+  r: [0, 100],
+  fill: ['#FF4B4B', '#FFC730'],
+  duration: 1500,
+  ease: 'outElastic'
+});
+
+// Animate polygon points
+animate('polygon', {
+  points: [
+    '50,0 100,100 0,100',
+    '50,50 75,100 25,100'
+  ],
+  duration: 1000
+});
+```
+
+## Morphing Paths
+
+Transform between different path shapes:
+
+```javascript
+import { animate } from 'animejs';
+
+const circle = 'M50,50 m-40,0 a40,40 0 1,0 80,0 a40,40 0 1,0 -80,0';
+const square = 'M10,10 L90,10 L90,90 L10,90 Z';
+
+animate('path', {
+  d: [circle, square, circle],
+  duration: 2000,
+  loop: true,
+  ease: 'inOutQuad'
+});
+```
+
+## Complex SVG Timeline
+
+Combine multiple SVG animations:
+
+```javascript
+import { createTimeline, svg, stagger } from 'animejs';
+
+const tl = createTimeline({
+  defaults: {
+    duration: 1500,
+    ease: 'outQuad'
+  }
+});
+
+// Draw paths in sequence
+tl.add(svg.createDrawable('.path-1'), {
+  draw: '0 1'
+}, 0)
+.add(svg.createDrawable('.path-2'), {
+  draw: '0 1'
+}, 500)
+.add(svg.createDrawable('.path-3'), {
+  draw: '0 1'
+}, 1000)
+// Then fill colors
+.add(['.path-1', '.path-2', '.path-3'], {
+  fill: ['transparent', '#FF4B4B'],
+  stroke: ['#A4FF4F', 'transparent'],
+  duration: 1000
+}, 2000);
+```
+
+## SVG Filter Animations
+
+Animate SVG filter effects:
+
+```javascript
+import { animate } from 'animejs';
+
+// Animate blur filter
+animate('feGaussianBlur', {
+  stdDeviation: [0, 10, 0],
+  duration: 2000,
+  loop: true
+});
+
+// Animate color matrix
+animate('feColorMatrix', {
+  values: [
+    '1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0',
+    '0 1 0 0 0  0 0 1 0 0  1 0 0 0 0  0 0 0 1 0'
+  ],
+  duration: 3000
+});
+```
+
+## Random Drawing Effects
+
+Create organic, randomized animations:
+
+```javascript
+import { animate, svg, utils, stagger } from 'animejs';
+
+animate(svg.createDrawable('.line'), {
+  draw: [
+    '0.5 0.5',
+    () => {
+      const length = utils.random(0.05, 0.45, 2);
+      return `${0.5 - length} ${0.5 + length}`;
+    },
+    '0.5 0.5'
+  ],
+  stroke: '#FF4B4B',
+  duration: 10000,
+  loop: true
+}, stagger(150, { from: 'random' }));
+```
+
+## Performance Tips
+
+<Tip>
+  - Use `will-change: transform` on frequently animated SVG elements
+  - Keep SVG markup clean and optimized
+  - Use `createDrawable()` for path animations instead of manual strokeDasharray
+  - Consider using `composition: 'replace'` for better performance with many elements
+</Tip>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Canvas Animations" icon="palette" href="/examples/canvas">
+    Learn canvas-based animations
+  </Card>
+  <Card title="Basic Animations" icon="play" href="/examples/basic-animations">
+    Review animation fundamentals
+  </Card>
+</CardGroup>
